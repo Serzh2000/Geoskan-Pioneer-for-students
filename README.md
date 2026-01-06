@@ -1,64 +1,43 @@
-<div align="center">
+# Урок 1 — структура и запуск
 
-# Методическое пособие по <a href="https://www.geoscan.aero/ru/products/pioneer/copter">Геоскан Пионер</a> совместно с <br>[Фондом содействия развитию военного образования](https://fsrvo.ru)
+## Структура каталогов
+- docs/api — локальная копия документации API Pioneer (index.html, assets)
+- examples — примеры Lua (сенсоры, точки, светодиоды, RC-тумблер)
+- lua/missions — базовые и продвинутые миссии Lua
+- lua/algorithms — учебные алгоритмические задачи на Lua
+- lua/solutions_tasks — решения учебных задач (разные задания)
+- tex — исходники LaTeX (lua.tex, leds.tex, missions_part1.tex, missions_part2.tex, main.tex)
+- tex/build — артефакты сборки LaTeX (pdf, лог, кэш minted)
 
-<a href="https://www.geoscan.aero/ru/products/pioneer/copter"> ![Geoscan Pioneer](https://docs.geoscan.aero/ru/master/_images/pioneer.png) </a>
+## Сборка LaTeX
+- Откройте каталог tex
+- Соберите документ:
 
-</div>
+```bash
+xelatex -shell-escape -interaction=nonstopmode main.tex
+```
 
-----------
-- ## Методические материалы
-  - ## [Пособие по сборке и пилотированию](https://github.com/Slond/pioneer_edu/raw/main/%D0%A1%D0%B1%D0%BE%D1%80%D0%BA%D0%B0%20%D0%B8%20%D0%BF%D0%B8%D0%BB%D0%BE%D1%82%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5.pdf)
+- Готовый PDF: tex/build/main.pdf
 
-  - ## [Пособие по программированию](https://github.com/Slond/pioneer_edu/raw/main/Программирование.pdf)
-  - ## [Пособие по машинному зрению](https://github.com/Slond/pioneer_edu/raw/main/%D0%9C%D0%B0%D1%88%D0%B8%D0%BD%D0%BD%D0%BE%D0%B5%20%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5.pdf)
-  - ## [Пособие по аэрофотосъёмке](https://github.com/Slond/pioneer_edu/raw/main/Аэрофотосъемка.pdf)
+## Запуск Lua миссий
+- Папка: lua/missions
+- Все миссии запускают движение только после безопасной стабилизации: после события TAKEOFF_COMPLETE добавлена неблокирующая задержка 2 секунды через Timer.callLater
+- Базовые миссии: base_01_circle.lua, base_02_polygon.lua, ...
+- Продвинутые миссии: adv_07_accuracy_check.lua, adv_08_perimeter.lua, ...
 
-- ## [FAQ](FAQ)
+## Примеры и утилиты
+- Примеры сенсоров и команд полёта: examples/*.lua
+- Примеры работы с RC: examples/example_rc8channel_test.lua
+- Пример управления светодиодами: examples/example_led.lua, example_leds_4.lua
 
----
+## Документация API
+- Локально: docs/api/index.html
+- Ключевые методы:
+  - ap.goToLocalPoint(x, y, z)
+  - ap.updateYaw(angle) — угол в радианах
+  - Timer.new(period, fn), Timer.callLater(delay, fn)
+  - Sensors.rc(), Sensors.lpsYaw()
 
-- ## Установка необходимых IDE
-
-  - ### [Файл установки TRIK Studio(Windows)](https://dl.trikset.com/ts/trik-studio-installer_2021-i686.exe)
-  - ### [Файл установки TRIK Studio(MacOS)](https://dl.trikset.com/ts/trik-studio-installer_2021-mac.dmg)
-
-  - ### [Файл установки Pioneer Station](https://pioneer-doc.readthedocs.io/ru/master/programming/pioneer_station/pioneer_station_main.html)
-
-  - ### [Geoscan LPS](https://dl.geoscan.aero/pioneer/upload/LPS/Geoscan_LPS.exe)
-
-  - ### [OpenMV IDE](https://openmv.io/pages/download)
-
-  - ### [Все необходимые прошивки](https://github.com/Slond/pioneer_edu/tree/main/Прошивка)
-
----
-
-- ## Языки программирования
-
-  - ### [Документация по Lua](https://learnxinyminutes.com/docs/ru-ru/lua-ru/)
-
-  - ### [Документация по Python](https://docs.python.org/3/)
-
----
-
-- ## [Документация по API](https://pioneer-doc.readthedocs.io/ru/master/programming/lua/lua.html)
-
-- ### [Настройка параметров автопилота](https://docs.geoscan.aero/ru/master/instructions/pioneer-max/settings/autopilot_parameters.html)
----
-
-- ## Настройка системы навигации "Локус"
-
-  - ## [Документация](https://pioneer-doc.readthedocs.io/ru/master/module/indoor_nav_lokus.html)
-
-  - ## [PDF по настройке](https://dl.geoscan.aero/pioneer/upload/Docs/User_manual_Locus.pdf)
-
----
-
-- ## Камера OpenMV
-
-  - ### [Документация](https://docs.openmv.io)
-
----
-#### Сделали:
-##### [Азибаев Ренат](https://t.me/azibaev_renat) - программист
-##### Лапин Владислав (lapin17271447@gmail.com) - менеджер, сопровождение
+## Примечания
+- Файлы кэша и логов LaTeX перенесены в tex/build
+- Для единообразия имена Lua-примеров унифицированы (example_*)
