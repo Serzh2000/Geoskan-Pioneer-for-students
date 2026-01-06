@@ -1,0 +1,81 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{k+kd}{local}\PYG{+w}{ }\PYG{n+nv}{ledNumber}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{4}\PYG{+w}{                         }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} количество диодов}
+\PYG{k+kd}{local}\PYG{+w}{ }\PYG{n+nv}{leds}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n+nv}{Ledbar}\PYG{p}{.}\PYG{n+nf}{new}\PYG{p}{(}\PYG{n+nv}{ledNumber}\PYG{p}{)}\PYG{+w}{         }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} объект управления линейкой}
+\PYG{k+kd}{local}\PYG{+w}{ }\PYG{n+nv}{unpack}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n+nb}{table.unpack}\PYG{+w}{                }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} распаковка таблиц}
+\PYG{k+kd}{local}\PYG{+w}{ }\PYG{n+nv}{curr\PYGZus{}state}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}PREPARE\PYGZus{}FLIGHT\PYGZdq{}}\PYG{+w}{        }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} начальное состояние}
+
+\PYG{k+kd}{local}\PYG{+w}{ }\PYG{k+kr}{function}\PYG{+w}{ }\PYG{n+nf}{changeColor}\PYG{p}{(}\PYG{n+nv}{color}\PYG{p}{)}\PYG{+w}{          }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} смена цвета всех диодов}
+\PYG{+w}{  }\PYG{k+kr}{for}\PYG{+w}{ }\PYG{n+nv}{i}\PYG{o}{=}\PYG{l+m+mi}{0}\PYG{p}{,}\PYG{+w}{ }\PYG{n+nv}{ledNumber}\PYG{+w}{ }\PYG{o}{\PYGZhy{}}\PYG{+w}{ }\PYG{l+m+mi}{1}\PYG{+w}{ }\PYG{k+kr}{do}\PYG{+w}{                }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} индексы 0..(ledNumber\PYGZhy{}1)}
+\PYG{+w}{    }\PYG{n+nv}{leds}\PYG{p}{:}\PYG{n+nf}{set}\PYG{p}{(}\PYG{n+nv}{i}\PYG{p}{,}\PYG{+w}{ }\PYG{n+nf}{unpack}\PYG{p}{(}\PYG{n+nv}{color}\PYG{p}{))}\PYG{+w}{             }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} установить RGB}
+\PYG{+w}{  }\PYG{k+kr}{end}
+\PYG{k+kr}{end}
+
+\PYG{k+kd}{local}\PYG{+w}{ }\PYG{n+nv}{colors}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{p}{\PYGZob{}}\PYG{+w}{                           }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} палитра}
+\PYG{+w}{  }\PYG{p}{\PYGZob{}}\PYG{l+m+mi}{1}\PYG{p}{,}\PYG{l+m+mi}{0}\PYG{p}{,}\PYG{l+m+mi}{0}\PYG{p}{\PYGZcb{},}\PYG{+w}{ }\PYG{p}{\PYGZob{}}\PYG{l+m+mi}{1}\PYG{p}{,}\PYG{l+m+mi}{1}\PYG{p}{,}\PYG{l+m+mi}{1}\PYG{p}{\PYGZcb{},}\PYG{+w}{ }\PYG{p}{\PYGZob{}}\PYG{l+m+mi}{0}\PYG{p}{,}\PYG{l+m+mi}{1}\PYG{p}{,}\PYG{l+m+mi}{0}\PYG{p}{\PYGZcb{},}\PYG{+w}{ }\PYG{p}{\PYGZob{}}\PYG{l+m+mi}{1}\PYG{p}{,}\PYG{l+m+mi}{1}\PYG{p}{,}\PYG{l+m+mi}{0}\PYG{p}{\PYGZcb{},}
+\PYG{+w}{  }\PYG{p}{\PYGZob{}}\PYG{l+m+mi}{1}\PYG{p}{,}\PYG{l+m+mi}{0}\PYG{p}{,}\PYG{l+m+mi}{1}\PYG{p}{\PYGZcb{},}\PYG{+w}{ }\PYG{p}{\PYGZob{}}\PYG{l+m+mi}{0}\PYG{p}{,}\PYG{l+m+mi}{0}\PYG{p}{,}\PYG{l+m+mi}{1}\PYG{p}{\PYGZcb{},}\PYG{+w}{ }\PYG{p}{\PYGZob{}}\PYG{l+m+mi}{0}\PYG{p}{,}\PYG{l+m+mi}{0}\PYG{p}{,}\PYG{l+m+mi}{0}\PYG{p}{\PYGZcb{}}
+\PYG{p}{\PYGZcb{}}
+
+\PYG{k+kd}{local}\PYG{+w}{ }\PYG{n+nv}{value}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{3}\PYG{+w}{                            }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} шаг увеличения угла (градусы)}
+\PYG{k+kd}{local}\PYG{+w}{ }\PYG{n+nv}{i}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{+w}{                                }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} текущий угол для yaw}
+\PYG{n+nv}{angleT}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n+nv}{Timer}\PYG{p}{.}\PYG{n+nf}{new}\PYG{p}{(}\PYG{l+m+mf}{0.1}\PYG{p}{,}\PYG{+w}{ }\PYG{k+kr}{function}\PYG{p}{()}\PYG{+w}{         }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} таймер курса}
+\PYG{+w}{  }\PYG{n+nv}{ap}\PYG{p}{.}\PYG{n+nf}{updateYaw}\PYG{p}{(}\PYG{o}{\PYGZhy{}}\PYG{n+nv}{i}\PYG{o}{/}\PYG{l+m+mi}{180}\PYG{o}{*}\PYG{n+nb}{math.pi}\PYG{p}{)}\PYG{+w}{             }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} курс в радианах}
+\PYG{+w}{  }\PYG{n+nv}{i}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n+nv}{i}\PYG{+w}{ }\PYG{o}{+}\PYG{+w}{ }\PYG{n+nv}{value}\PYG{+w}{                            }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} приращение угла курса}
+\PYG{k+kr}{end}\PYG{p}{)}
+
+\PYG{k+kd}{local}\PYG{+w}{ }\PYG{n+nv}{r}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{0.3}\PYG{+w}{                              }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} радиус окружности}
+\PYG{k+kd}{local}\PYG{+w}{ }\PYG{n+nv}{angle}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{+w}{                            }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} текущий угол точки}
+\PYG{k+kd}{local}\PYG{+w}{ }\PYG{n+nv}{xCord}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{+w}{                            }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} текущая X координата}
+\PYG{k+kd}{local}\PYG{+w}{ }\PYG{n+nv}{yCord}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{+w}{                            }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} текущая Y координата}
+\PYG{k+kd}{local}\PYG{+w}{ }\PYG{n+nv}{height}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{0.7}\PYG{+w}{                         }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} высота полёта}
+\PYG{n+nv}{pointT}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n+nv}{Timer}\PYG{p}{.}\PYG{n+nf}{new}\PYG{p}{(}\PYG{l+m+mf}{0.1}\PYG{p}{,}\PYG{+w}{ }\PYG{k+kr}{function}\PYG{p}{()}\PYG{+w}{         }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} таймер точки}
+\PYG{+w}{  }\PYG{n+nv}{angle}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n+nv}{angle}\PYG{+w}{ }\PYG{o}{+}\PYG{+w}{ }\PYG{n+nv}{value}\PYG{+w}{                    }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} приращение угла}
+\PYG{+w}{  }\PYG{k+kr}{if}\PYG{+w}{ }\PYG{n+nv}{angle}\PYG{+w}{ }\PYG{o}{\PYGZgt{}}\PYG{+w}{ }\PYG{l+m+mi}{360}\PYG{+w}{ }\PYG{k+kr}{then}\PYG{+w}{ }\PYG{n+nv}{angle}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n+nv}{angle}\PYG{+w}{ }\PYG{o}{\PYGZhy{}}\PYG{+w}{ }\PYG{l+m+mi}{360}\PYG{+w}{ }\PYG{k+kr}{end}\PYG{+w}{ }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} нормализация}
+\PYG{+w}{  }\PYG{n+nv}{yCord}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n+nv}{r}\PYG{o}{*}\PYG{n+nb}{math.sin}\PYG{p}{(}\PYG{n+nv}{angle}\PYG{+w}{ }\PYG{o}{*}\PYG{+w}{ }\PYG{n+nb}{math.pi}\PYG{+w}{ }\PYG{o}{/}\PYG{+w}{ }\PYG{l+m+mi}{180}\PYG{p}{)}\PYG{+w}{   }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} расчёт Y}
+\PYG{+w}{  }\PYG{n+nv}{xCord}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n+nv}{r}\PYG{o}{*}\PYG{n+nb}{math.cos}\PYG{p}{(}\PYG{n+nv}{angle}\PYG{+w}{ }\PYG{o}{*}\PYG{+w}{ }\PYG{n+nb}{math.pi}\PYG{+w}{ }\PYG{o}{/}\PYG{+w}{ }\PYG{l+m+mi}{180}\PYG{p}{)}\PYG{+w}{   }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} расчёт X}
+\PYG{+w}{  }\PYG{n+nv}{ap}\PYG{p}{.}\PYG{n+nf}{goToLocalPoint}\PYG{p}{(}\PYG{n+nv}{xCord}\PYG{p}{,}\PYG{+w}{ }\PYG{n+nv}{yCord}\PYG{p}{,}\PYG{+w}{ }\PYG{n+nv}{height}\PYG{p}{)}\PYG{+w}{  }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} команда полёта}
+\PYG{k+kr}{end}\PYG{p}{)}
+
+\PYG{n+nv}{action}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{p}{\PYGZob{}}\PYG{+w}{                                 }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} таблица состояний}
+\PYG{+w}{  }\PYG{p}{[}\PYG{l+s+s2}{\PYGZdq{}PREPARE\PYGZus{}FLIGHT\PYGZdq{}}\PYG{p}{]}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{k+kr}{function}\PYG{p}{(}\PYG{n+nv}{x}\PYG{p}{)}\PYG{+w}{         }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} подготовка полёта}
+\PYG{+w}{    }\PYG{n+nf}{changeColor}\PYG{p}{(}\PYG{n+nv}{colors}\PYG{p}{[}\PYG{l+m+mi}{2}\PYG{p}{])}\PYG{+w}{                 }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} белый}
+\PYG{+w}{    }\PYG{n+nv}{Timer}\PYG{p}{.}\PYG{n+nf}{callLater}\PYG{p}{(}\PYG{l+m+mi}{2}\PYG{p}{,}\PYG{+w}{ }\PYG{k+kr}{function}\PYG{+w}{ }\PYG{p}{()}\PYG{+w}{ }\PYG{n+nv}{ap}\PYG{p}{.}\PYG{n+nf}{push}\PYG{p}{(}\PYG{n+nv}{Ev}\PYG{p}{.}\PYG{n+py}{MCE\PYGZus{}PREFLIGHT}\PYG{p}{)}\PYG{+w}{ }\PYG{k+kr}{end}\PYG{p}{)}\PYG{+w}{ }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} предстарт}
+\PYG{+w}{    }\PYG{n+nv}{Timer}\PYG{p}{.}\PYG{n+nf}{callLater}\PYG{p}{(}\PYG{l+m+mi}{4}\PYG{p}{,}\PYG{+w}{ }\PYG{k+kr}{function}\PYG{+w}{ }\PYG{p}{()}\PYG{+w}{ }\PYG{n+nf}{changeColor}\PYG{p}{(}\PYG{n+nv}{colors}\PYG{p}{[}\PYG{l+m+mi}{3}\PYG{p}{])}\PYG{+w}{ }\PYG{k+kr}{end}\PYG{p}{)}\PYG{+w}{    }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} зелёный}
+\PYG{+w}{    }\PYG{n+nv}{Timer}\PYG{p}{.}\PYG{n+nf}{callLater}\PYG{p}{(}\PYG{l+m+mi}{6}\PYG{p}{,}\PYG{+w}{ }\PYG{k+kr}{function}\PYG{+w}{ }\PYG{p}{()}\PYG{+w}{        }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} через 6 секунд}
+\PYG{+w}{      }\PYG{n+nv}{ap}\PYG{p}{.}\PYG{n+nf}{push}\PYG{p}{(}\PYG{n+nv}{Ev}\PYG{p}{.}\PYG{n+py}{MCE\PYGZus{}TAKEOFF}\PYG{p}{)}\PYG{+w}{             }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} взлёт}
+\PYG{+w}{      }\PYG{n+nv}{ap}\PYG{p}{.}\PYG{n+nf}{goToLocalPoint}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{,}\PYG{l+m+mi}{0}\PYG{p}{,}\PYG{n+nv}{height}\PYG{p}{)}\PYG{+w}{       }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} выход в центр}
+\PYG{+w}{      }\PYG{n+nv}{curr\PYGZus{}state}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}FLIGHT\PYGZus{}TO\PYGZus{}FIRST\PYGZus{}POINT\PYGZdq{}}\PYG{+w}{ }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} переход к полёту}
+\PYG{+w}{    }\PYG{k+kr}{end}\PYG{p}{)}
+\PYG{+w}{  }\PYG{k+kr}{end}\PYG{p}{,}
+\PYG{+w}{  }\PYG{p}{[}\PYG{l+s+s2}{\PYGZdq{}FLIGHT\PYGZus{}TO\PYGZus{}FIRST\PYGZus{}POINT\PYGZdq{}}\PYG{p}{]}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{k+kr}{function}\PYG{+w}{ }\PYG{p}{(}\PYG{n+nv}{x}\PYG{p}{)}\PYG{+w}{ }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} полёт к первой точке}
+\PYG{+w}{    }\PYG{n+nf}{changeColor}\PYG{p}{(}\PYG{n+nv}{colors}\PYG{p}{[}\PYG{l+m+mi}{4}\PYG{p}{])}\PYG{+w}{                 }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} жёлтый}
+\PYG{+w}{    }\PYG{n+nv}{Timer}\PYG{p}{.}\PYG{n+nf}{callLater}\PYG{p}{(}\PYG{l+m+mi}{1}\PYG{p}{,}\PYG{+w}{ }\PYG{k+kr}{function}\PYG{+w}{ }\PYG{p}{()}\PYG{+w}{         }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} через 1 секунду}
+\PYG{+w}{      }\PYG{n+nv}{angleT}\PYG{p}{:}\PYG{n+nf}{start}\PYG{p}{()}\PYG{+w}{                       }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} запуск курса}
+\PYG{+w}{      }\PYG{n+nv}{pointT}\PYG{p}{:}\PYG{n+nf}{start}\PYG{p}{()}\PYG{+w}{                       }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} запуск траектории}
+\PYG{+w}{      }\PYG{n+nf}{sleep}\PYG{p}{(}\PYG{l+m+mi}{6}\PYG{p}{)}\PYG{+w}{                             }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} блокирующая задержка (не рекомендуется)}
+\PYG{+w}{      }\PYG{n+nv}{curr\PYGZus{}state}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}PIONEER\PYGZus{}LANDING\PYGZdq{}}\PYG{+w}{       }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} переход к посадке}
+\PYG{+w}{    }\PYG{k+kr}{end}\PYG{p}{)}
+\PYG{+w}{  }\PYG{k+kr}{end}\PYG{p}{,}
+\PYG{+w}{  }\PYG{p}{[}\PYG{l+s+s2}{\PYGZdq{}PIONEER\PYGZus{}LANDING\PYGZdq{}}\PYG{p}{]}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{k+kr}{function}\PYG{+w}{ }\PYG{p}{(}\PYG{n+nv}{x}\PYG{p}{)}\PYG{+w}{       }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} состояние посадки}
+\PYG{+w}{    }\PYG{n+nf}{changeColor}\PYG{p}{(}\PYG{n+nv}{colors}\PYG{p}{[}\PYG{l+m+mi}{2}\PYG{p}{])}\PYG{+w}{                 }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} белый}
+\PYG{+w}{    }\PYG{n+nv}{Timer}\PYG{p}{.}\PYG{n+nf}{callLater}\PYG{p}{(}\PYG{l+m+mi}{2}\PYG{p}{,}\PYG{+w}{ }\PYG{k+kr}{function}\PYG{+w}{ }\PYG{p}{()}\PYG{+w}{         }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} через 2 секунды}
+\PYG{+w}{      }\PYG{n+nv}{pointT}\PYG{p}{:}\PYG{n+nf}{stop}\PYG{p}{()}\PYG{+w}{                        }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} остановить таймер точки}
+\PYG{+w}{      }\PYG{n+nv}{angleT}\PYG{p}{:}\PYG{n+nf}{stop}\PYG{p}{()}\PYG{+w}{                        }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} остановить таймер курса}
+\PYG{+w}{      }\PYG{n+nv}{ap}\PYG{p}{.}\PYG{n+nf}{goToLocalPoint}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{,}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{p}{,}\PYG{+w}{ }\PYG{n+nv}{height}\PYG{p}{)}\PYG{+w}{      }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} возврат в центр}
+\PYG{+w}{      }\PYG{n+nv}{ap}\PYG{p}{.}\PYG{n+nf}{push}\PYG{p}{(}\PYG{n+nv}{Ev}\PYG{p}{.}\PYG{n+py}{MCE\PYGZus{}LANDING}\PYG{p}{)}\PYG{+w}{              }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} посадка}
+\PYG{+w}{    }\PYG{k+kr}{end}\PYG{p}{)}
+\PYG{+w}{  }\PYG{k+kr}{end}
+\PYG{p}{\PYGZcb{}}
+
+\PYG{k+kr}{function}\PYG{+w}{ }\PYG{n+nf}{callback}\PYG{p}{(}\PYG{n+nv}{event}\PYG{p}{)}\PYG{+w}{                   }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} обработчик системных событий}
+\PYG{+w}{  }\PYG{k+kr}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n+nv}{event}\PYG{+w}{ }\PYG{o}{==}\PYG{+w}{ }\PYG{n+nv}{Ev}\PYG{p}{.}\PYG{n+py}{TAKEOFF\PYGZus{}COMPLETE}\PYG{p}{)}\PYG{+w}{ }\PYG{k+kr}{then}\PYG{+w}{ }\PYG{n+nv}{action}\PYG{p}{[}\PYG{n+nv}{curr\PYGZus{}state}\PYG{p}{]()}\PYG{+w}{ }\PYG{k+kr}{end}\PYG{+w}{ }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} запуск логики}
+\PYG{+w}{  }\PYG{k+kr}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n+nv}{event}\PYG{+w}{ }\PYG{o}{==}\PYG{+w}{ }\PYG{n+nv}{Ev}\PYG{p}{.}\PYG{n+py}{SHOCK}\PYG{p}{)}\PYG{+w}{ }\PYG{k+kr}{then}\PYG{+w}{              }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} авария}
+\PYG{+w}{    }\PYG{n+nf}{changeColor}\PYG{p}{(}\PYG{n+nv}{colors}\PYG{p}{[}\PYG{l+m+mi}{1}\PYG{p}{])}\PYG{+w}{                 }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} красный}
+\PYG{+w}{    }\PYG{n+nv}{angleT}\PYG{p}{:}\PYG{n+nf}{stop}\PYG{p}{();}\PYG{+w}{ }\PYG{n+nv}{pointT}\PYG{p}{:}\PYG{n+nf}{stop}\PYG{p}{()}\PYG{+w}{           }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} останов таймеров}
+\PYG{+w}{  }\PYG{k+kr}{end}
+\PYG{+w}{  }\PYG{k+kr}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n+nv}{event}\PYG{+w}{ }\PYG{o}{==}\PYG{+w}{ }\PYG{n+nv}{Ev}\PYG{p}{.}\PYG{n+py}{POINT\PYGZus{}REACHED}\PYG{p}{)}\PYG{+w}{ }\PYG{k+kr}{then}\PYG{+w}{ }\PYG{n+nv}{action}\PYG{p}{[}\PYG{n+nv}{curr\PYGZus{}state}\PYG{p}{]()}\PYG{+w}{ }\PYG{k+kr}{end}\PYG{+w}{ }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} шаг логики}
+\PYG{+w}{  }\PYG{k+kr}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n+nv}{event}\PYG{+w}{ }\PYG{o}{==}\PYG{+w}{ }\PYG{n+nv}{Ev}\PYG{p}{.}\PYG{n+py}{COPTER\PYGZus{}LANDED}\PYG{p}{)}\PYG{+w}{ }\PYG{k+kr}{then}\PYG{+w}{ }\PYG{n+nf}{changeColor}\PYG{p}{(}\PYG{n+nv}{colors}\PYG{p}{[}\PYG{l+m+mi}{7}\PYG{p}{])}\PYG{+w}{ }\PYG{k+kr}{end}\PYG{+w}{ }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} выключение индикации}
+\PYG{k+kr}{end}
+
+\PYG{n+nf}{changeColor}\PYG{p}{(}\PYG{n+nv}{colors}\PYG{p}{[}\PYG{l+m+mi}{1}\PYG{p}{])}\PYG{+w}{                     }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} начальный красный цвет}
+\PYG{n+nv}{Timer}\PYG{p}{.}\PYG{n+nf}{callLater}\PYG{p}{(}\PYG{l+m+mi}{2}\PYG{p}{,}\PYG{+w}{ }\PYG{k+kr}{function}\PYG{+w}{ }\PYG{p}{()}\PYG{+w}{ }\PYG{n+nv}{action}\PYG{p}{[}\PYG{n+nv}{curr\PYGZus{}state}\PYG{p}{]()}\PYG{+w}{ }\PYG{k+kr}{end}\PYG{p}{)}\PYG{+w}{ }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} старт автомата через 2с}
+\end{Verbatim}

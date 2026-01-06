@@ -1,0 +1,81 @@
+\documentclass[a4paper,14pt]{extarticle}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage{cmap}
+  \usepackage[T2A]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage[russian]{babel}
+  \usepackage{upquote}
+\else
+  \usepackage{fontspec}
+  \usepackage{polyglossia}
+  \setdefaultlanguage{russian}
+  \setmainfont{Times New Roman}
+  \setsansfont{Arial}
+  \setmonofont{Consolas}
+  \usepackage{upquote}
+\fi
+\usepackage{indentfirst}
+\usepackage{accsupp}
+\usepackage{minted}
+\usepackage{fvextra}
+\usepackage{xcolor}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage{setspace}
+\usepackage{titlesec}
+\usepackage{tocloft}
+\geometry{top=20mm, bottom=20mm, left=30mm, right=20mm}
+\onehalfspacing
+\setlength{\parindent}{1.25cm}
+\setlength{\parskip}{0pt}
+\sloppy
+\emergencystretch=3em
+\titleformat{\section}{\normalfont\large\bfseries\centering}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalfont\normalsize\bfseries}{\thesubsection}{1em}{}
+\hypersetup{hidelinks}
+\renewcommand{\contentsname}{СОДЕРЖАНИЕ}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.97,0.97,0.97}
+\definecolor{bg}{RGB}{22,43,58}
+\setlist[enumerate]{label=\arabic*.,leftmargin=*,itemsep=2pt}
+
+\renewcommand{\theFancyVerbLine}{\textcolor{white}{\arabic{FancyVerbLine}}}
+\setminted{
+  breaklines=true,
+  breakanywhere=true,
+  autogobble=true,
+  tabsize=2,
+  fontsize=\footnotesize
+}
+
+\begin{document}
+\begin{titlepage}
+\begin{center}
+Организация\\[1em]
+ГЕОСКАН ПИОНЕР\\[10em]
+МЕТОДИЧЕСКОЕ ПОСОБИЕ\\[2em]
+\textbf{Программирование светодиодной индикации и событийная модель}\\[10em]
+Автор: Фамилия И.О.\\[1em]
+Руководитель: Фамилия И.О.\\[10em]
+Санкт-Петербург\\[0.5em]
+\the\year
+\end{center}
+\end{titlepage}
+\tableofcontents
+\clearpage
+\input{lua.tex}
+\clearpage
+\input{leds.tex}
+\clearpage
+\input{missions_part1.tex}
+\clearpage
+\input{missions_part2.tex}
+\end{document}
