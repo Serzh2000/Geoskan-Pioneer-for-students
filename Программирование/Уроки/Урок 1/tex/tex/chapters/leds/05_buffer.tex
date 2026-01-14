@@ -1,0 +1,29 @@
+\subsection{Особенности адресации (Буфер драйвера)}
+
+Важно понимать, как драйвер светодиодов обрабатывает команды. Модуль \hyperlink{term:ledbar}{Ledbar} работает с внутренним \hyperlink{term:buffer}{буфером памяти}.
+
+Когда вы создаёте объект \texttt{Ledbar.new(N)}, система выделяет память под \texttt{N} светодиодов.
+
+\begin{warnbox}[Критическая ошибка]
+Стандартная библиотека требует инициализации буфера размером \textbf{25 элементов}, даже если физически на плате распаяно всего 4 светодиода.
+\begin{itemize}
+    \item \textbf{Правильно:} \texttt{Ledbar.new(25)}
+    \item \textbf{Неправильно:} \texttt{Ledbar.new(4)} — в этом случае светодиоды могут работать некорректно или не включиться вовсе из-за особенностей прошивки драйвера.
+\end{itemize}
+\end{warnbox}
+
+Типовой шаблон инициализации выглядит так:
+
+\begin{minted}{lua}
+local unpack = table.unpack
+local ledNumber = 25                  -- размерность буфера (всегда 25!)
+local leds = Ledbar.new(ledNumber)    -- объект управления лентой
+
+local function changeColor(col)
+  for i=0, ledNumber-1 do             -- проходим по всем индексам 0..24
+    leds:set(i, unpack(col))          -- записываем RGB в буфер
+  end
+end
+
+changeColor({0,1,0})                  -- включаем зелёный
+\end{minted}

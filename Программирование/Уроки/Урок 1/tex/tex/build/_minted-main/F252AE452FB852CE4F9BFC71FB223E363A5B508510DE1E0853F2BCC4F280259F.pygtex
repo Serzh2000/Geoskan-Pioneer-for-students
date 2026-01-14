@@ -1,0 +1,10 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} классификация числа x}
+\PYG{k+kr}{if}\PYG{+w}{ }\PYG{n+nv}{x}\PYG{+w}{ }\PYG{o}{\PYGZgt{}}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{+w}{ }\PYG{k+kr}{then}
+\PYG{+w}{  }\PYG{n+nv}{state}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}positive\PYGZdq{}}
+\PYG{k+kr}{elseif}\PYG{+w}{ }\PYG{n+nv}{x}\PYG{+w}{ }\PYG{o}{==}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{+w}{ }\PYG{k+kr}{then}
+\PYG{+w}{  }\PYG{n+nv}{state}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}zero\PYGZdq{}}
+\PYG{k+kr}{else}
+\PYG{+w}{  }\PYG{n+nv}{state}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}negative\PYGZdq{}}
+\PYG{k+kr}{end}
+\end{Verbatim}

@@ -1,0 +1,10 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} словарь (именованные поля)}
+\PYG{k+kd}{local}\PYG{+w}{ }\PYG{n+nv}{p}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{p}{\PYGZob{}}\PYG{n+nv}{x}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{1}\PYG{p}{,}\PYG{+w}{ }\PYG{n+nv}{y}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{2}\PYG{p}{\PYGZcb{}}
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} массив (позиционные элементы)}
+\PYG{k+kd}{local}\PYG{+w}{ }\PYG{n+nv}{a}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{p}{\PYGZob{}}\PYG{l+m+mi}{10}\PYG{p}{,}\PYG{+w}{ }\PYG{l+m+mi}{20}\PYG{p}{,}\PYG{+w}{ }\PYG{l+m+mi}{30}\PYG{p}{\PYGZcb{}}
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} добавление нового поля}
+\PYG{n+nv}{p}\PYG{p}{.}\PYG{n+py}{z}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{3}
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} добавление нового элемента массива}
+\PYG{n+nv}{a}\PYG{p}{[}\PYG{l+m+mi}{4}\PYG{p}{]}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{40}
+\end{Verbatim}

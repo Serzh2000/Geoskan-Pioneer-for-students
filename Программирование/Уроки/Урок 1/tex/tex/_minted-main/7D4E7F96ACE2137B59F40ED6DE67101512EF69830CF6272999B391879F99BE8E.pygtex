@@ -1,0 +1,14 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{k+kd}{local}\PYG{+w}{ }\PYG{n+nv}{ledNumber}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{25}
+\PYG{k+kd}{local}\PYG{+w}{ }\PYG{n+nv}{leds}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n+nv}{Ledbar}\PYG{p}{.}\PYG{n+nf}{new}\PYG{p}{(}\PYG{n+nv}{ledNumber}\PYG{p}{)}
+\PYG{n+nv}{mainTimer}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n+nv}{Timer}\PYG{p}{.}\PYG{n+nf}{new}\PYG{p}{(}\PYG{l+m+mf}{0.1}\PYG{p}{,}\PYG{+w}{ }\PYG{k+kr}{function}\PYG{+w}{ }\PYG{p}{()}\PYG{+w}{ }\PYG{k+kr}{end}\PYG{p}{)}
+\PYG{n+nv}{mainTimer}\PYG{p}{:}\PYG{n+nf}{start}\PYG{p}{()}
+\PYG{k+kr}{function}\PYG{+w}{ }\PYG{n+nf}{callback}\PYG{p}{(}\PYG{n+nv}{event}\PYG{p}{)}
+\PYG{+w}{  }\PYG{k+kr}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n+nv}{event}\PYG{+w}{ }\PYG{o}{==}\PYG{+w}{ }\PYG{n+nv}{Ev}\PYG{p}{.}\PYG{n+py}{LOW\PYGZus{}VOLTAGE2}\PYG{p}{)}\PYG{+w}{ }\PYG{k+kr}{then}
+\PYG{+w}{    }\PYG{n+nv}{mainTimer}\PYG{p}{:}\PYG{n+nf}{stop}\PYG{p}{()}
+\PYG{+w}{    }\PYG{n+nv}{Timer}\PYG{p}{.}\PYG{n+nf}{callLater}\PYG{p}{(}\PYG{l+m+mi}{1}\PYG{p}{,}\PYG{+w}{ }\PYG{k+kr}{function}\PYG{+w}{ }\PYG{p}{()}
+\PYG{+w}{      }\PYG{k+kr}{for}\PYG{+w}{ }\PYG{n+nv}{i}\PYG{o}{=}\PYG{l+m+mi}{0}\PYG{p}{,}\PYG{+w}{ }\PYG{n+nv}{ledNumber}\PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{1}\PYG{+w}{ }\PYG{k+kr}{do}\PYG{+w}{ }\PYG{n+nv}{leds}\PYG{p}{:}\PYG{n+nf}{set}\PYG{p}{(}\PYG{n+nv}{i}\PYG{p}{,}\PYG{+w}{ }\PYG{l+m+mi}{1}\PYG{p}{,}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{p}{,}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{p}{)}\PYG{+w}{ }\PYG{k+kr}{end}
+\PYG{+w}{    }\PYG{k+kr}{end}\PYG{p}{)}
+\PYG{+w}{  }\PYG{k+kr}{end}
+\PYG{k+kr}{end}
+\end{Verbatim}

@@ -1,0 +1,6 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{n+nv}{ap}\PYG{p}{.}\PYG{n+nf}{push}\PYG{p}{(}\PYG{n+nv}{Ev}\PYG{p}{.}\PYG{n+py}{MCE\PYGZus{}PREFLIGHT}\PYG{p}{)}\PYG{+w}{                 }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} безопасная предстартовая подготовка}
+\PYG{n+nv}{Timer}\PYG{p}{.}\PYG{n+nf}{callLater}\PYG{p}{(}\PYG{l+m+mi}{1}\PYG{p}{,}\PYG{+w}{ }\PYG{k+kr}{function}\PYG{p}{()}\PYG{+w}{             }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} отложить действие на 1 секунду}
+\PYG{+w}{  }\PYG{n+nv}{ap}\PYG{p}{.}\PYG{n+nf}{push}\PYG{p}{(}\PYG{n+nv}{Ev}\PYG{p}{.}\PYG{n+py}{ENGINES\PYGZus{}ARM}\PYG{p}{)}\PYG{+w}{                 }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} команда запуска двигателей (без взлёта)}
+\PYG{k+kr}{end}\PYG{p}{)}
+\end{Verbatim}

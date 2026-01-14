@@ -1,0 +1,32 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{k+kd}{local}\PYG{+w}{ }\PYG{n+nv}{unpack}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n+nb}{table.unpack}\PYG{+w}{                }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} распаковка таблицы}
+\PYG{k+kd}{local}\PYG{+w}{ }\PYG{n+nv}{rc}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n+nv}{Sensors}\PYG{p}{.}\PYG{n+py}{rc}\PYG{+w}{                      }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} чтение RC\PYGZhy{}каналов}
+\PYG{k+kd}{local}\PYG{+w}{ }\PYG{n+nv}{points}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{p}{\PYGZob{}\PYGZob{}}\PYG{l+m+mi}{0}\PYG{p}{,}\PYG{l+m+mi}{2}\PYG{p}{,}\PYG{l+m+mi}{1}\PYG{p}{\PYGZcb{},\PYGZob{}}\PYG{l+m+mi}{0}\PYG{p}{,}\PYG{l+m+mi}{1}\PYG{p}{,}\PYG{l+m+mi}{1}\PYG{p}{\PYGZcb{},\PYGZob{}}\PYG{l+m+mi}{0}\PYG{p}{,}\PYG{l+m+mi}{2}\PYG{p}{,}\PYG{l+m+mi}{1}\PYG{p}{\PYGZcb{},\PYGZob{}}\PYG{l+m+mi}{0}\PYG{p}{,}\PYG{l+m+mi}{1}\PYG{p}{,}\PYG{l+m+mi}{1}\PYG{p}{\PYGZcb{}\PYGZcb{}}\PYG{+w}{ }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} маршрут по точкам}
+\PYG{k+kd}{local}\PYG{+w}{ }\PYG{n+nv}{curr\PYGZus{}point}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{1}\PYG{+w}{                       }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} индекс текущей точки}
+
+\PYG{k+kd}{local}\PYG{+w}{ }\PYG{k+kr}{function}\PYG{+w}{ }\PYG{n+nf}{nextPoint}\PYG{p}{()}\PYG{+w}{                 }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} переход к следующей точке}
+\PYG{+w}{  }\PYG{k+kr}{if}\PYG{p}{(}\PYG{n+nv}{curr\PYGZus{}point}\PYG{+w}{ }\PYG{o}{\PYGZlt{}=}\PYG{+w}{ }\PYG{o}{\PYGZsh{}}\PYG{n+nv}{points}\PYG{p}{)}\PYG{+w}{ }\PYG{k+kr}{then}\PYG{+w}{           }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} если есть точки впереди}
+\PYG{+w}{    }\PYG{n+nv}{Timer}\PYG{p}{.}\PYG{n+nf}{callLater}\PYG{p}{(}\PYG{l+m+mi}{1}\PYG{p}{,}\PYG{+w}{ }\PYG{k+kr}{function}\PYG{p}{()}\PYG{+w}{          }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} задержка перед командой}
+\PYG{+w}{      }\PYG{n+nv}{ap}\PYG{p}{.}\PYG{n+nf}{goToLocalPoint}\PYG{p}{(}\PYG{n+nf}{unpack}\PYG{p}{(}\PYG{n+nv}{points}\PYG{p}{[}\PYG{n+nv}{curr\PYGZus{}point}\PYG{p}{]))}\PYG{+w}{ }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} команда полёта}
+\PYG{+w}{      }\PYG{n+nv}{curr\PYGZus{}point}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n+nv}{curr\PYGZus{}point}\PYG{+w}{ }\PYG{o}{+}\PYG{+w}{ }\PYG{l+m+mi}{1}\PYG{+w}{          }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} увеличить индекс}
+\PYG{+w}{    }\PYG{k+kr}{end}\PYG{p}{)}
+\PYG{+w}{  }\PYG{k+kr}{else}
+\PYG{+w}{    }\PYG{n+nv}{Timer}\PYG{p}{.}\PYG{n+nf}{callLater}\PYG{p}{(}\PYG{l+m+mi}{1}\PYG{p}{,}\PYG{+w}{ }\PYG{k+kr}{function}\PYG{p}{()}\PYG{+w}{ }\PYG{n+nv}{ap}\PYG{p}{.}\PYG{n+nf}{push}\PYG{p}{(}\PYG{n+nv}{Ev}\PYG{p}{.}\PYG{n+py}{MCE\PYGZus{}LANDING}\PYG{p}{)}\PYG{+w}{ }\PYG{k+kr}{end}\PYG{p}{)}\PYG{+w}{ }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} посадка}
+\PYG{+w}{  }\PYG{k+kr}{end}
+\PYG{k+kr}{end}
+
+\PYG{k+kr}{function}\PYG{+w}{ }\PYG{n+nf}{callback}\PYG{p}{(}\PYG{n+nv}{event}\PYG{p}{)}\PYG{+w}{                   }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} обработчик событий}
+\PYG{+w}{  }\PYG{k+kr}{if}\PYG{p}{(}\PYG{n+nv}{event}\PYG{+w}{ }\PYG{o}{==}\PYG{+w}{ }\PYG{n+nv}{Ev}\PYG{p}{.}\PYG{n+py}{TAKEOFF\PYGZus{}COMPLETE}\PYG{p}{)}\PYG{+w}{ }\PYG{k+kr}{then}\PYG{+w}{ }\PYG{n+nv}{Timer}\PYG{p}{.}\PYG{n+nf}{callLater}\PYG{p}{(}\PYG{l+m+mi}{5}\PYG{p}{,}\PYG{+w}{ }\PYG{n+nv}{nextPoint}\PYG{p}{)}\PYG{+w}{ }\PYG{k+kr}{end}\PYG{+w}{ }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} старт}
+\PYG{+w}{  }\PYG{k+kr}{if}\PYG{p}{(}\PYG{n+nv}{event}\PYG{+w}{ }\PYG{o}{==}\PYG{+w}{ }\PYG{n+nv}{Ev}\PYG{p}{.}\PYG{n+py}{POINT\PYGZus{}REACHED}\PYG{p}{)}\PYG{+w}{ }\PYG{k+kr}{then}\PYG{+w}{ }\PYG{n+nv}{Timer}\PYG{p}{.}\PYG{n+nf}{callLater}\PYG{p}{(}\PYG{l+m+mi}{5}\PYG{p}{,}\PYG{+w}{ }\PYG{n+nv}{nextPoint}\PYG{p}{)}\PYG{+w}{ }\PYG{k+kr}{end}\PYG{+w}{    }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} шаг}
+\PYG{k+kr}{end}
+
+\PYG{n+nv}{startTimer}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n+nv}{Timer}\PYG{p}{.}\PYG{n+nf}{new}\PYG{p}{(}\PYG{l+m+mi}{1}\PYG{p}{,}\PYG{+w}{ }\PYG{k+kr}{function}\PYG{p}{()}\PYG{+w}{       }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} опрос RC каждую секунду}
+\PYG{+w}{  }\PYG{n+nv}{rc\PYGZus{}chans}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n+nb}{table.pack}\PYG{p}{(}\PYG{n+nf}{rc}\PYG{p}{())}\PYG{+w}{              }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} считанные каналы}
+\PYG{+w}{  }\PYG{k+kr}{if}\PYG{+w}{ }\PYG{n+nv}{rc\PYGZus{}chans}\PYG{p}{[}\PYG{l+m+mi}{8}\PYG{p}{]}\PYG{+w}{ }\PYG{o}{\PYGZgt{}}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{+w}{ }\PYG{k+kr}{then}\PYG{+w}{                  }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} тумблер включён}
+\PYG{+w}{    }\PYG{n+nv}{curr\PYGZus{}point}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{1}\PYG{+w}{                         }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} сброс маршрута}
+\PYG{+w}{    }\PYG{n+nv}{ap}\PYG{p}{.}\PYG{n+nf}{push}\PYG{p}{(}\PYG{n+nv}{Ev}\PYG{p}{.}\PYG{n+py}{MCE\PYGZus{}PREFLIGHT}\PYG{p}{)}\PYG{+w}{              }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} предстарт}
+\PYG{+w}{    }\PYG{n+nv}{Timer}\PYG{p}{.}\PYG{n+nf}{callLater}\PYG{p}{(}\PYG{l+m+mi}{6}\PYG{p}{,}\PYG{+w}{ }\PYG{k+kr}{function}\PYG{p}{()}\PYG{+w}{ }\PYG{n+nv}{ap}\PYG{p}{.}\PYG{n+nf}{push}\PYG{p}{(}\PYG{n+nv}{Ev}\PYG{p}{.}\PYG{n+py}{MCE\PYGZus{}TAKEOFF}\PYG{p}{)}\PYG{+w}{ }\PYG{k+kr}{end}\PYG{p}{)}\PYG{+w}{ }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} взлёт}
+\PYG{+w}{  }\PYG{k+kr}{end}
+\PYG{k+kr}{end}\PYG{p}{)}
+\PYG{n+nv}{startTimer}\PYG{p}{:}\PYG{n+nf}{start}\PYG{p}{()}\PYG{+w}{                         }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} запуск опроса RC}
+\end{Verbatim}

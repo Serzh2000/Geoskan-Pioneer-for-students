@@ -1,0 +1,15 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{n+nv}{ap}\PYG{p}{.}\PYG{n+nf}{push}\PYG{p}{(}\PYG{n+nv}{Ev}\PYG{p}{.}\PYG{n+py}{MCE\PYGZus{}PREFLIGHT}\PYG{p}{)}\PYG{+w}{                 }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} предстарт}
+\PYG{n+nv}{Timer}\PYG{p}{.}\PYG{n+nf}{callLater}\PYG{p}{(}\PYG{l+m+mi}{1}\PYG{p}{,}\PYG{+w}{ }\PYG{k+kr}{function}\PYG{p}{()}\PYG{+w}{             }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} через 1 секунду}
+\PYG{+w}{  }\PYG{n+nv}{ap}\PYG{p}{.}\PYG{n+nf}{push}\PYG{p}{(}\PYG{n+nv}{Ev}\PYG{p}{.}\PYG{n+py}{MCE\PYGZus{}TAKEOFF}\PYG{p}{)}\PYG{+w}{                 }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} инициировать взлёт}
+\PYG{k+kr}{end}\PYG{p}{)}
+
+\PYG{k+kr}{function}\PYG{+w}{ }\PYG{n+nf}{callback}\PYG{p}{(}\PYG{n+nv}{event}\PYG{p}{)}\PYG{+w}{                   }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} обработчик системных событий}
+\PYG{+w}{  }\PYG{k+kr}{if}\PYG{+w}{ }\PYG{n+nv}{event}\PYG{+w}{ }\PYG{o}{==}\PYG{+w}{ }\PYG{n+nv}{Ev}\PYG{p}{.}\PYG{n+py}{TAKEOFF\PYGZus{}COMPLETE}\PYG{+w}{ }\PYG{k+kr}{then}\PYG{+w}{     }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} взлёт завершён}
+\PYG{+w}{    }\PYG{n+nv}{ap}\PYG{p}{.}\PYG{n+nf}{push}\PYG{p}{(}\PYG{n+nv}{Ev}\PYG{p}{.}\PYG{n+py}{MCE\PYGZus{}LANDING}\PYG{p}{)}\PYG{+w}{                }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} выполнить посадку}
+\PYG{+w}{  }\PYG{k+kr}{end}
+\PYG{+w}{  }\PYG{k+kr}{if}\PYG{+w}{ }\PYG{n+nv}{event}\PYG{+w}{ }\PYG{o}{==}\PYG{+w}{ }\PYG{n+nv}{Ev}\PYG{p}{.}\PYG{n+py}{COPTER\PYGZus{}LANDED}\PYG{+w}{ }\PYG{k+kr}{then}\PYG{+w}{        }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} посадка завершена}
+\PYG{+w}{    }\PYG{n+nv}{ap}\PYG{p}{.}\PYG{n+nf}{push}\PYG{p}{(}\PYG{n+nv}{Ev}\PYG{p}{.}\PYG{n+py}{ENGINES\PYGZus{}DISARM}\PYG{p}{)}\PYG{+w}{             }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} выключить двигатели}
+\PYG{+w}{  }\PYG{k+kr}{end}
+\PYG{k+kr}{end}
+\end{Verbatim}

@@ -1,0 +1,485 @@
+% Вставляется в main.tex после leds.tex
+\section{Автономные беспилотные миссии}
+\subsection*{Цели раздела}
+\begin{itemize}
+  \item Освоить события платформы и интерфейсы автопилота.
+  \item Построить неблокирующую архитектуру миссий (таймеры, конечный автомат).
+  \item Реализовать маршруты по точкам и параметрические траектории.
+  \item Настроить реакции на аварии и низкое напряжение, добавить индикацию этапов.
+\end{itemize}
+\subsection{Введение}
+Автономная миссия — заранее запрограммированная последовательность действий квадрокоптера, выполняемая без участия оператора. В рамках этого раздела мы рассмотрим модель событий платформы «Геоскан Пионер», управление полётом через функции автопилота, реакцию на внешние события и построение базовых траекторий. Документ ориентирован на академический стиль и детально объясняет каждый термин, опираясь на толковый словарь и развёрнутые примеры.
+
+\subsection{Толковый словарь}
+\begin{description}
+  \item[Автопилот (\texttt{ap})] программный интерфейс управления полётом: команды взлёта, посадки, полёта к точке, обновления курса.
+  \item[События (\texttt{Ev.*})] сигналы от платформы: \texttt{TAKEOFF\_COMPLETE} (взлёт завершён), \texttt{POINT\_REACHED} (точка достигнута), \texttt{COPTER\_LANDED} (посадка), \texttt{SHOCK} (удар/столкновение), \texttt{LOW\_VOLTAGE2} (низкое напряжение), \texttt{ENGINES\_DISARM} (выключение двигателей), \texttt{MCE\_*} (команды режима).
+  \item[Обработчик событий (\texttt{callback(event)})] функция, которую платформа вызывает при наступлении системного события.
+  \item[Таймер (\texttt{Timer})] механизм неблокирующих вызовов: \texttt{Timer.new(period, fn)} — периодический, \texttt{Timer.callLater(delay, fn)} — отложенный.
+  \item[Локальная система координат] плоскость X–Y и высота Z относительно текущей базы; единицы — метры.
+  \item[Курс (\texttt{yaw})] угловое направление, выражаемое в радианах; конвертация градусов: \texttt{rad = deg * math.pi / 180}.
+  \item[Траектория] набор точек или правило формирования положения во времени (например, окружность).
+  \item[Конечный автомат] разбиение логики на состояния с переходами по событиям; состояние хранится в переменной.
+  \item[RC-каналы (\texttt{Sensors.rc})] чтение тумблеров/органов управления для запуска миссии или изменения режима.
+  \item[Индикаторы (Ledbar)] световая индикация состояния миссии, аварий и этапов.
+\end{description}
+
+\subsection{Событийная модель и интерфейсы управления}
+\begin{itemize}
+  \item Предстартовая подготовка: \texttt{ap.push(Ev.MCE\_PREFLIGHT)} — перевод автопилота в безопасный режим подготовки. Проверяются датчики, параметры и готовность; коптер не движется. Этот шаг запускают первым, чтобы корректно инициировать взлёт.
+  \item Взлёт: \texttt{ap.push(Ev.MCE\_TAKEOFF)} — команда на подъём до штатной высоты \texttt{Flight\_com\_takeoffAlt}. По достижению высоты платформа генерирует событие \texttt{Ev.TAKEOFF\_COMPLETE}.
+  \item Посадка: \texttt{ap.push(Ev.MCE\_LANDING)} — команда на снижение и касание. По завершении посадки генерируется \texttt{Ev.COPTER\_LANDED}.
+  \item Выключение двигателей: \texttt{ap.push(Ev.ENGINES\_DISARM)} — выключение моторов (обычно после \texttt{COPTER\_LANDED} или при аварии).
+  \item Полёт к точке: \texttt{ap.goToLocalPoint(x, y, z)} — установка целевой точки в локальной системе координат (метры). По достижению цели генерируется \texttt{Ev.POINT\_REACHED}.
+  \item Обновление курса: \texttt{ap.updateYaw(rad)} — установка курса в радианах; для градусов применяют перевод \texttt{rad = deg * math.pi / 180}.
+  \item Считывание RC: \texttt{Sensors.rc()} — получение массива каналов радиоуправления; для тумблера \texttt{SwA} обычно анализируют 8-й канал (\texttt{rc\_chans[8]}).
+  \item Обработчик событий: \texttt{function callback(event)} — функция, вызываемая платформой при наступлении \texttt{Ev.*} (\texttt{TAKEOFF\_COMPLETE}, \texttt{POINT\_REACHED}, \texttt{COPTER\_LANDED}, \texttt{SHOCK}, \texttt{LOW\_VOLTAGE2}). Внутри \texttt{callback} строятся переходы автомата миссии.
+  \item Таймеры: \texttt{Timer.callLater(delay, fn)} — безопасная «задержка» без блокировки потока; \texttt{Timer.new(period, fn)} — периодическое действие через фиксированный интервал (анимации, траектории).
+  \item Принципы неблокирующей логики: избегать \texttt{sleep()}; строить сценарий через события и таймеры, чтобы обработчик \texttt{callback} оставался кратким.
+\end{itemize}
+
+\subsection{Светодиоды для отладки миссии}
+Светодиодная индикация — простой способ визуально подтверждать прохождение этапов миссии: изменение цвета служит отметкой «состояние автомата изменилось». Это помогает отладке без логов: по текущему цвету можно понять, выполнены ли \emph{предстарт}, \emph{взлёт}, \emph{полет}, \emph{посадка} или \emph{аварийная реакция}. В учебных примерах далее сосредотачиваемся только на полёте; использование линейки оставляем как вспомогательный инструмент для реальных испытаний.
+
+\subsection{Справочник функций полёта}
+ \begin{itemize}
+   \item \texttt{ap.push(Ev.MCE\_PREFLIGHT)} — вводит борт в режим безопасной предстартовой подготовки. Проверяются датчики и параметры, движение не выполняется. Рекомендуется всегда инициировать этот шаг первым.
+   \item \texttt{ap.push(Ev.MCE\_TAKEOFF)} — команда взлёта до штатной высоты \texttt{Flight\_com\_takeoffAlt}. По достижении высоты платформа генерирует событие \texttt{Ev.TAKEOFF\_COMPLETE}.
+   \item \texttt{ap.push(Ev.MCE\_LANDING)} — команда на снижение и касание. Завершение посадки сопровождается событием \texttt{Ev.COPTER\_LANDED}.
+   \item \texttt{ap.push(Ev.ENGINES\_DISARM)} — выключение двигателей. Применяется после \texttt{COPTER\_LANDED} или при аварийных ситуациях.
+   \item \texttt{ap.goToLocalPoint(x, y, z)} — установка целевой точки в локальной системе координат (метры); оси: X — вперёд/назад, Y — влево/вправо, Z — высота. По достижении цели генерируется \texttt{Ev.POINT\_REACHED}.
+   \item \texttt{ap.updateYaw(rad)} — установка курса в радианах. Для значений в градусах используйте преобразование \texttt{rad = deg * math.pi / 180}.
+   \item \texttt{Timer.callLater(delay, fn)} — отложенный неблокирующий вызов функции \texttt{fn} через \texttt{delay} секунд. Удобен для последовательностей «после события — действие».
+   \item \texttt{Timer.new(period, fn)} — периодический таймер; функция \texttt{fn} вызывается каждые \texttt{period} секунд, что позволяет организовать пошаговое обновление траектории/индикации.
+   \item \texttt{function callback(event)} — центральный обработчик событий платформы. Внутри \texttt{callback} реализуются переходы автомата миссии и вызываются соответствующие действия.
+ \end{itemize}
+
+\subsection{Учебные ступени полёта}
+\textbf{Предисловие.} Итак, мы готовы приступить к программированию квадрокоптера. В этом разделе последовательно пройдём ключевые этапы: от безопасной предстартовой подготовки до взлёта, полёта по заданным точкам и посадки. Каждый пример предваряется кратким пояснением, а строки кода снабжены комментариями, чтобы было понятно, что делает каждая команда.
+\paragraph{Только запуск двигателей}
+\begin{minted}{lua}
+ap.push(Ev.MCE_PREFLIGHT)                 -- безопасная предстартовая подготовка
+Timer.callLater(1, function()             -- отложить действие на 1 секунду
+  ap.push(Ev.ENGINES_ARM)                 -- команда запуска двигателей (без взлёта)
+end)
+\end{minted}
+\textbf{Пояснение.} На практике запуск двигателей выполняется в составе взлёта (\texttt{Ev.MCE\_TAKEOFF}). Явная команда \texttt{Ev.ENGINES\_ARM} полезна для проверки работы моторов без взлёта.
+
+\paragraph{Запуск, взлёт, посадка}
+\begin{minted}{lua}
+ap.push(Ev.MCE_PREFLIGHT)                 -- предстарт
+Timer.callLater(1, function()             -- через 1 секунду
+  ap.push(Ev.MCE_TAKEOFF)                 -- инициировать взлёт
+end)
+
+function callback(event)                   -- обработчик системных событий
+  if event == Ev.TAKEOFF_COMPLETE then     -- взлёт завершён
+    ap.push(Ev.MCE_LANDING)                -- выполнить посадку
+  end
+  if event == Ev.COPTER_LANDED then        -- посадка завершена
+    ap.push(Ev.ENGINES_DISARM)             -- выключить двигатели
+  end
+end
+\end{minted}
+\textbf{Пояснение.} В обработчике \texttt{callback} реагируем на завершение взлёта и инициируем посадку. После касания — выключаем двигатели.
+
+\paragraph{Запуск, взлёт, полёт по прямой, посадка}
+\begin{minted}{lua}
+ap.push(Ev.MCE_PREFLIGHT)                 -- предстарт
+Timer.callLater(1, function()             -- через 1 секунду
+  ap.push(Ev.MCE_TAKEOFF)                 -- взлёт
+end)
+
+local unpack = table.unpack               -- сокращение доступа к распаковке
+local target = {1.0, 0.0, 0.8}            -- целевая точка (x,y,z)
+
+function callback(event)                   -- обработчик событий
+  if event == Ev.TAKEOFF_COMPLETE then     -- после взлёта
+    ap.goToLocalPoint(unpack(target))      -- команда полёта к точке
+  end
+  if event == Ev.POINT_REACHED then        -- точка достигнута
+    ap.push(Ev.MCE_LANDING)                -- выполнить посадку
+  end
+end
+\end{minted}
+\textbf{Пояснение.} После взлёта выполняем полёт к точке \texttt{(x=1.0,y=0.0,z=0.8)}. По событию \texttt{POINT\_REACHED} — посадка.
+
+\paragraph{Полет по фигуре (набор точек)}
+\begin{minted}{lua}
+local unpack = table.unpack               -- сокращение для распаковки
+local points = {                          -- набор точек (маршрут)
+  {0.0, 0.5, 0.8}, {0.5, 0.5, 0.8}, {0.5, 0.0, 0.8}, {0.0, 0.0, 0.8}
+}
+local curr = 1                            -- индекс текущей точки
+
+local function nextPoint()                -- функция перехода к следующей точке
+  if curr <= #points then                 -- если есть непройденные точки
+    ap.goToLocalPoint(unpack(points[curr])) -- команда полёта
+    curr = curr + 1                       -- увеличить индекс
+  else
+    ap.push(Ev.MCE_LANDING)               -- иначе посадка
+  end
+end
+
+ap.push(Ev.MCE_PREFLIGHT)                 -- предстарт
+Timer.callLater(1, function()             -- через 1 секунду
+  ap.push(Ev.MCE_TAKEOFF)                 -- взлёт
+end)
+
+function callback(event)                   -- обработчик событий
+  if event == Ev.TAKEOFF_COMPLETE then nextPoint() end -- старт маршрута
+  if event == Ev.POINT_REACHED then nextPoint() end    -- шаг по достижению точки
+end
+\end{minted}
+\textbf{Пояснение.} Идиоматичный «пошаговый» обход точек: каждое \texttt{POINT\_REACHED} инициирует переход к следующей цели.
+
+\paragraph{Полет по треугольнику}
+\begin{minted}{lua}
+local unpack = table.unpack               -- распаковка таблицы
+local r = 0.6                             -- радиус описанной окружности
+local z = 0.9                             -- высота полёта
+local angles = {0, 120, 240}              -- углы вершин (градусы)
+local points = {}                         -- массив координат вершин
+for i=1, #angles do                       -- вычисление координат
+  local a = angles[i] * math.pi / 180     -- радианы
+  points[i] = {r*math.cos(a), r*math.sin(a), z} -- (x,y,z) вершины
+end
+local curr = 1                            -- текущая вершина
+local function nextPoint()                -- переход к следующей
+  if curr <= #points then                 -- если есть вершины
+    ap.goToLocalPoint(unpack(points[curr])) -- команда полёта
+    curr = curr + 1                       -- увеличить индекс
+  else
+    ap.push(Ev.MCE_LANDING)               -- завершение — посадка
+  end
+end
+ap.push(Ev.MCE_PREFLIGHT)                 -- предстарт
+Timer.callLater(1, function() ap.push(Ev.MCE_TAKEOFF) end) -- взлёт
+function callback(event)                   -- обработчик событий
+  if event == Ev.TAKEOFF_COMPLETE then nextPoint() end     -- первый шаг
+  if event == Ev.POINT_REACHED then nextPoint() end        -- шаг по событию
+end
+\end{minted}
+\textbf{Пояснение.} Вершины равностороннего треугольника расположены на окружности: углы 0°, 120°, 240°. Переводим градусы в радианы и вычисляем координаты по \texttt{x=r*cos(a), y=r*sin(a)}.
+
+\paragraph{Полет по квадрату}
+\begin{minted}{lua}
+local unpack = table.unpack               -- распаковка таблиц
+local a = 1.0                             -- длина стороны квадрата
+local z = 0.9                             -- высота полёта
+local h = a/2                             -- половина стороны (координаты ±h)
+local points = {                          -- вершины квадрата по часовой стрелке
+  {-h, -h, z}, {h, -h, z}, {h,  h, z}, {-h,  h, z}
+}
+local curr = 1                            -- индекс текущей вершины
+local function nextPoint()                -- переход к следующей вершине
+  if curr <= #points then                 -- если есть вершины
+    ap.goToLocalPoint(unpack(points[curr])) -- полёт к вершине
+    curr = curr + 1                       -- увеличить индекс
+  else
+    ap.push(Ev.MCE_LANDING)               -- завершение — посадка
+  end
+end
+ap.push(Ev.MCE_PREFLIGHT)                 -- предстарт
+Timer.callLater(1, function() ap.push(Ev.MCE_TAKEOFF) end) -- взлёт
+function callback(event)                   -- обработчик событий
+  if event == Ev.TAKEOFF_COMPLETE then nextPoint() end     -- первый шаг
+  if event == Ev.POINT_REACHED then nextPoint() end        -- шаг по достижению
+end
+\end{minted}
+\textbf{Пояснение.} Квадрат центрирован в начале координат. Его вершины расположены в точках
+\[
+  \left(-\frac{a}{2}, -\frac{a}{2}, z\right),\ \left(\frac{a}{2}, -\frac{a}{2}, z\right),\ \left(\frac{a}{2}, \frac{a}{2}, z\right),\ \left(-\frac{a}{2}, \frac{a}{2}, z\right),
+\]
+что соответствует стороне длины \(\,a\,\) и фиксированной высоте \(z\). Центр квадрата — в начале координат \((0,0,z)\).
+
+\paragraph{Полёт по окружности с поворотом квадрокоптера}
+\begin{minted}{lua}
+local value = 3                           -- шаг приращения угла (градусы)
+local i = 0                               -- текущий угол для курса
+angleT = Timer.new(0.1, function()        -- таймер обновления курса
+  ap.updateYaw(-i/180*math.pi)            -- курс в радианах (из градусов i)
+  i = i + value                           -- приращение угла курса
+end)
+
+local r = 0.3                             -- радиус окружности
+local angle = 0                           -- текущий угол точки (градусы)
+local height = 0.7                        -- высота полёта
+pointT = Timer.new(0.1, function()        -- таймер обновления точки
+  angle = (angle + value) % 360           -- приращение угла точки
+  local x = r*math.cos(angle * math.pi / 180) -- X по окружности
+  local y = r*math.sin(angle * math.pi / 180) -- Y по окружности
+  ap.goToLocalPoint(x, y, height)         -- команда на точку
+end)
+
+ap.push(Ev.MCE_PREFLIGHT)                 -- предстарт
+Timer.callLater(2, function ()            -- через 2 секунды
+  ap.push(Ev.MCE_TAKEOFF)                 -- взлёт
+end)
+
+function callback(event)                   -- обработчик событий
+  if event == Ev.TAKEOFF_COMPLETE then     -- после взлёта
+    angleT:start()                         -- запуск таймера курса
+    pointT:start()                         -- запуск таймера точки
+    Timer.callLater(6, function ()         -- завершить через 6 секунд
+      pointT:stop()                        -- остановить таймер точки
+      angleT:stop()                        -- остановить таймер курса
+      ap.goToLocalPoint(0, 0, height)      -- вернуться в центр
+      ap.push(Ev.MCE_LANDING)              -- посадка
+    end)
+  end
+end
+\end{minted}
+\textbf{Пояснение.} Два таймера управляют курсом и точкой окружности. Только неблокирующие обновления; завершение — по отложенному действию.
+
+\subsection{Геометрия траекторий: окружность}
+Окружность радиуса \(r\) в плоскости \(X\)–\(Y\) задаётся параметрически:
+\[
+  x(\theta) = r \cos\theta,\quad y(\theta) = r \sin\theta,\quad z = \text{const}.
+\]
+Здесь \(\theta\) — параметр угла в радианах. Если исходные значения заданы в градусах \(\theta_{\mathrm{deg}}\), используйте перевод в радианы
+\[
+  \theta_{\mathrm{rad}} = \theta_{\mathrm{deg}} \cdot \frac{\pi}{180}.
+\]
+Высота \(z\) выбирается постоянной для горизонтального полёта; курс \texttt{yaw} может сопровождаться как функция \(\theta\) через \texttt{ap.updateYaw}.
+
+\subsection{Архитектурные подходы}
+\begin{itemize}
+  \item Конечный автомат: состояния подготовки, полёта и посадки; действия оформлены как таблица функций; переходы выполняются по событиям в \texttt{callback}.
+  \item Асинхронные таймеры: пошаговое обновление логики без блокировок; одноразовые и периодические вызовы через \texttt{Timer.callLater} и \texttt{Timer.new}.
+  \item Избегание блокировок: не использовать \texttt{sleep()} в сценариях полёта; для задержек применять таймеры и переходы по событиям.
+  \item Безопасность: по \texttt{Ev.SHOCK} немедленно остановить таймеры и двигатели, включить аварийную индикацию; по \texttt{Ev.LOW\_VOLTAGE2} выполнить безопасную посадку или перейти в аварийный режим.
+\end{itemize}
+
+\subsection{Разбор примеров миссий}
+\paragraph{Урок 12: окружность по точкам}
+\begin{minted}{lua}
+local ledNumber = 4                         -- количество видимых диодов на плате
+local leds = Ledbar.new(ledNumber)         -- объект управления светодиодами
+local unpack = table.unpack                -- сокращение для распаковки таблиц
+local curr_state = "PREPARE_FLIGHT"        -- начальное состояние автомата
+
+local function changeColor(color)          -- функция смены цвета всех диодов
+  for i=0, ledNumber - 1 do                -- проход по индексам 0..(ledNumber-1)
+    leds:set(i, unpack(color))             -- установка RGB для индекса i
+  end
+end
+
+local colors = {                           -- палитра используемых цветов
+  {1,0,0}, {1,1,1}, {0,1,0}, {1,1,0},
+  {1,0,1}, {0,0,1}, {0,0,0}
+}
+
+local r = 0.3                              -- радиус окружности
+local angle = 30                           -- угловой шаг (градусы)
+local points = {}                          -- массив точек окружности
+for i=1, 12 do                             -- генерация 12 равномерных точек
+  xCoord = r * math.cos(i * angle * math.pi / 180) -- X координата
+  yCoord = r * math.sin(i * angle * math.pi / 180) -- Y координата
+  points[i] = {xCoord, yCoord, 0.7}        -- точка с фиксированной высотой z=0.7
+end
+
+local j = 1                                -- индекс текущей точки
+action = {                                 -- таблица функций по состояниям
+  ["PREPARE_FLIGHT"] = function()          -- подготовка полёта
+    changeColor(colors[2])                 -- белый — подготовка
+    Timer.callLater(2, function () ap.push(Ev.MCE_PREFLIGHT) end) -- предстарт
+    Timer.callLater(4, function () changeColor(colors[3]) end)    -- зелёный — готовность
+    Timer.callLater(6, function ()        -- через 6 секунд
+      ap.push(Ev.MCE_TAKEOFF)             -- взлёт
+      curr_state = "FLIGHT"               -- переход к полёту
+    end)
+  end,
+  ["FLIGHT"] = function ()                 -- состояние полёта
+    while j < #points do                   -- цикл одного шага по точке
+      ap.goToLocalPoint(unpack(points[j])) -- полёт к текущей точке
+      j = j + 1                            -- увеличить индекс
+      curr_state = "FLIGHT"                -- остаться в состоянии
+      break                                -- выйти из цикла (один шаг)
+    end
+    curr_state = "PIONEER_LANDING"         -- переход к посадке, когда точки завершены
+  end,
+  ["PIONEER_LANDING"] = function ()        -- состояние посадки
+    changeColor(colors[6])                 -- синий — посадка
+    Timer.callLater(2, function () ap.push(Ev.MCE_LANDING) end) -- команда посадки
+  end
+}
+
+function callback(event)                   -- обработчик системных событий
+  if (event == Ev.TAKEOFF_COMPLETE) then action[curr_state]() end -- старт логики
+  if (event == Ev.SHOCK) then              -- авария (столкновение)
+    changeColor(colors[1])                 -- красный цвет
+    ap.push(ENGINES_DISARM)                -- выключение двигателей (требуется Ev.ENGINES_DISARM)
+  end
+  if (event == Ev.POINT_REACHED) then action[curr_state]() end -- переход по достижению точки
+  if (event == Ev.COPTER_LANDED) then changeColor(colors[7]) end -- выключить индикацию
+end
+
+changeColor(colors[1])                     -- начальная индикация (красный)
+Timer.callLater(2, function () action[curr_state]() end) -- запуск автомата через 2с
+\end{minted}
+\textbf{Комментарий.} Генерация 12 точек окружности, переходы по событиям. Рекомендуется заменить \texttt{while/break} на явный шаг через таймер или по событию \texttt{POINT\_REACHED}. Команда \texttt{ap.push(ENGINES\_DISARM)} должна использовать пространство имён событий: \texttt{ap.push(Ev.ENGINES\_DISARM)}.
+
+\paragraph{Урок 14: непрерывная окружность и курс}
+\begin{minted}{lua}
+local ledNumber = 4                         -- количество диодов
+local leds = Ledbar.new(ledNumber)         -- объект управления линейкой
+local unpack = table.unpack                -- распаковка таблиц
+local curr_state = "PREPARE_FLIGHT"        -- начальное состояние
+
+local function changeColor(color)          -- смена цвета всех диодов
+  for i=0, ledNumber - 1 do                -- индексы 0..(ledNumber-1)
+    leds:set(i, unpack(color))             -- установить RGB
+  end
+end
+
+local colors = {                           -- палитра
+  {1,0,0}, {1,1,1}, {0,1,0}, {1,1,0},
+  {1,0,1}, {0,0,1}, {0,0,0}
+}
+
+local value = 3                            -- шаг увеличения угла (градусы)
+local i = 0                                -- текущий угол для yaw
+angleT = Timer.new(0.1, function()         -- таймер курса
+  ap.updateYaw(-i/180*math.pi)             -- курс в радианах
+  i = i + value                            -- приращение угла курса
+end)
+
+local r = 0.3                              -- радиус окружности
+local angle = 0                            -- текущий угол точки
+local xCord = 0                            -- текущая X координата
+local yCord = 0                            -- текущая Y координата
+local height = 0.7                         -- высота полёта
+pointT = Timer.new(0.1, function()         -- таймер точки
+  angle = angle + value                    -- приращение угла
+  if angle > 360 then angle = angle - 360 end -- нормализация
+  yCord = r*math.sin(angle * math.pi / 180)   -- расчёт Y
+  xCord = r*math.cos(angle * math.pi / 180)   -- расчёт X
+  ap.goToLocalPoint(xCord, yCord, height)  -- команда полёта
+end)
+
+action = {                                 -- таблица состояний
+  ["PREPARE_FLIGHT"] = function(x)         -- подготовка полёта
+    changeColor(colors[2])                 -- белый
+    Timer.callLater(2, function () ap.push(Ev.MCE_PREFLIGHT) end) -- предстарт
+    Timer.callLater(4, function () changeColor(colors[3]) end)    -- зелёный
+    Timer.callLater(6, function ()        -- через 6 секунд
+      ap.push(Ev.MCE_TAKEOFF)             -- взлёт
+      ap.goToLocalPoint(0,0,height)       -- выход в центр
+      curr_state = "FLIGHT_TO_FIRST_POINT" -- переход к полёту
+    end)
+  end,
+  ["FLIGHT_TO_FIRST_POINT"] = function (x) -- полёт к первой точке
+    changeColor(colors[4])                 -- жёлтый
+    Timer.callLater(1, function ()         -- через 1 секунду
+      angleT:start()                       -- запуск курса
+      pointT:start()                       -- запуск траектории
+      sleep(6)                             -- блокирующая задержка (не рекомендуется)
+      curr_state = "PIONEER_LANDING"       -- переход к посадке
+    end)
+  end,
+  ["PIONEER_LANDING"] = function (x)       -- состояние посадки
+    changeColor(colors[2])                 -- белый
+    Timer.callLater(2, function ()         -- через 2 секунды
+      pointT:stop()                        -- остановить таймер точки
+      angleT:stop()                        -- остановить таймер курса
+      ap.goToLocalPoint(0, 0, height)      -- возврат в центр
+      ap.push(Ev.MCE_LANDING)              -- посадка
+    end)
+  end
+}
+
+function callback(event)                   -- обработчик системных событий
+  if (event == Ev.TAKEOFF_COMPLETE) then action[curr_state]() end -- запуск логики
+  if (event == Ev.SHOCK) then              -- авария
+    changeColor(colors[1])                 -- красный
+    angleT:stop(); pointT:stop()           -- останов таймеров
+  end
+  if (event == Ev.POINT_REACHED) then action[curr_state]() end -- шаг логики
+  if (event == Ev.COPTER_LANDED) then changeColor(colors[7]) end -- выключение индикации
+end
+
+changeColor(colors[1])                     -- начальный красный цвет
+Timer.callLater(2, function () action[curr_state]() end) -- старт автомата через 2с
+\end{minted}
+\textbf{Комментарий.} Реализована непрерывная подача команды на полёт по окружности и обновление курса. Следует заменить \texttt{sleep(6)} на безопасную последовательность таймеров или переходы по событиям, чтобы не блокировать обработку задач.
+
+\paragraph{RC-инициация миссии}
+\begin{minted}{lua}
+local unpack = table.unpack                -- распаковка таблицы
+local rc = Sensors.rc                      -- чтение RC-каналов
+local points = {{0,2,1},{0,1,1},{0,2,1},{0,1,1}} -- маршрут по точкам
+local curr_point = 1                       -- индекс текущей точки
+
+local function nextPoint()                 -- переход к следующей точке
+  if(curr_point <= #points) then           -- если есть точки впереди
+    Timer.callLater(1, function()          -- задержка перед командой
+      ap.goToLocalPoint(unpack(points[curr_point])) -- команда полёта
+      curr_point = curr_point + 1          -- увеличить индекс
+    end)
+  else
+    Timer.callLater(1, function() ap.push(Ev.MCE_LANDING) end) -- посадка
+  end
+end
+
+function callback(event)                   -- обработчик событий
+  if(event == Ev.TAKEOFF_COMPLETE) then Timer.callLater(5, nextPoint) end -- старт
+  if(event == Ev.POINT_REACHED) then Timer.callLater(5, nextPoint) end    -- шаг
+end
+
+startTimer = Timer.new(1, function()       -- опрос RC каждую секунду
+  rc_chans = table.pack(rc())              -- считанные каналы
+  if rc_chans[8] > 0 then                  -- тумблер включён
+    curr_point = 1                         -- сброс маршрута
+    ap.push(Ev.MCE_PREFLIGHT)              -- предстарт
+    Timer.callLater(6, function() ap.push(Ev.MCE_TAKEOFF) end) -- взлёт
+  end
+end)
+startTimer:start()                         -- запуск опроса RC
+\end{minted}
+\textbf{Комментарий.} Запуск миссии по положению тумблера, отложенные переходы по событиям. Рекомендуется добавлять аварийные реакции на \texttt{Ev.SHOCK} и \texttt{Ev.LOW\_VOLTAGE2}.
+
+\paragraph{Локальные точки и индикация}
+\begin{minted}{lua}
+local boardNumber = boardNumber            -- номер борта (если используется)
+local unpack = table.unpack                -- распаковка таблиц
+local points = {                           -- заранее заданные точки
+  {-0.6, 0.3, 0.2}, {0.6, 0.3, 0.2}, {0, 0, 0.5}, {0.6, -0.3, 0.2}
+}
+local curr_point = 1                       -- текущая точка
+
+local function nextPoint()                 -- переход к следующей точке
+  if(#points >= curr_point) then           -- есть непройденные точки
+    ap.goToLocalPoint(unpack(points[curr_point])) -- полёт к точке
+    curr_point = curr_point + 1            -- увеличить индекс
+  else
+    ap.push(Ev.MCE_LANDING)                -- завершение — посадка
+  end
+end
+
+function callback(event)                   -- обработчик событий
+  if(event == Ev.TAKEOFF_COMPLETE) then nextPoint() end    -- старт маршрута
+  if(event == Ev.POINT_REACHED) then nextPoint() end       -- шаг по событию
+end
+
+local leds = Ledbar.new(25)                -- объект линейки (буфер 25)
+local blink = 0                            -- состояние мигания
+for i=0,24 do leds:set(i,1,1,1) end        -- начальный белый цвет
+timerBlink = Timer.new(1, function ()      -- таймер мигания, период 1с
+  blink = (blink == 1) and 0 or 1          -- переключение состояния
+  for i=0,24 do leds:set(i, blink, 0, 0) end -- мигание красным
+end)
+timerBlink:start()                         -- запуск мигания
+ap.push(Ev.MCE_PREFLIGHT)                  -- предстарт
+Timer.callLater(1, function() ap.push(Ev.MCE_TAKEOFF) end) -- взлёт
+\end{minted}
+\textbf{Комментарий.} Для корректной индикации используйте буфер размером 25, полный проход по индексам 0..24.
+
+\subsection{Рекомендации по разработке миссий}
+\begin{itemize}
+  \item Делайте таймеры и состояния глобальными; избегайте локальных объектов в краткоживущих функциях.
+  \item Исключайте блокировки (\texttt{sleep()}); опирайтесь на \texttt{Timer} и событийную обработку \texttt{callback}.
+  \item Чётко определяйте состояния автомата; держите обработчики событий короткими.
+  \item Реализуйте аварийные реакции и визуальную индикацию этапов.
+  \item Работайте с курсом \texttt{yaw} в радианах; переводите градусы по формуле \(\theta_{\mathrm{rad}}=\theta_{\mathrm{deg}}\cdot\pi/180\).
+\end{itemize}

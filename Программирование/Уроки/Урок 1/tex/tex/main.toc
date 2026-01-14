@@ -1,0 +1,97 @@
+\selectlanguage *{russian}
+\contentsline {section}{\numberline {1}Введение и структура курса}{4}{section.1}%
+\contentsline {section}{\numberline {2}Подготовка к работе}{7}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Техника безопасности}{7}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}Инструментарий разработчика}{8}{subsection.2.2}%
+\contentsline {subsubsection}{\numberline {2.2.1}Работа с квадрокоптером: Pioneer Station}{8}{subsubsection.2.2.1}%
+\contentsline {subsubsection}{\numberline {2.2.2}Изучение синтаксиса Lua}{9}{subsubsection.2.2.2}%
+\contentsline {subsection}{\numberline {2.3}Подключение квадрокоптера}{9}{subsection.2.3}%
+\contentsline {subsection}{\numberline {2.4}Ваша первая программа}{10}{subsection.2.4}%
+\contentsline {section}{\numberline {3}Аппаратура управления}{11}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Настройка пульта}{11}{subsection.3.1}%
+\contentsline {subsubsection}{\numberline {3.1.1}Настройки вкладки FUNCTION}{12}{subsubsection.3.1.1}%
+\contentsline {subsubsection}{\numberline {3.1.2}Настройка вкладки SYSTEM}{13}{subsubsection.3.1.2}%
+\contentsline {subsection}{\numberline {3.2}Связь пульта с приемником}{14}{subsection.3.2}%
+\contentsline {subsubsection}{\numberline {3.2.1}Процедура привязки}{14}{subsubsection.3.2.1}%
+\contentsline {subsubsection}{\numberline {3.2.2}Возможные проблемы и их решение}{16}{subsubsection.3.2.2}%
+\contentsline {subsection}{\numberline {3.3}Стики и тумблеры}{16}{subsection.3.3}%
+\contentsline {subsubsection}{\numberline {3.3.1}Режимы управления (Тумблеры)}{17}{subsubsection.3.3.1}%
+\contentsline {subsection}{\numberline {3.4}Управление}{18}{subsection.3.4}%
+\contentsline {subsubsection}{\numberline {3.4.1}Управление высотой (Газ / Throttle)}{18}{subsubsection.3.4.1}%
+\contentsline {subsubsection}{\numberline {3.4.2}Вращение по курсу (Рыскание / Yaw)}{19}{subsubsection.3.4.2}%
+\contentsline {subsubsection}{\numberline {3.4.3}Тангаж (Pitch) — Движение вперед/назад}{19}{subsubsection.3.4.3}%
+\contentsline {subsubsection}{\numberline {3.4.4}Крен (Roll) — Движение влево/вправо}{20}{subsubsection.3.4.4}%
+\contentsline {section}{\numberline {4}Язык Lua}{22}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Введение}{22}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Толковый словарь}{22}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}История и назначение}{23}{subsection.4.3}%
+\contentsline {subsection}{\numberline {4.4}Lua в нашем курсе}{23}{subsection.4.4}%
+\contentsline {subsection}{\numberline {4.5}Базовые конструкции Lua}{23}{subsection.4.5}%
+\contentsline {subsection}{\numberline {4.6}Переменные}{24}{subsection.4.6}%
+\contentsline {paragraph}{Пояснения.}{25}{paragraph*.1}%
+\contentsline {subsection}{\numberline {4.7}Арифметические операции}{26}{subsection.4.7}%
+\contentsline {paragraph}{Пояснения.}{26}{paragraph*.2}%
+\contentsline {subsection}{\numberline {4.8}Логические операции}{27}{subsection.4.8}%
+\contentsline {paragraph}{Пояснения.}{27}{paragraph*.3}%
+\contentsline {subsection}{\numberline {4.9}Условия}{28}{subsection.4.9}%
+\contentsline {paragraph}{Пояснения.}{29}{paragraph*.4}%
+\contentsline {subsection}{\numberline {4.10}Циклы}{30}{subsection.4.10}%
+\contentsline {paragraph}{Пояснения.}{30}{paragraph*.5}%
+\contentsline {subsection}{\numberline {4.11}Работа с модулями платформы}{31}{subsection.4.11}%
+\contentsline {subsection}{\numberline {4.12}Типичные ошибки новичка}{31}{subsection.4.12}%
+\contentsline {subsection}{\numberline {4.13}Примеры, используемые далее}{32}{subsection.4.13}%
+\contentsline {section}{\numberline {5}Программирование светодиодов}{34}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Введение}{34}{subsection.5.1}%
+\contentsline {subsection}{\numberline {5.2}Толковый словарь}{34}{subsection.5.2}%
+\contentsline {subsection}{\numberline {5.3}Аппаратная часть и модуль Ledbar}{35}{subsection.5.3}%
+\contentsline {subsubsection}{\numberline {5.3.1}Физическая реализация}{35}{subsubsection.5.3.1}%
+\contentsline {subsection}{\numberline {5.4}Особенности адресации (Буфер драйвера)}{36}{subsection.5.4}%
+\contentsline {subsection}{\numberline {5.5}Теория и интерфейсы API}{37}{subsection.5.5}%
+\contentsline {subsection}{\numberline {5.6}RGB-модель и диапазоны}{37}{subsection.5.6}%
+\contentsline {subsection}{\numberline {5.7}Адресация: где какой светодиод?}{37}{subsection.5.7}%
+\contentsline {subsection}{\numberline {5.8}Модуль Ledbar}{38}{subsection.5.8}%
+\contentsline {subsection}{\numberline {5.9}Таймеры}{39}{subsection.5.9}%
+\contentsline {subsection}{\numberline {5.10}Событийная модель}{40}{subsection.5.10}%
+\contentsline {subsection}{\numberline {5.11}Анализ подходов к программированию}{40}{subsection.5.11}%
+\contentsline {subsubsection}{\numberline {5.11.1}1. Блокирующее выполнение (Sleep)}{40}{subsubsection.5.11.1}%
+\contentsline {subsubsection}{\numberline {5.11.2}2. Асинхронные таймеры}{41}{subsubsection.5.11.2}%
+\contentsline {subsubsection}{\numberline {5.11.3}3. Конечный автомат (State Machine)}{41}{subsubsection.5.11.3}%
+\contentsline {subsection}{\numberline {5.12}Примеры кода}{41}{subsection.5.12}%
+\contentsline {subsection}{\numberline {5.13}Проверка знаний}{44}{subsection.5.13}%
+\contentsline {subsection}{\numberline {5.14}Задания для лабораторной работы}{48}{subsection.5.14}%
+\contentsline {subsection}{\numberline {5.15}Базовые алгоритмы}{49}{subsection.5.15}%
+\contentsline {subsection}{\numberline {5.16}Алгоритмические задачи}{50}{subsection.5.16}%
+\contentsline {subsection}{\numberline {5.17}Работа с событиями}{51}{subsection.5.17}%
+\contentsline {section}{\numberline {6}Автономные беспилотные миссии}{53}{section.6}%
+\contentsline {subsection}{\numberline {6.1}Введение}{53}{subsection.6.1}%
+\contentsline {subsection}{\numberline {6.2}Толковый словарь}{53}{subsection.6.2}%
+\contentsline {subsection}{\numberline {6.3}Событийная модель и интерфейсы управления}{54}{subsection.6.3}%
+\contentsline {subsection}{\numberline {6.4}Светодиоды для отладки миссии}{55}{subsection.6.4}%
+\contentsline {subsection}{\numberline {6.5}Справочник функций полёта}{55}{subsection.6.5}%
+\contentsline {subsubsection}{\numberline {6.5.1}Таймеры и события}{56}{subsubsection.6.5.1}%
+\contentsline {subsection}{\numberline {6.6}Учебные ступени полёта}{56}{subsection.6.6}%
+\contentsline {paragraph}{Только запуск двигателей}{57}{paragraph*.6}%
+\contentsline {paragraph}{Запуск, взлёт, посадка}{57}{paragraph*.7}%
+\contentsline {paragraph}{Запуск, взлёт, полёт по прямой, посадка}{58}{paragraph*.8}%
+\contentsline {paragraph}{Полет по фигуре (набор точек)}{58}{paragraph*.9}%
+\contentsline {paragraph}{Полет по треугольнику}{59}{paragraph*.10}%
+\contentsline {paragraph}{Полет по квадрату}{59}{paragraph*.11}%
+\contentsline {paragraph}{Полёт по окружности с поворотом квадрокоптера}{60}{paragraph*.12}%
+\contentsline {subsection}{\numberline {6.7}Геометрия траекторий: окружность}{61}{subsection.6.7}%
+\contentsline {subsection}{\numberline {6.8}Архитектурные подходы}{62}{subsection.6.8}%
+\contentsline {subsubsection}{\numberline {6.8.1}Пример структуры программы}{62}{subsubsection.6.8.1}%
+\contentsline {subsection}{\numberline {6.9}Разбор примеров миссий}{62}{subsection.6.9}%
+\contentsline {paragraph}{Урок 12: окружность по точкам}{62}{paragraph*.13}%
+\contentsline {paragraph}{Урок 14: непрерывная окружность и курс}{64}{paragraph*.14}%
+\contentsline {paragraph}{RC-инициация миссии}{66}{paragraph*.15}%
+\contentsline {paragraph}{Локальные точки и индикация}{67}{paragraph*.16}%
+\contentsline {subsection}{\numberline {6.10}Рекомендации по разработке миссий}{67}{subsection.6.10}%
+\contentsline {subsection}{\numberline {6.11}Проверка знаний}{69}{subsection.6.11}%
+\contentsline {subsection}{\numberline {6.12}Задания для лабораторной работы}{72}{subsection.6.12}%
+\contentsline {subsubsection}{\numberline {6.12.1}Базовые миссии}{72}{subsubsection.6.12.1}%
+\contentsline {subsubsection}{\numberline {6.12.2}Продвинутые задания}{74}{subsubsection.6.12.2}%
+\contentsline {section}{\numberline {7}Приложение: справочник платформы}{77}{section.7}%
+\contentsline {subsection}{\numberline {7.1}Ключевые события \texttt {Ev.*}}{77}{subsection.7.1}%
+\contentsline {subsection}{\numberline {7.2}Основные функции управления}{77}{subsection.7.2}%
+\contentsline {subsection}{\numberline {7.3}Таймеры и неблокирующие вызовы}{77}{subsection.7.3}%
+\contentsline {subsection}{\numberline {7.4}Идиомы Lua}{78}{subsection.7.4}%
