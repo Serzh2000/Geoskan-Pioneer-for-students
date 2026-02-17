@@ -1,0 +1,105 @@
+\documentclass[tikz, border=10pt]{standalone}
+\usepackage{tikz}
+\usepackage{tikz-3dplot}
+\usetikzlibrary{shapes, shadows, calc, positioning, 3d}
+
+% Define colors
+\definecolor{GeoskanBlue}{RGB}{0, 89, 166}
+\definecolor{GeoskanOrange}{RGB}{255, 100, 0}
+\definecolor{GeoskanBlack}{RGB}{30, 30, 30}
+\definecolor{GeoskanSilver}{RGB}{200, 200, 200}
+\definecolor{GeoskanGuard}{RGB}{220, 230, 240}
+\definecolor{GeoskanPCB}{RGB}{0, 100, 0}
+
+\begin{document}
+\tdplotsetmaincoords{60}{120} % Isometric-ish view angle
+\begin{tikzpicture}[tdplot_main_coords, scale=3]
+
+    % --- Define Layers (Vertical separation) ---
+    \def\layerBattery{-0.8}
+    \def\layerGuard{-0.2}
+    \def\layerFrame{0.0}
+    \def\layerMotors{0.3}
+    \def\layerProps{0.8}
+    \def\layerTop{1.2}
+
+    % --- Axis (Optional, for reference) ---
+    %\draw[->, red] (0,0,0) -- (1,0,0) node[anchor=north east]{x};
+    %\draw[->, green] (0,0,0) -- (0,1,0) node[anchor=north west]{y};
+    %\draw[->, blue] (0,0,0) -- (0,0,1) node[anchor=south]{z};
+
+    % --- Layer 1: Battery (Bottom) ---
+    \begin{scope}[canvas is xy plane at z=\layerBattery]
+        \draw[fill=black!80, opacity=0.9, rounded corners=2pt] (-0.3, -0.5) rectangle (0.3, 0.5);
+        \node[white, rotate=90, font=\tiny\sffamily] at (0,0) {Battery};
+        % Connectors
+        \draw[thick, yellow!80!black] (0, 0.5) -- (0, 0.6) -- (0, 0.8); % Wire going up
+    \end{scope}
+    % Dashed line connecting up
+    \draw[dashed, gray] (0, 0, \layerBattery) -- (0, 0, \layerFrame);
+
+    % --- Layer 2: Propeller Guard (Below Frame) ---
+    \begin{scope}[canvas is xy plane at z=\layerGuard]
+        \draw[GeoskanGuard, line width=2pt, opacity=0.4] (0,0) circle (1.8);
+        \foreach \angle in {45, 135, 225, 315} {
+            \draw[GeoskanGuard, line width=1pt, opacity=0.4] (0,0) -- (\angle:1.8);
+            \draw[GeoskanGuard, line width=1pt, opacity=0.4] (\angle:1.2) circle (0.6); % Prop clearance
+        }
+    \end{scope}
+    % Connecting posts
+    \foreach \angle in {45, 135, 225, 315} {
+        \draw[dashed, gray!50] (\angle:1.2, \layerGuard) -- (\angle:1.2, \layerFrame);
+    }
+
+    % --- Layer 3: Main Frame (PCB) ---
+    \begin{scope}[canvas is xy plane at z=\layerFrame]
+        % Central Hub
+        \fill[GeoskanBlack, rounded corners=2pt] (-0.4, -0.4) rectangle (0.4, 0.4);
+        % Arms
+        \foreach \angle in {45, 135, 225, 315} {
+            \draw[line width=4pt, GeoskanBlack] (0,0) -- (\angle:1.2);
+            \fill[GeoskanBlack] (\angle:1.2) circle (0.15); % Motor mount base
+        }
+        % PCB Details
+        \fill[GeoskanPCB] (-0.3, -0.3) rectangle (0.3, 0.3);
+        \fill[gold] (-0.1, -0.1) rectangle (0.1, 0.1); % Chip
+        \node[white, font=\tiny\sffamily] at (0, -0.5) {Frame};
+    \end{scope}
+
+    % --- Layer 4: Motors ---
+    \foreach \angle in {45, 135, 225, 315} {
+        % Cylinder approximation
+        \draw[fill=GeoskanSilver] (\angle:1.2, \layerMotors) circle (0.12);
+        \draw[fill=GeoskanSilver!50!black] (\angle:1.2, \layerMotors-0.1) -- ++(0,0,0.2); % Shaft visual placeholder
+        % Motor body (simple cylinder side view not perfect in 2D projection logic, but acceptable)
+        \shade[ball color=GeoskanSilver] (\angle:1.2, \layerMotors) circle (0.12);
+        
+        % Connection line to frame
+        \draw[dashed, gray] (\angle:1.2, \layerFrame) -- (\angle:1.2, \layerMotors);
+    }
+    \node[anchor=west, font=\tiny\sffamily] at (1.5, 0, \layerMotors) {Brushless Motors};
+    \draw[->, gray] (1.5, 0, \layerMotors) -- (1.0, 0.8, \layerMotors);
+
+    % --- Layer 5: Propellers (Top) ---
+    \foreach \angle in {45, 135, 225, 315} {
+        \begin{scope}[canvas is xy plane at z=\layerProps, shift={(\angle:1.2)}, rotate=\angle]
+            \fill[GeoskanOrange, opacity=0.8] (-0.8, -0.1) rectangle (0.8, 0.1); % Simple blade
+            \fill[GeoskanSilver] (0,0) circle (0.05); % Nut
+        \end{scope}
+        % Connection line to motor
+        \draw[dashed, gray] (\angle:1.2, \layerMotors) -- (\angle:1.2, \layerProps);
+    }
+    \node[anchor=west, font=\tiny\sffamily] at (1.5, 0, \layerProps) {Propellers (CW/CCW)};
+    \draw[->, gray] (1.5, 0, \layerProps) -- (1.0, 0.8, \layerProps);
+
+    % --- Camera Module (Front) ---
+    \begin{scope}[canvas is xy plane at z=\layerFrame, shift={(0, 0.5)}]
+        \fill[black] (-0.1, 0) rectangle (0.1, 0.2);
+        \shade[ball color=blue!20] (0, 0.2) circle (0.05);
+    \end{scope}
+
+    % --- Title ---
+    \node[anchor=south, font=\bfseries\sffamily] at (0, 2, \layerTop) {Exploded Assembly View};
+
+\end{tikzpicture}
+\end{document}

@@ -46,7 +46,10 @@
 \usepackage{float}
 \usepackage{tikz}
 \usepackage{tikz-3dplot}
-\usetikzlibrary{arrows.meta, quotes, 3d, calc, shapes.geometric, shadows}
+\usetikzlibrary{arrows.meta, quotes, 3d, calc, shapes.geometric, shadows, positioning, decorations.markings, fadings, patterns, shadings, shapes}
+
+% Custom fadings for TikZ
+\tikzfading[name=fade out, inner color=transparent!0, outer color=transparent!100]
 
 % Define Modern Color Palette (Geoskan Brand)
 \definecolor{GeoskanBlue}{RGB}{0, 91, 187}       % Primary Brand Color
@@ -56,6 +59,15 @@
 \definecolor{CodeGreen}{RGB}{0, 150, 0}           % Comments
 \definecolor{CodePurple}{RGB}{128, 0, 128}        % Keywords
 \definecolor{CodeBack}{RGB}{250, 250, 250}        % Code Background
+
+% Additional Colors for Drone Illustration
+\definecolor{GeoskanBlack}{RGB}{30, 30, 35}
+\definecolor{GeoskanDarkGrey}{RGB}{45, 45, 50}
+\definecolor{GeoskanGrey}{RGB}{100, 100, 105}
+\definecolor{GeoskanLightGrey}{RGB}{180, 180, 185}
+\definecolor{SkyTop}{RGB}{100, 180, 255}
+\definecolor{SkyBottom}{RGB}{200, 230, 255}
+\definecolor{GroundGreen}{RGB}{34, 139, 34}
 
 % --- Page Layout (GOST 7.32-2017) ---
 \usepackage{geometry}
@@ -370,68 +382,35 @@
 \newcommand{\makePioneerTitle}[5]{
     \begin{titlepage}
         \centering
-        \vspace*{0.5cm}
+        \vspace*{0.2cm}
         
-        % 3D Euler Angles Illustration
-        % \tdplotsetmaincoords{50}{115}
-        % \begin{tikzpicture}[scale=3,tdplot_main_coords,> = Triangle]
-        %     \tdseteulerzxz
-        %     \pgfmathsetmacro{\angpsi}{-10}
-        %     \pgfmathsetmacro{\angtheta}{-20}
-        %     \pgfmathsetmacro{\angphi}{-10}
-        %     \pgfmathsetmacro{\r}{2}
-        %     \coordinate (O) at (0,0,0);      
-        %     \tdplotsetrotatedcoords{\angpsi}{\angtheta}{\angphi}    
-        %     \begin{scope}[tdplot_rotated_coords,scale=1.2]
-        %         \draw coordinate (O) (0,0,-.05) ellipse [radius=.2];
-        %         \foreach \xy/\yx in {x/y, y/x} {
-        %           \fill[white] (xyz cs: \xy = -1, \yx = -.05) -- (xyz cs: \xy =  1, \yx=-.05)
-        %                     -- (xyz cs: \xy =  1, \yx =  .05) -- (xyz cs: \xy = -1, \yx= .05) -- cycle;
-        %           \foreach \lmr in {-.05, 0, .05}
-        %             \draw[gray] (xyz cs: \xy=-1, \yx = \lmr) -- (xyz cs: \xy=1, \yx=\lmr);
-        %           \draw[fill=white, radius=.15] (xyz cs: \xy = -1) ellipse[] (xyz cs: \xy =  1) ellipse[];
-        %         }
-        %         \draw[fill=white] (0,0,0) ellipse [radius=.2];
-        %     \end{scope}
-        %     \foreach \xyz/\Label in {x/left,y/right,z/above}
-        %         \draw[->,GeoskanBlue,thick] (O) -- (xyz cs: \xyz=\r) node[\Label]{$\xyz$};
-        %     \draw[canvas is xy plane at z=0,->] (1.5,0) arc (0:\angpsi:1.5);
-        %     \node at ({1.7*cos(\angpsi/2)},{1.7*sin(\angpsi/2)},0){$\psi$};
-        %     \draw[canvas is xy plane at z=0,->] (0,1.5) arc (90:90+\angpsi:1.5);
-        %     \node at ({-1.7*sin(\angpsi/2)},{1.7*cos(\angpsi/2)},0){$\psi$};    
-        %     \tdplotsetrotatedcoords{\angpsi}{0}{0}
-        %     \begin{scope}[tdplot_rotated_coords]
-        %         \foreach \xyz/\Label in {x/left,y/right}
-        %             \draw[->,green!70!black,thick] (O) -- (xyz cs: \xyz=\r) node[\Label]{$\xyz'$};
-        %         \draw[canvas is yz plane at x=0,->] (1.5,0) arc (0:\angtheta:1.5);
-        %         \node at (0,{1.7*cos(\angtheta/2)},{1.7*sin(\angtheta/2)}){$\theta$};
-        %         \draw[canvas is yz plane at x=0,->] (0,1.5) arc (90:90+\angtheta:1.5);
-        %         \node at (0,{-1.7*sin(\angtheta/2)},{1.7*cos(\angtheta/2)}){$\theta$};
-        %     \end{scope}
-        %     \tdplotsetrotatedcoords{\angpsi}{\angtheta}{0}
-        %     \begin{scope}[tdplot_rotated_coords]
-        %         \foreach \xyz/\Label in {y/right}
-        %             \draw[->,magenta,thick] (O) -- (xyz cs: \xyz=\r) node[\Label]{$\xyz''$};
-        %         \draw[canvas is xy plane at z=0,->] (1.5,0) arc (0:\angphi:1.5);
-        %         \node at ({1.7*cos(\angphi/2)},{1.7*sin(\angphi/2)},0){$\varphi$};
-        %         \draw[canvas is xy plane at z=0,->] (0,1.5) arc (90:90+\angphi:1.5);
-        %         \node at ({-1.7*sin(\angphi/2)},{1.7*cos(\angphi/2)},0){$\varphi$};
-        %     \end{scope}
-        %     \tdplotsetrotatedcoords{\angpsi}{\angtheta}{\angphi}    
-        %     \begin{scope}[tdplot_rotated_coords]
-        %         \foreach \xyz/\Label in {x/left,y/right,z/above}
-        %             \draw[->,densely dashed,red,thick] (O) -- (xyz cs: \xyz=\r) node[\Label]{$\tilde\xyz$};
-        %     \end{scope}
-        % \end{tikzpicture}
-        \vspace{5cm}
+        % Title & Subtitle (First)
+        {\sffamily\Huge\bfseries\color{GeoskanDarkBlue} #1}\\[0.3cm]
+        {\sffamily\Large\color{GeoskanBlue} #2}\\[0.5cm]
         
-        \vspace{1.5cm}
+        % Cover Image (Second)
+        \begin{tcolorbox}[
+            enhanced,
+            colback=white,
+            colframe=GeoskanBlue,
+            boxrule=1.5pt,
+            arc=3mm,
+            width=0.85\textwidth, % Match the resized image width + padding
+            halign=center,
+            valign=center,
+            boxsep=0pt,
+            left=0pt, right=0pt, top=0pt, bottom=0pt,
+            shadow={3mm}{-3mm}{0mm}{black!20}
+        ]
+            \centering
+            \resizebox{0.8\textwidth}{!}{ % Reduced from 0.9 to 0.8 (approx 10% reduction)
+                \input{assets/images/tikz_drone/drone_cover_code.tex}
+            }
+        \end{tcolorbox}
         
-        {\sffamily\Huge\bfseries\color{GeoskanDarkBlue} #1}\\[0.5cm]
-        {\sffamily\Large\color{GeoskanBlue} #2}\\[2cm]
+        \vspace{0.5cm}
         
-        \vfill
-        
+        % Author Box (Third)
         \begin{tcolorbox}[
             enhanced,
             colback=GeoskanLightGray,
@@ -448,11 +427,12 @@
             \textit{#4}
         \end{tcolorbox}
         
-        \vfill
+        \vspace{0.5cm}
         
+        % Footer (Fourth)
         {\sffamily\large #5}
         
-        \vspace{1cm}
+        \vspace{0.3cm}
         {\sffamily\footnotesize \textcolor{gray}{Версия документа: \theversion\ (Дата сборки: \buildtimestamp)}}
     \end{titlepage}
 }

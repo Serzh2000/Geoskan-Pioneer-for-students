@@ -1,0 +1,170 @@
+\begin{tikzpicture}[scale=2]
+    % --- Portrait Clipping ---
+    \clip (-3, -4) rectangle (3, 4);
+
+    % --- Background ---
+    \shade[top color=SkyTop, bottom color=SkyBottom] (-3, -4) rectangle (3, 4);
+    
+    % Sun
+    \shade[inner color=white, outer color=yellow!20, opacity=0.8] (0, 3.2) circle (1.0);
+    \fill[yellow!30, opacity=0.2, path fading=fade out] (0, 3.2) circle (2.0);
+    
+    % Mountains
+    \fill[SkyTop!50!gray] (-3, -1.0) -- (-1.5, 0.5) -- (0, -0.5) -- (1.5, 0.8) -- (3, -0.8) -- (3, -4) -- (-3, -4) -- cycle;
+    \fill[SkyTop!30!GroundGreen] (-3, -2.0) .. controls (-1, -1.2) and (1, -1.8) .. (3, -1.2) -- (3, -4) -- (-3, -4) -- cycle;
+    
+    % Clouds
+    \foreach \x/\y/\s in {-1.8/2.8/1.0, 1.5/2.2/0.8, -0.5/1.5/1.2, 2.2/0.5/0.9} {
+         \fill[white, opacity=0.6, path fading=fade out] (\x, \y) ellipse (\s cm and 0.35cm);
+    }
+
+    % --- DRONE ---
+    % Ground shadow
+    \fill[black, opacity=0.12, path fading=fade out] (0, -3.2) ellipse (1.8 and 0.25);
+    
+    \begin{scope}[shift={(0, 0.5)}]
+    
+        % --- REAR ARMS ---
+        \draw[line width=5pt, GeoskanDarkGrey] (0,0.08) -- (-1.0, 0.45);
+        \draw[line width=5pt, GeoskanDarkGrey] (0,0.08) -- (1.0, 0.45);
+
+        % --- REAR MOTORS ---
+        % Motor base
+        \fill[GeoskanGrey!70] (-1.0, 0.42) ellipse (0.18 and 0.08);
+        \fill[GeoskanGrey!70] (1.0, 0.42) ellipse (0.18 and 0.08);
+        
+        % Motor body
+        \shade[left color=GeoskanGrey!60, right color=GeoskanGrey, middle color=GeoskanLightGrey] 
+            (-1.18, 0.42) rectangle (-0.82, 0.62);
+        \shade[left color=GeoskanGrey!60, right color=GeoskanGrey, middle color=GeoskanLightGrey] 
+            (0.82, 0.42) rectangle (1.18, 0.62);
+        
+        % Motor top
+        \fill[GeoskanLightGrey] (-1.0, 0.62) ellipse (0.18 and 0.08);
+        \fill[GeoskanLightGrey] (1.0, 0.62) ellipse (0.18 and 0.08);
+        
+        % Cooling fins
+        \foreach \y in {0.48, 0.52, 0.56} {
+            \draw[GeoskanDarkGrey, line width=0.5pt] (-1.15, \y) -- (-0.85, \y);
+            \draw[GeoskanDarkGrey, line width=0.5pt] (0.85, \y) -- (1.15, \y);
+        }
+        
+        % Center screw
+        \fill[GeoskanDarkGrey] (-1.0, 0.62) circle (0.05);
+        \fill[GeoskanDarkGrey] (1.0, 0.62) circle (0.05);
+
+        % --- REAR PROPELLERS ---
+        \foreach \i in {0,1,2,3} {
+            \fill[white, opacity=0.12-\i*0.02] (-1.0, 0.72) ellipse (0.9 and 0.13);
+            \fill[white, opacity=0.12-\i*0.02] (1.0, 0.72) ellipse (0.9 and 0.13);
+        }
+        
+        % Motion blur ring
+        \draw[white, opacity=0.4, line width=1.2pt] (-1.0, 0.72) ellipse (0.87 and 0.12);
+        \draw[white, opacity=0.4, line width=1.2pt] (1.0, 0.72) ellipse (0.87 and 0.12);
+        
+        % Contrast ring
+        \draw[GeoskanGrey!30, opacity=0.3, line width=0.5pt] (-1.0, 0.72) ellipse (0.87 and 0.12);
+        \draw[GeoskanGrey!30, opacity=0.3, line width=0.5pt] (1.0, 0.72) ellipse (0.87 and 0.12);
+        
+        % Propeller hub - flat color, no shadow
+        \fill[GeoskanLightGrey] (-1.0, 0.72) circle (0.06);
+        \fill[GeoskanLightGrey] (1.0, 0.72) circle (0.06);
+
+        % --- MAIN BODY ---
+        \shade[top color=GeoskanBlack!90, bottom color=GeoskanDarkGrey, middle color=GeoskanBlack] 
+            (-0.45, -0.2) -- (-0.35, 0.2) -- (0.35, 0.2) -- (0.45, -0.2) -- cycle;
+        \shade[top color=GeoskanBlack, bottom color=GeoskanDarkGrey] (0, 0.22) ellipse (0.35 and 0.12);
+        
+        % Blue accent
+        \fill[GeoskanBlue] (-0.15, -0.15) rectangle (0.15, 0.15);
+        \draw[GeoskanBlue!60!white, line width=0.8pt] (-0.15, -0.15) rectangle (0.15, 0.15);
+        
+        % Vents
+        \foreach \x in {-0.28, 0.28} {
+            \fill[GeoskanBlack!70] (\x-0.04, -0.08) rectangle (\x+0.04, 0.08);
+        }
+
+        % --- FRONT ARMS ---
+        \draw[line width=6pt, GeoskanBlack] (0,0) -- (-1.35, -0.6);
+        \draw[line width=6pt, GeoskanBlack] (0,0) -- (1.35, -0.6);
+        \draw[line width=2pt, GeoskanGrey!40] (0.08,0.02) -- (1.28, -0.58);
+        \draw[line width=2pt, GeoskanGrey!40] (-0.08,0.02) -- (-1.28, -0.58);
+
+        % --- FRONT MOTORS ---
+        % Motor base
+        \fill[GeoskanGrey] (-1.35, -0.65) ellipse (0.2 and 0.09);
+        \fill[GeoskanGrey] (1.35, -0.65) ellipse (0.2 and 0.09);
+        
+        % Motor body
+        \shade[left color=GeoskanGrey!70, right color=GeoskanGrey!90, middle color=GeoskanLightGrey] 
+            (-1.55, -0.65) rectangle (-1.15, -0.4);
+        \shade[left color=GeoskanGrey!70, right color=GeoskanGrey!90, middle color=GeoskanLightGrey] 
+            (1.15, -0.65) rectangle (1.55, -0.4);
+        
+        % Motor top
+        \fill[GeoskanLightGrey] (-1.35, -0.4) ellipse (0.2 and 0.09);
+        \fill[GeoskanLightGrey] (1.35, -0.4) ellipse (0.2 and 0.09);
+        
+        % Cooling fins
+        \foreach \y in {-0.58, -0.54, -0.50, -0.46} {
+            \draw[GeoskanDarkGrey, line width=0.6pt] (-1.52, \y) -- (-1.18, \y);
+            \draw[GeoskanDarkGrey, line width=0.6pt] (1.18, \y) -- (1.52, \y);
+        }
+        
+        % Center nut
+        \fill[GeoskanDarkGrey] (-1.35, -0.4) circle (0.06);
+        \fill[GeoskanDarkGrey] (1.35, -0.4) circle (0.06);
+
+        % --- FRONT PROPELLERS ---
+        \foreach \i in {0,1,2,3} {
+            \fill[white, opacity=0.12-\i*0.02] (-1.35, -0.28) ellipse (1.3 and 0.18);
+            \fill[white, opacity=0.12-\i*0.02] (1.35, -0.28) ellipse (1.3 and 0.18);
+        }
+        
+        \draw[white, opacity=0.4, line width=1.5pt] (-1.35, -0.28) ellipse (1.25 and 0.16);
+        \draw[white, opacity=0.4, line width=1.5pt] (1.35, -0.28) ellipse (1.25 and 0.16);
+        
+        \draw[GeoskanGrey!30, opacity=0.3, line width=0.5pt] (-1.35, -0.28) ellipse (1.25 and 0.16);
+        \draw[GeoskanGrey!30, opacity=0.3, line width=0.5pt] (1.35, -0.28) ellipse (1.25 and 0.16);
+        
+        % Propeller hub - flat color, no shadow
+        \fill[GeoskanLightGrey] (-1.35, -0.28) circle (0.08);
+        \fill[GeoskanLightGrey] (1.35, -0.28) circle (0.08);
+
+        % --- CAMERA SYSTEM ---
+        \fill[GeoskanDarkGrey] (-0.18, -0.18) -- (0.18, -0.18) -- (0.15, -0.4) -- (-0.15, -0.4) -- cycle;
+        \draw[line width=3pt, GeoskanGrey] (-0.15, -0.3) -- (-0.1, -0.55);
+        \draw[line width=3pt, GeoskanGrey] (0.15, -0.3) -- (0.1, -0.55);
+        \fill[GeoskanGrey] (-0.1, -0.55) circle (0.04);
+        \fill[GeoskanGrey] (0.1, -0.55) circle (0.04);
+        
+        % Camera housing - flat shading instead of ball color
+        \fill[GeoskanBlack] (0, -0.65) circle (0.2);
+        \fill[GeoskanDarkGrey] (0, -0.68) ellipse (0.18 and 0.15);
+        
+        % Lens barrel
+        \fill[GeoskanBlack] (0, -0.65) circle (0.14);
+        \fill[black] (0, -0.65) circle (0.11);
+        
+        % Lens glass
+        \fill[blue!20!black, opacity=0.8] (0, -0.65) circle (0.08);
+        
+        % Lens reflections
+        \fill[white, opacity=0.7] (0.03, -0.62) ellipse (0.03 and 0.02);
+        \fill[white, opacity=0.4] (-0.03, -0.68) ellipse (0.02 and 0.015);
+        \fill[GeoskanBlue!50, opacity=0.3] (0, -0.65) circle (0.06);
+        
+        % IR sensors
+        \fill[red!80!black] (-0.12, -0.78) circle (0.025);
+        \fill[red!80!black] (0.12, -0.78) circle (0.025);
+
+        % --- ANTENNAS ---
+        \draw[line width=2pt, GeoskanBlack] (0.3, 0.15) -- (0.4, 0.5);
+        \draw[line width=2pt, GeoskanBlack] (-0.3, 0.15) -- (-0.4, 0.5);
+        \fill[GeoskanOrange] (0.4, 0.5) circle (0.04);
+        \fill[GeoskanOrange] (-0.4, 0.5) circle (0.04);
+
+    \end{scope}
+
+\end{tikzpicture}
