@@ -1,7 +1,0 @@
-\begin{Verbatim}[commandchars=\\\{\}]
-\PYG{c+c1}{\PYGZhy{}\PYGZhy{} суммирование 1..10}
-\PYG{k+kd}{local}\PYG{+w}{ }\PYG{n+nv}{sum}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{0}
-\PYG{k+kr}{for}\PYG{+w}{ }\PYG{n+nv}{i}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{1}\PYG{p}{,}\PYG{+w}{ }\PYG{l+m+mi}{10}\PYG{+w}{ }\PYG{k+kr}{do}
-\PYG{+w}{  }\PYG{n+nv}{sum}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n+nv}{sum}\PYG{+w}{ }\PYG{o}{+}\PYG{+w}{ }\PYG{n+nv}{i}
-\PYG{k+kr}{end}
-\end{Verbatim}

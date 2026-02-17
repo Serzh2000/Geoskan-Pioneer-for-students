@@ -1,0 +1,3 @@
+\def\minted@exec@error{%
+  \minted@error{^^J => \detokenize{./chapters/missions/part1/18_lesson14.tex:2:} Cannot locate file \detokenize{"main.listing"} (kpsewhich failed)}%
+}%

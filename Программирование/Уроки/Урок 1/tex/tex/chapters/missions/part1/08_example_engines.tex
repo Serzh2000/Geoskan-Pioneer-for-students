@@ -1,8 +1,0 @@
-\paragraph{Только запуск двигателей}
-\begin{minted}{lua}
-ap.push(Ev.MCE_PREFLIGHT)                 -- безопасная предстартовая подготовка
-Timer.callLater(1, function()             -- отложить действие на 1 секунду
-  ap.push(Ev.ENGINES_ARM)                 -- команда запуска двигателей (без взлёта)
-end)
-\end{minted}
-\textbf{Пояснение.} На практике запуск двигателей выполняется в составе взлёта (\texttt{Ev.MCE\_TAKEOFF}). Явная команда \texttt{Ev.ENGINES\_ARM} полезна для проверки работы моторов без взлёта.

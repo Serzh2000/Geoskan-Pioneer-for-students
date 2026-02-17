@@ -4,3 +4,35 @@ draft/Машинное зрение.docx
 draft/Программирование.docx
 draft/Сборка и пилотирование.docx
 /GPS.docx
+# OS/system files
+Thumbs.db
+.DS_Store
+Desktop.ini
+*.lnk
+
+# Logs and temp
+*.log
+*.tmp
+*.cache
+
+# LaTeX build artifacts
+*.aux
+*.fdb_latexmk
+*.fls
+*.synctex.gz
+*.toc
+*.out
+*.bbl
+*.blg
+texput.log
+
+# Python
+__pycache__/
+*.pyc
+
+# Sphinx build
+docs/**/_build/
+
+# Editor/IDE
+.vscode/
+.idea/

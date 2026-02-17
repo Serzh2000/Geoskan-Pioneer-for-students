@@ -1,0 +1,10 @@
+\subsection{Особенности адресации (Буфер драйвера)}
+Важно: \hyperlink{term:ledbar}{Ledbar} работает с \hyperlink{term:buffer}{буфером} \textbf{из 4 элементов}. Поэтому инициализация должна задавать размерность \verb|4|.
+\begin{quote}
+\textbf{Требование:} \verb|Ledbar.new(4)|.
+\end{quote}
+
+Типовой шаблон инициализации выглядит так:
+
+\begin{codefile}{examples/chapter_05/leds_buffer_init.lua}
+\end{codefile}

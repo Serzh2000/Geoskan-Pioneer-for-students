@@ -1,0 +1,16 @@
+\subsection{Таймеры}
+\begin{itemize}
+  \item \verb|Timer.new(period, fn)| — создаёт \hyperlink{term:timer}{периодический таймер}; \verb|period| — \hyperlink{term:period}{период} в секундах; \verb|fn| вызывается каждый \hyperlink{term:tick}{тик}.
+  \item \verb|timer:start()|, \verb|timer:stop()| — запуск/остановка таймера.
+  \item \verb|Timer.callLater(delay, fn)| — единичный вызов \verb|fn| через \verb|delay| секунд.
+  \item Таймеры и \hyperlink{term:state}{состояния} делайте \hyperlink{term:scope}{глобальными} (без \verb|local|), иначе сборщик мусора их удалит.
+\end{itemize}
+\textbf{Пример периодического таймера (мигание):}
+\begin{codefile}{examples/chapter_05/leds_timers_blink.lua}
+\end{codefile}
+\textbf{Пример отложенного вызова (через 3 секунды):}
+\begin{codefile}{examples/chapter_05/leds_timers_delayed.lua}
+\end{codefile}
+\textbf{Отложенный таймер внутри обработчика событий:}
+\begin{codefile}{examples/chapter_05/leds_timers_callback_delayed.lua}
+\end{codefile}

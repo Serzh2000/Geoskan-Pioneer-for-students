@@ -1,8 +1,0 @@
-\begin{Verbatim}[commandchars=\\\{\}]
-\PYG{k+kd}{local}\PYG{+w}{ }\PYG{n+nv}{ledNumber}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{25}
-\PYG{k+kd}{local}\PYG{+w}{ }\PYG{n+nv}{leds}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n+nv}{Ledbar}\PYG{p}{.}\PYG{n+nf}{new}\PYG{p}{(}\PYG{n+nv}{ledNumber}\PYG{p}{)}
-\PYG{k+kr}{for}\PYG{+w}{ }\PYG{n+nv}{i}\PYG{o}{=}\PYG{l+m+mi}{0}\PYG{p}{,}\PYG{+w}{ }\PYG{n+nv}{ledNumber}\PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{1}\PYG{+w}{ }\PYG{k+kr}{do}\PYG{+w}{ }\PYG{n+nv}{leds}\PYG{p}{:}\PYG{n+nf}{set}\PYG{p}{(}\PYG{n+nv}{i}\PYG{p}{,}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{p}{,}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{p}{,}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{p}{)}\PYG{+w}{ }\PYG{k+kr}{end}
-\PYG{n+nv}{Timer}\PYG{p}{.}\PYG{n+nf}{callLater}\PYG{p}{(}\PYG{l+m+mi}{3}\PYG{p}{,}\PYG{+w}{ }\PYG{k+kr}{function}\PYG{+w}{ }\PYG{p}{()}
-\PYG{+w}{  }\PYG{k+kr}{for}\PYG{+w}{ }\PYG{n+nv}{i}\PYG{o}{=}\PYG{l+m+mi}{0}\PYG{p}{,}\PYG{+w}{ }\PYG{n+nv}{ledNumber}\PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{1}\PYG{+w}{ }\PYG{k+kr}{do}\PYG{+w}{ }\PYG{n+nv}{leds}\PYG{p}{:}\PYG{n+nf}{set}\PYG{p}{(}\PYG{n+nv}{i}\PYG{p}{,}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{p}{,}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{p}{,}\PYG{+w}{ }\PYG{l+m+mi}{1}\PYG{p}{)}\PYG{+w}{ }\PYG{k+kr}{end}
-\PYG{k+kr}{end}\PYG{p}{)}
-\end{Verbatim}

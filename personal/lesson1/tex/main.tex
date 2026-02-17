@@ -1,0 +1,599 @@
+% =============================================================================
+% MODERN BOOK DESIGN FOR GEOSKAN PIONEER
+% =============================================================================
+%
+% This document has been refactored to use the KOMA-Script class 'scrartcl',
+% which provides superior typographic defaults and flexibility for European
+% document standards. It is optimized for XeLaTeX compilation.
+%
+% Key Design Decisions:
+% 1. Typography: 12pt base font size for readability, with advanced microtypography.
+% 2. Layout: Adaptive margins using 'geometry' and 'DIV' calculation.
+% 3. Styling: Flat, modern design for boxes and code listings.
+% 4. Colors: Professional color palette based on Geoskan brand identity.
+%
+% =============================================================================
+
+% --- Document Class & Options ---
+% scrartcl: KOMA-Script article class (versatile, supports chapters via sections)
+% fontsize=12pt: Standard readable size for technical documentation
+% DIV=12: Typographic term for type area calculation (good whitespace balance)
+% parskip=half: Adds vertical space between paragraphs instead of indentation (modern look)
+% headings=big: Large, clear section headings
+% numbers=noenddot: Removes trailing dot in section numbers (e.g., "1.2" instead of "1.2.")
+\documentclass[
+    fontsize=14pt, % GOST standard often implies 14pt
+    DIV=12,
+    headings=big,
+    numbers=noenddot,
+    toc=listof,      % Include lists of figures/tables in TOC
+    toc=bib,         % Include bibliography in TOC
+    headinclude=true,% Include header in type area calculation
+    footinclude=false
+]{scrartcl}
+
+% --- Language & Font Management (XeLaTeX) ---
+\usepackage{fontspec}
+\usepackage{polyglossia}
+
+% Set default language to Russian with modern hyphenation
+\setdefaultlanguage{russian}
+\setotherlanguage{english}
+
+% Font Configuration: Using standard Windows fonts for compatibility
+% Ligatures=TeX enables standard TeX ligatures (-- for en-dash, etc.)
+\setmainfont{Times New Roman}[
+    Ligatures=TeX,
+    Scale=1.0
+]
+\setsansfont{Arial}[
+    Ligatures=TeX,
+    Scale=MatchLowercase
+]
+\setmonofont{Consolas}[
+    Scale=MatchLowercase,
+    Contextuals=Alternate % Better coding ligatures if supported
+]
+\newfontfamily\codefont{Consolas}[Scale=MatchLowercase]
+
+% Microtypography: Improves justification and readability significantly
+\usepackage{microtype}
+
+% --- Paragraphs & Spacing (GOST) ---
+\usepackage{indentfirst} % Indent first paragraph of sections
+\usepackage{setspace}
+\onehalfspacing % 1.5 line spacing
+\setlength{\parindent}{1.25cm} % Standard GOST indent
+\setlength{\parskip}{0pt} % No extra space between paragraphs
+
+% --- Mathematics ---
+\usepackage{amsmath}
+\usepackage{amssymb}
+% \usepackage{unicode-math} % Uncomment if you want to use OpenType math fonts
+
+% --- Colors & Graphics ---
+\usepackage[table]{xcolor}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{tikz}
+\usepackage{tikz-3dplot}
+\usetikzlibrary{arrows.meta, quotes, 3d, calc, shapes.geometric, shadows}
+
+% Define Modern Color Palette (Geoskan Brand)
+\definecolor{GeoskanBlue}{RGB}{0, 91, 187}       % Primary Brand Color
+\definecolor{GeoskanDarkBlue}{RGB}{22, 43, 58}    % Dark Text / Headers
+\definecolor{GeoskanOrange}{RGB}{255, 140, 0}     % Accent / Highlight
+\definecolor{GeoskanLightGray}{RGB}{245, 245, 245}% Backgrounds
+\definecolor{CodeGreen}{RGB}{0, 150, 0}           % Comments
+\definecolor{CodePurple}{RGB}{128, 0, 128}        % Keywords
+\definecolor{CodeBack}{RGB}{250, 250, 250}        % Code Background
+
+% --- Page Layout (GOST 7.32-2017) ---
+\usepackage{geometry}
+\geometry{
+    a4paper,
+    top=20mm,
+    bottom=20mm,
+    left=30mm,
+    right=15mm,
+    headheight=15mm,
+    footskip=15mm
+}
+
+% --- Headers & Footers (scrlayer-scrpage) ---
+\usepackage[automark, headsepline]{scrlayer-scrpage}
+
+% Clear default styles
+\clearpairofpagestyles
+
+% Header: Left = Section Name, Right = Book Title
+\ihead{\headmark}
+\ohead{\textbf{\textcolor{GeoskanBlue}{ГЕОСКАН ПИОНЕР}}}
+
+% Footer: Center = Page Number (GOST usually centers page numbers)
+\cfoot{\pagemark}
+
+% Font styles for headers/footers
+\setkomafont{pageheadfoot}{\sffamily\small\color{GeoskanDarkBlue}}
+\setkomafont{pagenumber}{\sffamily\bfseries\color{GeoskanBlue}}
+
+% --- Typography & Section Styling (KOMA-Script) ---
+% Section (Level 1) - Left aligned, bold, 14pt+
+\setkomafont{section}{\sffamily\Large\bfseries\color{GeoskanBlue}}
+% Subsection (Level 2)
+\setkomafont{subsection}{\sffamily\large\bfseries\color{GeoskanDarkBlue}}
+% Subsubsection (Level 3)
+\setkomafont{subsubsection}{\sffamily\normalsize\bfseries\color{GeoskanOrange}}
+% Paragraph (Level 4)
+\setkomafont{paragraph}{\sffamily\bfseries\color{GeoskanDarkBlue}}
+
+% Customizing Section Numbering format if needed
+% \renewcommand*{\sectionformat}{\color{GeoskanBlue}\thesection\autodot\enskip}
+
+% --- Lists & Tables ---
+\usepackage{enumitem}
+\setlist{nosep} % Compact lists by default
+% GOST lists: dashes or numbers.
+\setlist[itemize]{label=\textcolor{GeoskanBlue}{\textbullet}, leftmargin=*, itemsep=0pt, parsep=0pt}
+\setlist[enumerate]{label=\textcolor{GeoskanBlue}{\arabic*.}, leftmargin=*, font=\bfseries, itemsep=0pt, parsep=0pt}
+\setlist[description]{font=\bfseries\color{GeoskanDarkBlue}, itemsep=0pt, parsep=0pt}
+
+\usepackage{booktabs} % Professional table rules
+\usepackage{tabularx} % Auto-width tables
+\usepackage{multirow}
+\usepackage{caption} 
+\captionsetup{font=small, labelfont={bf,color=GeoskanBlue}} % GOST caption style
+
+% --- Code Listings (Listings) ---
+\usepackage{listings}
+
+% Define custom style for listings
+\lstdefinestyle{GeoskanStyle}{
+    basicstyle=\small\codefont,
+    keywordstyle=\color{CodePurple}\bfseries,
+    commentstyle=\color{CodeGreen}\itshape,
+    stringstyle=\color{GeoskanOrange},
+    numberstyle=\tiny\color{gray},
+    numbers=none, % Disabled per user request
+    numbersep=8pt,
+    breaklines=true,
+    breakatwhitespace=false,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=4,
+    captionpos=t, % GOST usually places table captions on top, code captions can be top or bottom
+    keepspaces=true,
+    backgroundcolor=\color{CodeBack},
+    frame=none, % Handled by tcolorbox
+    columns=fullflexible,
+    upquote=true,
+    mathescape=false,
+    literate={_}{\textunderscore}{1} {а}{{\cyra}}1 {б}{{\cyrb}}1 {в}{{\cyrv}}1 {г}{{\cyrg}}1 {д}{{\cyrd}}1 {е}{{\cyre}}1 {ё}{{\"e}}1 {ж}{{\cyrzh}}1 {з}{{\cyrz}}1 {и}{{\cyri}}1 {й}{{\cyrishrt}}1 {к}{{\cyrk}}1 {л}{{\cyrl}}1 {м}{{\cyrm}}1 {н}{{\cyrn}}1 {о}{{\cyro}}1 {п}{{\cyrp}}1 {р}{{\cyrr}}1 {с}{{\cyrs}}1 {т}{{\cyrt}}1 {у}{{\cyru}}1 {ф}{{\cyrf}}1 {х}{{\cyrh}}1 {ц}{{\cyrc}}1 {ч}{{\cyrch}}1 {ш}{{\cyrsh}}1 {щ}{{\cyrshch}}1 {ъ}{{\cyrhrdsn}}1 {ы}{{\cyrery}}1 {ь}{{\cyrsftsn}}1 {э}{{\cyrerev}}1 {ю}{{\cyryu}}1 {я}{{\cyrya}}1 {А}{{\cyrA}}1 {Б}{{\cyrB}}1 {В}{{\cyrV}}1 {Г}{{\cyrG}}1 {Д}{{\cyrD}}1 {Е}{{\cyrE}}1 {Ё}{{\"E}}1 {Ж}{{\cyrZh}}1 {З}{{\cyrZ}}1 {И}{{\cyrI}}1 {Й}{{\cyrIshrt}}1 {К}{{\cyrK}}1 {Л}{{\cyrL}}1 {М}{{\cyrM}}1 {Н}{{\cyrN}}1 {О}{{\cyrO}}1 {П}{{\cyrP}}1 {Р}{{\cyrR}}1 {С}{{\cyrS}}1 {Т}{{\cyrT}}1 {У}{{\cyrU}}1 {Ф}{{\cyrF}}1 {Х}{{\cyrH}}1 {Ц}{{\cyrC}}1 {Ч}{{\cyrCh}}1 {Ш}{{\cyrSh}}1 {Щ}{{\cyrShch}}1 {Ъ}{{\cyrHrdsn}}1 {Ы}{{\cyrEry}}1 {Ь}{{\cyrSftsn}}1 {Э}{{\cyrErev}}1 {Ю}{{\cyrYu}}1 {Я}{{\cyrYa}}1
+}
+% Lua language definition (if not standard or needs extensions)
+\lstdefinelanguage{lua}{
+  morekeywords={and,break,do,else,elseif,end,false,for,function,if,in,local,nil,not,or,repeat,return,then,true,until,while},
+  morecomment=[l]{--},
+  morecomment=[s]{--[[}{]]--},
+  morestring=[b]",
+  morestring=[b]'
+}
+
+% --- Boxes & Environments (tcolorbox) ---
+\usepackage{tcolorbox}
+\tcbuselibrary{skins, breakable, listings}
+\usepackage{fontawesome5} % Icons
+\usepackage{textcomp} % For upquote
+\usepackage{accsupp} % Accessibility support
+\usepackage{attachfile2} % File attachments
+
+% Helper for copyable spaces in code
+\makeatletter
+\def\FV@Space{%
+  \BeginAccSupp{method=hex,unicode,ActualText=0020}%
+  \ \EndAccSupp{}%
+}
+\makeatother
+
+% 1. Code File Environment (Modern Flat Design)
+\NewDocumentEnvironment{codefile}{O{lua}m}{
+    \begin{tcolorbox}[
+        enhanced,
+        colback=CodeBack,
+        colframe=GeoskanBlue,
+        coltitle=GeoskanDarkBlue,
+        boxrule=0.5pt,
+        leftrule=4pt, % Thicker accent line
+        arc=2mm,
+        outer arc=2mm,
+        left=6mm, right=3mm, top=3mm, bottom=3mm,
+        breakable,
+        title={\sffamily\bfseries\small \faFileCode\ \detokenize{#2}},
+        fonttitle=\sffamily\bfseries\small,
+        attach boxed title to top left={xshift=4mm, yshift=-3mm},
+        boxed title style={colback=white, colframe=white, boxrule=0pt},
+        shadow={2mm}{-2mm}{0mm}{black!10}
+    ]
+    \lstinputlisting[style=GeoskanStyle, language=#1]{code/#2}
+    \end{tcolorbox}
+}{}
+
+% 2. Info Box (Blue)
+\newtcolorbox{infobox}[1][Информация]{
+    enhanced,
+    colback=blue!3!white,
+    colframe=GeoskanBlue,
+    coltitle=GeoskanBlue,
+    boxrule=0.5pt,
+    leftrule=4pt,
+    arc=2mm,
+    title={\sffamily\bfseries \faInfoCircle\ #1},
+    fonttitle=\sffamily\bfseries,
+    attach boxed title to top left={xshift=4mm, yshift=-3mm},
+    boxed title style={colback=white, colframe=white, boxrule=0pt},
+    breakable,
+    top=4mm,
+    shadow={2mm}{-2mm}{0mm}{black!10}
+}
+
+% 3. Warning Box (Red)
+\newtcolorbox{warnbox}[1][Внимание]{
+    enhanced,
+    colback=red!3!white,
+    colframe=red!70!black,
+    coltitle=red!70!black,
+    boxrule=0.5pt,
+    leftrule=4pt,
+    arc=2mm,
+    title={\sffamily\bfseries \faExclamationTriangle\ #1},
+    fonttitle=\sffamily\bfseries,
+    attach boxed title to top left={xshift=4mm, yshift=-3mm},
+    boxed title style={colback=white, colframe=white, boxrule=0pt},
+    breakable,
+    top=4mm,
+    shadow={2mm}{-2mm}{0mm}{black!10}
+}
+
+% 4. Task Box (Green - Assignments)
+\newtcolorbox{taskbox}[1][Задание]{
+    enhanced,
+    colback=white,
+    colframe=GeoskanBlue, % Use brand blue for tasks too
+    boxrule=0pt,
+    leftrule=6pt, % Thick accent
+    arc=2mm,
+    shadow={3mm}{-3mm}{0mm}{black!10},
+    title={#1},
+    detach title,
+    before upper={
+        \begin{center}
+            \textcolor{GeoskanBlue}{\Large\faTasks\ \ \sffamily\bfseries #1}
+        \end{center}
+        \vspace{0.2cm}
+        {\color{GeoskanBlue!30}\hrule height 1pt}
+        \vspace{0.3cm}
+    },
+    fontupper=\sffamily\raggedright,
+    left=10mm, right=10mm, top=5mm, bottom=5mm
+}
+
+% 5. Hint Box (Orange)
+\newtcolorbox{hintbox}[1][Подсказка]{
+    enhanced,
+    colback=orange!5!white,
+    colframe=GeoskanOrange,
+    coltitle=GeoskanOrange,
+    boxrule=0.5pt,
+    leftrule=4pt,
+    arc=2mm,
+    title={\sffamily\bfseries \faLightbulb\ #1},
+    fonttitle=\sffamily\bfseries,
+    attach boxed title to top left={xshift=4mm, yshift=-3mm},
+    boxed title style={colback=white, colframe=white, boxrule=0pt},
+    breakable,
+    top=4mm,
+    shadow={2mm}{-2mm}{0mm}{black!10}
+}
+
+% 6. Rule Box (Dark Blue - Rules/Conventions)
+\newtcolorbox{rulebox}[1][Правило]{
+    enhanced,
+    colback=GeoskanDarkBlue!5!white,
+    colframe=GeoskanDarkBlue,
+    coltitle=GeoskanDarkBlue,
+    boxrule=0.5pt,
+    leftrule=4pt,
+    arc=2mm,
+    title={\sffamily\bfseries \faGavel\ #1},
+    fonttitle=\sffamily\bfseries,
+    attach boxed title to top left={xshift=4mm, yshift=-3mm},
+    boxed title style={colback=white, colframe=white, boxrule=0pt},
+    breakable,
+    top=4mm,
+    shadow={2mm}{-2mm}{0mm}{black!10}
+}
+
+% 7. Simple Code Box
+\newtcolorbox{codebox}[1][]{
+    enhanced,
+    colback=CodeBack,
+    colframe=gray!30,
+    boxrule=0.5pt,
+    arc=2mm,
+    title={#1},
+    fonttitle=\sffamily\bfseries\small,
+    coltitle=black,
+    attach boxed title to top left={yshift=-2mm, xshift=2mm},
+    boxed title style={colback=gray!10, boxrule=0pt},
+    breakable
+}
+
+% Redefine quote to use infobox
+\renewenvironment{quote}
+  {\begin{infobox}[Обратите внимание]}
+  {\end{infobox}}
+
+% --- Hyperlinks (Clean & Modern) ---
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=GeoskanBlue,
+    filecolor=GeoskanOrange,
+    urlcolor=GeoskanBlue,
+    pdftitle={Geoskan Pioneer Programming},
+    pdfauthor={Сергей Корягин},
+    pdfsubject={Educational Material},
+    pdfpagemode=UseOutlines,
+    bookmarksnumbered=true
+}
+
+% --- Table of Contents Styling ---
+\usepackage{tocloft}
+\renewcommand{\cftsecfont}{\sffamily\bfseries\color{GeoskanBlue}}
+\renewcommand{\cftsecpagefont}{\sffamily\bfseries\color{GeoskanBlue}}
+\setlength{\cftbeforesecskip}{1em}
+
+% --- Versioning Logic (Preserved) ---
+\newcounter{buildversion}
+\IfFileExists{build.count}{\input{build.count}}{\setcounter{buildversion}{0}}
+\stepcounter{buildversion}
+\newwrite\buildfile
+\immediate\openout\buildfile=build.count
+\immediate\write\buildfile{\string\setcounter{buildversion}{\thebuildversion}}
+\immediate\closeout\buildfile
+\def\majorversion{1}
+\def\minorversion{1} % Bumped version for refactoring
+\newcommand{\theversion}{\majorversion.\minorversion.\thebuildversion}
+
+% Time formatting
+\makeatletter
+\newcommand{\currenttime}{%
+  \two@digits{\number\numexpr\time/60\relax}:%
+  \two@digits{\number\numexpr\time-60*(\time/60)\relax}%
+}
+\newcommand{\buildtimestamp}{\two@digits{\number\day}.\two@digits{\number\month}.\number\year\ \currenttime}
+\makeatother
+
+% --- 3D Plot Logic (Preserved) ---
+\def\centerarc[#1](#2)(#3:#4:#5){%
+    \draw [#1] ($(#2)+({#5*cos(#3)}, {#5*sin(#3)})$) arc (#3:#4:#5)%
+}
+\newcommand{\tdseteulerzxz}{%
+    \renewcommand{\tdplotcalctransformrotmain}{%
+        \tdplotsinandcos{\sinalpha}{\cosalpha}{\tdplotalpha}
+        \tdplotsinandcos{\sinbeta}{\cosbeta}{\tdplotbeta}
+        \tdplotsinandcos{\singamma}{\cosgamma}{\tdplotgamma}
+        \tdplotmult{\sasb}{\sinalpha}{\sinbeta}
+        \tdplotmult{\sacb}{\sinalpha}{\cosbeta}
+        \tdplotmult{\sacbsg}{\sacb}{\singamma}
+        \tdplotmult{\sacbcg}{\sacb}{\cosgamma}
+        \tdplotmult{\sasg}{\sinalpha}{\singamma}
+        \tdplotmult{\sacg}{\sinalpha}{\cosgamma}
+        \tdplotmult{\sbsg}{\sinbeta}{\singamma}
+        \tdplotmult{\sbcg}{\sinbeta}{\cosgamma}
+        \tdplotmult{\casb}{\cosalpha}{\sinbeta}
+        \tdplotmult{\cacb}{\cosalpha}{\cosbeta}
+        \tdplotmult{\cacbsg}{\cacb}{\singamma}
+        \tdplotmult{\cacbcg}{\cacb}{\cosgamma}
+        \tdplotmult{\casg}{\cosalpha}{\singamma}
+        \tdplotmult{\cacg}{\cosalpha}{\cosgamma}
+        \pgfmathsetmacro{\raaeul}{+\cacg - \sacbsg}
+        \pgfmathsetmacro{\rabeul}{-\casg - \sacbcg}
+        \pgfmathsetmacro{\raceul}{+\sasb}
+        \pgfmathsetmacro{\rbaeul}{+\sacg + \cacbsg}
+        \pgfmathsetmacro{\rbbeul}{-\sasg + \cacbcg}
+        \pgfmathsetmacro{\rbceul}{-\casb}
+        \pgfmathsetmacro{\rcaeul}{+\sbsg}
+        \pgfmathsetmacro{\rcbeul}{+\sbcg}
+        \pgfmathsetmacro{\rcceul}{+\cosbeta}
+    }
+}
+
+% --- Title Page Command ---
+\newcommand{\makePioneerTitle}[5]{
+    \begin{titlepage}
+        \centering
+        \vspace*{0.5cm}
+        
+        % 3D Euler Angles Illustration
+        \tdplotsetmaincoords{50}{115}
+        \begin{tikzpicture}[scale=3,tdplot_main_coords,> = Triangle]
+            \tdseteulerzxz
+            \pgfmathsetmacro{\angpsi}{-10}
+            \pgfmathsetmacro{\angtheta}{-20}
+            \pgfmathsetmacro{\angphi}{-10}
+            \pgfmathsetmacro{\r}{2}
+            \coordinate (O) at (0,0,0);      
+            \tdplotsetrotatedcoords{\angpsi}{\angtheta}{\angphi}    
+            \begin{scope}[tdplot_rotated_coords,scale=1.2]
+                \draw coordinate (O) (0,0,-.05) ellipse [radius=.2];
+                \foreach \xy/\yx in {x/y, y/x} {
+                  \fill[white] (xyz cs: \xy = -1, \yx = -.05) -- (xyz cs: \xy =  1, \yx=-.05)
+                            -- (xyz cs: \xy =  1, \yx =  .05) -- (xyz cs: \xy = -1, \yx= .05) -- cycle;
+                  \foreach \lmr in {-.05, 0, .05}
+                    \draw[gray] (xyz cs: \xy=-1, \yx = \lmr) -- (xyz cs: \xy=1, \yx=\lmr);
+                  \draw[fill=white, radius=.15] (xyz cs: \xy = -1) ellipse[] (xyz cs: \xy =  1) ellipse[];
+                }
+                \draw[fill=white] (0,0,0) ellipse [radius=.2];
+            \end{scope}
+            \foreach \xyz/\Label in {x/left,y/right,z/above}
+                \draw[->,GeoskanBlue,thick] (O) -- (xyz cs: \xyz=\r) node[\Label]{$\xyz$};
+            \draw[canvas is xy plane at z=0,->] (1.5,0) arc (0:\angpsi:1.5);
+            \node at ({1.7*cos(\angpsi/2)},{1.7*sin(\angpsi/2)},0){$\psi$};
+            \draw[canvas is xy plane at z=0,->] (0,1.5) arc (90:90+\angpsi:1.5);
+            \node at ({-1.7*sin(\angpsi/2)},{1.7*cos(\angpsi/2)},0){$\psi$};    
+            \tdplotsetrotatedcoords{\angpsi}{0}{0}
+            \begin{scope}[tdplot_rotated_coords]
+                \foreach \xyz/\Label in {x/left,y/right}
+                    \draw[->,green!70!black,thick] (O) -- (xyz cs: \xyz=\r) node[\Label]{$\xyz'$};
+                \draw[canvas is yz plane at x=0,->] (1.5,0) arc (0:\angtheta:1.5);
+                \node at (0,{1.7*cos(\angtheta/2)},{1.7*sin(\angtheta/2)}){$\theta$};
+                \draw[canvas is yz plane at x=0,->] (0,1.5) arc (90:90+\angtheta:1.5);
+                \node at (0,{-1.7*sin(\angtheta/2)},{1.7*cos(\angtheta/2)}){$\theta$};
+            \end{scope}
+            \tdplotsetrotatedcoords{\angpsi}{\angtheta}{0}
+            \begin{scope}[tdplot_rotated_coords]
+                \foreach \xyz/\Label in {y/right}
+                    \draw[->,magenta,thick] (O) -- (xyz cs: \xyz=\r) node[\Label]{$\xyz''$};
+                \draw[canvas is xy plane at z=0,->] (1.5,0) arc (0:\angphi:1.5);
+                \node at ({1.7*cos(\angphi/2)},{1.7*sin(\angphi/2)},0){$\varphi$};
+                \draw[canvas is xy plane at z=0,->] (0,1.5) arc (90:90+\angphi:1.5);
+                \node at ({-1.7*sin(\angphi/2)},{1.7*cos(\angphi/2)},0){$\varphi$};
+            \end{scope}
+            \tdplotsetrotatedcoords{\angpsi}{\angtheta}{\angphi}    
+            \begin{scope}[tdplot_rotated_coords]
+                \foreach \xyz/\Label in {x/left,y/right,z/above}
+                    \draw[->,densely dashed,red,thick] (O) -- (xyz cs: \xyz=\r) node[\Label]{$\tilde\xyz$};
+            \end{scope}
+        \end{tikzpicture}
+        
+        \vspace{1.5cm}
+        
+        {\sffamily\Huge\bfseries\color{GeoskanDarkBlue} #1}\\[0.5cm]
+        {\sffamily\Large\color{GeoskanBlue} #2}\\[2cm]
+        
+        \vfill
+        
+        \begin{tcolorbox}[
+            enhanced,
+            colback=GeoskanLightGray,
+            colframe=GeoskanDarkBlue,
+            width=0.85\textwidth,
+            arc=0mm,
+            boxrule=0pt,
+            leftrule=4pt,
+            shadow={2mm}{-2mm}{0mm}{black!20}
+        ]
+            \centering
+            \sffamily
+            \textbf{Автор:} #3\\
+            \textit{#4}
+        \end{tcolorbox}
+        
+        \vfill
+        
+        {\sffamily\large #5}
+        
+        \vspace{1cm}
+        {\sffamily\footnotesize \textcolor{gray}{Версия документа: \theversion\ (Дата сборки: \buildtimestamp)}}
+    \end{titlepage}
+}
+
+% --- Main Document Content ---
+\begin{document}
+
+\makePioneerTitle
+    {Программирование дронов и создание автономных беспилотных миссий}
+    {Курс «Программные средства БПЛА»}
+    {Корягин Сергей Андреевич}
+    {асп. СПбГЭТУ «ЛЭТИ», педагог ЦО «Кудрово»}
+    {г. Кудрово, \the\year}
+
+\tableofcontents
+\clearpage
+
+% --- Content Inputs ---
+% Using standard input commands. 
+% Note: Ensure all included files use standard LaTeX structure.
+
+\input{chapters/intro/intro.tex}
+\clearpage
+
+% Getting Started
+\input{chapters/getting_started/getting_started.tex}
+\clearpage
+
+% Remote Control
+\input{chapters/rc_control/rc_control.tex}
+\clearpage
+
+% Lua Basics
+\input{chapters/lua/intro.tex}
+\input{chapters/lua/variables.tex}
+\input{chapters/lua/arithmetic.tex}
+\input{chapters/lua/logic.tex}
+\input{chapters/lua/conditions.tex}
+\input{chapters/lua/loops.tex}
+\input{chapters/lua/platform.tex}
+\clearpage
+
+% Part 1: LEDs
+\input{chapters/leds/00_section.tex}
+\input{chapters/leds/01_goals.tex}
+\input{chapters/leds/02_intro.tex}
+\input{chapters/leds/03_glossary.tex}
+\input{chapters/leds/04_hardware.tex}
+\input{chapters/leds/05_buffer.tex}
+\input{chapters/leds/06_rgb.tex}
+\input{chapters/leds/07_addressing.tex}
+\input{chapters/leds/08_ledbar_api.tex}
+\input{chapters/leds/09_timers.tex}
+\input{chapters/leds/10_events.tex}
+\input{chapters/leds/11_approaches.tex}
+\input{chapters/leds/12_examples.tex}
+\input{chapters/leds/13_random_color_example.tex}
+\input{chapters/leds/14_quiz.tex}
+\input{chapters/leds/99_summary.tex}
+\input{chapters/leds/15_labs_base.tex}
+\input{chapters/leds/16_labs_algo.tex}
+\input{chapters/leds/17_labs_events.tex}
+
+\clearpage
+
+% Part 2: Missions Part 1
+\input{chapters/missions/part1/00_section.tex}
+\input{chapters/missions/part1/01_goals.tex}
+\input{chapters/missions/part1/02_intro.tex}
+\input{chapters/missions/part1/03_glossary.tex}
+\input{chapters/missions/part1/04_interfaces.tex}
+\input{chapters/missions/part1/05_leds_debug.tex}
+\input{chapters/missions/part1/06_flight_api.tex}
+\input{chapters/missions/part1/07_stages_intro.tex}
+\input{chapters/missions/part1/08_example_engines.tex}
+\input{chapters/missions/part1/09_example_takeoff_landing.tex}
+\input{chapters/missions/part1/10_example_straight.tex}
+\input{chapters/missions/part1/11_example_points.tex}
+\input{chapters/missions/part1/12_example_triangle.tex}
+\input{chapters/missions/part1/13_example_square.tex}
+\input{chapters/missions/part1/14_example_circle_yaw.tex}
+\input{chapters/missions/part1/15_geometry_circle.tex}
+\input{chapters/missions/part1/16_architecture.tex}
+\input{chapters/missions/part1/17_lesson12.tex}
+\input{chapters/missions/part1/18_lesson14.tex}
+\input{chapters/missions/part1/19_rc_initiation.tex}
+\input{chapters/missions/part1/20_local_points_leds.tex}
+\input{chapters/missions/part1/21_recommendations.tex}
+
+\clearpage
+
+% Part 3: Missions Part 2
+\input{chapters/missions/part2/01_quiz.tex}
+\input{chapters/missions/part2/02_summary.tex}
+\input{chapters/missions/part2/03_labs_basic.tex}
+\input{chapters/missions/part2/04_labs_advanced.tex}
+
+\clearpage
+\input{chapters/appendix/appendix.tex}
+
+\end{document}
