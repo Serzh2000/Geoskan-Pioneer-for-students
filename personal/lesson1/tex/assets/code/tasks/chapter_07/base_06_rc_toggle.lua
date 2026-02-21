@@ -16,3 +16,6 @@ startTimer = Timer.new(0.5, function()       -- периодический оп�
   end
 end)
 startTimer:start()                           -- запускаем опрос RC
+
+function callback(event)
+end

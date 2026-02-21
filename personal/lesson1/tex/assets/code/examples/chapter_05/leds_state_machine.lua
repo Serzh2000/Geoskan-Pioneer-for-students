@@ -1,5 +1,5 @@
 -- создание порта управления светодиодом
-local ledbar = Ledbar.new(4)
+local ledbar = Ledbar.new(25)
 
 -- переменная текущего состояния
 local curr_state = "START"

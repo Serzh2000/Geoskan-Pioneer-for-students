@@ -1,6 +1,8 @@
 \subsection{Примеры кода}
 \begin{codefile}{examples/chapter_05/leds_basic.lua}
 \end{codefile}
+\textbf{Пояснение.} В \verb|leds_basic.lua| создаётся объект \verb|Ledbar| и таблица \verb|action| с единственным состоянием \verb|"START"|, где по индексам выставляются разные цвета и в конце подаётся команда \verb|Ev.ENGINES_DISARM|. Функция \verb|callback(event)| по событиям \verb|Ev.ALTITUDE_REACHED|, \verb|Ev.POINT_REACHED| и \verb|Ev.COPTER_LANDED| вызывает соответствующее действие из таблицы состояний. Основной принцип — связать индикацию с автоматом состояний и событиями автопилота.
 
 \begin{codefile}{examples/chapter_05/leds_sleep.lua}
 \end{codefile}
+\textbf{Пояснение.} В \verb|leds_sleep.lua| используется тот же подход с таблицей \verb|action|, но между установками цвета вставлены вызовы \verb|sleep()|. Основной принцип — показать, как последовательные блокирующие задержки влияют на выполнение сценария, и подготовить мотивацию для перехода к неблокирующим таймерам.

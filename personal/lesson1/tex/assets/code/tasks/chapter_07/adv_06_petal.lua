@@ -8,3 +8,6 @@ pointT = Timer.new(0.1, function()          -- периодический тай
   local y = r * math.sin(theta)             -- Y траектории
   ap.goToLocalPoint(x, y, z)                -- команда полёта к точке (x,y,z)
 end)
+
+function callback(event)
+end

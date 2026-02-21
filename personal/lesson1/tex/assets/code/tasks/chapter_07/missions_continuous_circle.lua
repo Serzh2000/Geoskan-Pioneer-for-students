@@ -1,4 +1,4 @@
-local ledNumber = 4                         -- количество диодов
+local ledNumber = 25                        -- количество диодов
 local leds = Ledbar.new(ledNumber)         -- объект управления линейкой
 local unpack = table.unpack                -- распаковка таблиц
 local curr_state = "PREPARE_FLIGHT"        -- начальное состояние
@@ -67,3 +67,6 @@ action = {                                 -- таблица состояний
 
 -- вызов функции из таблицы состояний, соответствующей первому состоянию
 action[curr_state]()
+
+function callback(event)
+end

@@ -1,9 +1,9 @@
 local unpack = table.unpack
-local ledNumber = 4                   -- размерность буфера (всегда 4!)
+local ledNumber = 25                  -- размерность буфера
 local leds = Ledbar.new(ledNumber)    -- объект управления лентой
 
 local function changeColor(col)
-  for i=0, ledNumber-1 do             -- проходим по всем индексам 0..3
+  for i=0, ledNumber-1 do             -- проходим по всем индексам 0..24
     leds:set(i, unpack(col))          -- записываем RGB в буфер
   end
 end

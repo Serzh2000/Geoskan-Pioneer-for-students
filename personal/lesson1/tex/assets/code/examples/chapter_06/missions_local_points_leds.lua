@@ -19,7 +19,7 @@ function callback(event)                   -- обработчик событи�
   if(event == Ev.POINT_REACHED) then nextPoint() end       -- шаг по событию
 end
 
-local leds = Ledbar.new(4)                 -- объект линейки (буфер 4)
+local leds = Ledbar.new(25)                -- объект линейки (буфер 25)
 local blink = 0                            -- состояние мигания
 for i=0,3 do leds:set(i,1,1,1) end         -- начальный белый цвет
 timerBlink = Timer.new(1, function ()      -- таймер мигания, период 1с

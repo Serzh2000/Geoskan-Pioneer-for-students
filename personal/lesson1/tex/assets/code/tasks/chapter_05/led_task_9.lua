@@ -1,5 +1,5 @@
 local unpack = table.unpack
-local ledNumber = 4
+local ledNumber = 25
 local leds = Ledbar.new(ledNumber)
 
 -- Задание 9: Полицейская мигалка (попеременное мигание пар)

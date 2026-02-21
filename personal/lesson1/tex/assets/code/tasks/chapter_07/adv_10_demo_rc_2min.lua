@@ -1,8 +1,8 @@
 -- Демонстрация: старт по RC, окружность ~2 минуты, посадка, отчёт индикацией
 local rc = Sensors.rc                        -- чтение RC-каналов
-local leds = Ledbar.new(4)                   -- объект управления линейкой
+local leds = Ledbar.new(25)                  -- объект управления линейкой
 local function setAll(r,g,b)                 -- утилита установки цвета
-  for i=0,3 do leds:set(i,r,g,b) end
+  for i=0,24 do leds:set(i,r,g,b) end
 end
 local running, angle, r, z = false, 0, 0.3, 0.8 -- флаг, угол, радиус, высота
 pointT = Timer.new(0.1, function()           -- таймер окружности
@@ -26,3 +26,6 @@ startTimer = Timer.new(0.5, function()       -- опрос RC раз в 0.5с
   end
 end)
 startTimer:start()                           -- запуск опроса RC
+
+function callback(event)
+end

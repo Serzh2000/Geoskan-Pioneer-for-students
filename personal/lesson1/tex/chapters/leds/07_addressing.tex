@@ -1,6 +1,6 @@
 \subsection{Адресация: где какой светодиод?}
 
-Мы выяснили, что в буфере 4 ячейки (\texttt{0..3}). На плате квадрокоптера вы видите 4 больших светодиода.
+Мы выяснили, что в буфере 25 ячеек (\texttt{0..24}). На плате квадрокоптера вы видите светодиодную линейку из 25 элементов.
 
 Как понять, какой индекс в коде соответствует какой лампочке в реальности?
 
@@ -9,7 +9,7 @@
 \begin{enumerate}
     \item Включите светодиод с индексом \texttt{0} красным цветом.
     \item Посмотрите на дрон. Какой светодиод загорелся? (Например, «Передний левый»).
-    \item Повторите для индексов \texttt{1}, \texttt{2}, \texttt{3}.
+    \item Повторите для индексов \texttt{1}, \texttt{2}, \texttt{3}, \dots, \texttt{24}.
     \item Запишите результаты в тетрадь.
 \end{enumerate}
 \end{taskbox}
@@ -42,7 +42,7 @@
     \node[circle, draw=red, fill=white, inner sep=3pt, label=right:\textbf{?}] (L3) at (1.2, -1.2) {};
     \node[circle, draw=red, fill=white, inner sep=3pt, label=left:\textbf{?}] (L4) at (-1.2, -1.2) {};
     
-    \node[red, align=center, below=0.5cm] at (0,-1.5) {Светодиоды базы\\(индексы 0-3)};
+    \node[red, align=center, below=0.5cm] at (0,-1.5) {Светодиодная линейка\\(индексы 0-24)};
 
 \end{tikzpicture}
 \end{center}
@@ -51,7 +51,7 @@
 \renewcommand{\arraystretch}{1.5}
 \begin{tabular}{|c|p{8cm}|}
 \hline
-\rowcolor{GeoskanBlue!20} \textbf{Индекс} & \textbf{Расположение (Например: Передний левый)} \\
+\rowcolor{GeoskanBlue!20} \textbf{Индекс} & \textbf{Расположение (Например: Передний левый, центр, хвост)} \\
 \hline
 0 & \dotfill \\
 \hline
@@ -61,6 +61,14 @@
 \hline
 3 & \dotfill \\
 \hline
+4 & \dotfill \\
+\hline
+5 & \dotfill \\
+\hline
+\dots & \dotfill \\
+\hline
+24 & \dotfill \\
+\hline
 \end{tabular}
 \end{center}
 
@@ -69,4 +77,4 @@
 \end{codefile}
 \end{codebox}
 
-Это упражнение учит главному принципу инженера: \textbf{если документации недостаточно — проведи эксперимент!}
+Это упражнение учит главному принципу инженера: \textbf{если документации недостаточно — проведи эксперимент!} В листинге функция \verb|clear()| по индексу \verb|0..24| выключает все светодиоды, а затем по команде \verb|leds:set(index, ...)| зажигается выбранный номер. Основной принцип — сопоставить индекс из кода с реальным светодиодом на линейке.

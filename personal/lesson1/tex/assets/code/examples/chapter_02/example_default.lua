@@ -5,11 +5,11 @@
 -- Упрощение вызова функции распаковки таблиц из модуля table
 local unpack = table.unpack
 -- Количество светодиодов на базовой плате
-local ledNumber = 4
+local ledNumber = 25
 -- Создание порта управления светодиодами
 local leds = Ledbar.new(ledNumber)
 
--- Функция, изменяющая цвет 4-х RGB светодиодов на базовой плате
+-- Функция, изменяющая цвет всех RGB светодиодов на базовой плате
 local function changeColor(col)
     for i=0, ledNumber - 1, 1 do
         leds:set(i, unpack(col))
@@ -33,7 +33,7 @@ function callback(event)
     end
 end
 
--- Создание таймера, каждую секунду меняющего цвета каждого из 4-х светодиодов на случайные
+-- Создание таймера, каждую секунду меняющего цвета всех светодиодов на случайные
 timerRandomLED = Timer.new(1, function ()
     -- Установка случайных значений по каждой компоненте RGB
     color = {math.random(), math.random(), math.random()}

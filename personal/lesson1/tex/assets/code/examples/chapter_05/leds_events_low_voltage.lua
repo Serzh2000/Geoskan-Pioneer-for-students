@@ -1,4 +1,4 @@
-local ledNumber = 4
+local ledNumber = 25
 local leds = Ledbar.new(ledNumber)
 mainTimer = Timer.new(0.1, function () end)
 mainTimer:start()

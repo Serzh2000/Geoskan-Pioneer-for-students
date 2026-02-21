@@ -1,4 +1,4 @@
-local ledNumber = 4
+local ledNumber = 25
 local leds = Ledbar.new(ledNumber)
 function callback(event)
   if (event == Ev.LOW_VOLTAGE2) then

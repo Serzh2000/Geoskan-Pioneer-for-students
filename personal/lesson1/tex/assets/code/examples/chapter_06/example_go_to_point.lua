@@ -4,13 +4,13 @@
 local unpack = table.unpack
 
 -- Количество светодиодов на базовой плате
-local ledNumber = 4
+local ledNumber = 25
 -- Создание порта управления светодиодами
 local leds = Ledbar.new(ledNumber)
 
 -- Функция смены цвета светодиодов
 local function changeColor(color)
-    -- Поочередное изменение цвета каждого из 4-х светодиодов
+    -- Поочередное изменение цвета каждого светодиода
     for i=0, ledNumber - 1, 1 do
         leds:set(i, unpack(color))
     end

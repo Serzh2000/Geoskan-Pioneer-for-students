@@ -1,4 +1,4 @@
-local ledNumber = 4
+local ledNumber = 25
 local leds = Ledbar.new(ledNumber)
 on = false
 function updateBlink()
@@ -8,3 +8,6 @@ function updateBlink()
 end
 blinkTimer = Timer.new(0.5, updateBlink)
 blinkTimer:start()
+
+function callback(event)
+end

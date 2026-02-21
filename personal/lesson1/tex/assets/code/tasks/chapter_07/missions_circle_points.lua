@@ -1,4 +1,4 @@
-local ledNumber = 4                         -- количество видимых диодов на плате
+local ledNumber = 25                        -- количество видимых диодов на плате
 local leds = Ledbar.new(ledNumber)         -- объект управления светодиодами
 local unpack = table.unpack                -- сокращение для распаковки таблиц
 local curr_state = "PREPARE_FLIGHT"        -- начальное состояние автомата

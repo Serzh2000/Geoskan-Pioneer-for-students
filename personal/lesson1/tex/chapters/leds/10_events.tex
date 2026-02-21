@@ -7,5 +7,7 @@
 \textbf{Примеры:}
 \begin{codefile}{examples/chapter_05/leds_events_landed.lua}
 \end{codefile}
+\textbf{Пояснение.} В этом листинге функция \verb|callback(event)| отслеживает событие \verb|Ev.COPTER_LANDED| и при посадке выключает все светодиоды, проходя по индексам линейки. Основной принцип — простая реакция на одно конкретное событие автопілота.
 \begin{codefile}{examples/chapter_05/leds_events_low_voltage.lua}
 \end{codefile}
+\textbf{Пояснение.} Во втором примере создаётся периодический таймер \verb|mainTimer|, а \verb|callback(event)| реагирует на \verb|Ev.LOW_VOLTAGE2|: останавливает таймер и через \verb|Timer.callLater| включает красный цвет на всех светодиодах. Основной принцип — объединить событийную модель и таймеры для безопасной индикации аварийного состояния.

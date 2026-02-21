@@ -1,5 +1,5 @@
 local unpack = table.unpack
-local ledNumber = 4
+local ledNumber = 25
 local leds = Ledbar.new(ledNumber)
 local function changeColor(col)
   for i=0, ledNumber-1 do

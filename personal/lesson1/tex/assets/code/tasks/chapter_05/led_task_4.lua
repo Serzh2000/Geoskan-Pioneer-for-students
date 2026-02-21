@@ -1,5 +1,5 @@
 local unpack = table.unpack
-local ledNumber = 4
+local ledNumber = 25
 local leds = Ledbar.new(ledNumber)
 
 local function changeColor(col)
@@ -8,7 +8,7 @@ local function changeColor(col)
     end
 end
 
--- Задание 4: Бегущий огонь (0 -> 3)
+-- Задание 4: Бегущий огонь (по всем светодиодам)
 -- Глобальная переменная состояния
 currentLed = 0
 

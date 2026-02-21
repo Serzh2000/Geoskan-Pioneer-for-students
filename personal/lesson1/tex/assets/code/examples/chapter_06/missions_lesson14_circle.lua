@@ -1,4 +1,4 @@
-local ledNumber = 4                         -- количество диодов
+local ledNumber = 25                        -- количество диодов
 local leds = Ledbar.new(ledNumber)         -- объект управления линейкой
 local unpack = table.unpack                -- распаковка таблиц
 local curr_state = "PREPARE_FLIGHT"        -- начальное состояние

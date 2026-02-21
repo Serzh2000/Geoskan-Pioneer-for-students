@@ -9,3 +9,6 @@ pointT = Timer.new(0.1, function()             -- периодический т�
   local th = angle * math.pi / 180             -- радианы
   ap.goToLocalPoint(r*math.cos(th), r*math.sin(th), z) -- команда полёта
 end)
+
+function callback(event)
+end
