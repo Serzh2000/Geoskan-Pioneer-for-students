@@ -1,0 +1,45 @@
+\section{Приложение}
+
+\subsection{Алфавитный индекс ключевых команд}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.28\textwidth}>{\raggedright\arraybackslash}p{0.68\textwidth}}
+\toprule
+Команда & Назначение \\
+\midrule
+\texttt{arm()} & Включение моторов перед стартом \\
+\texttt{disarm()} & Выключение моторов после посадки или в экстренной ситуации \\
+\texttt{get\_battery\_status()} & Получение напряжения батареи \\
+\texttt{get\_cv\_frame()} & Получение кадра камеры в формате OpenCV \\
+\texttt{get\_dist\_sensor\_data()} & Чтение дальномера \\
+\texttt{go\_to\_local\_point()} & Переход к точке в локальной системе координат \\
+\texttt{land()} & Штатная посадка \\
+\texttt{point\_reached()} & Проверка достижения целевой точки \\
+\texttt{send\_rc\_channels()} & Отправка значений RC-каналов для ручного управления \\
+\texttt{set\_manual\_speed()} & Управление линейными скоростями и рысканьем \\
+\texttt{set\_manual\_speed\_body\_fixed()} & Управление скоростями в связанной системе координат \\
+\texttt{takeoff()} & Автоматический взлёт \\
+\bottomrule
+\end{longtable}
+
+\subsection{Карта скриптов для преподавателя}
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{0.39\textwidth}>{\raggedright\arraybackslash}X}
+\toprule
+Скрипт & Где использовать в курсе \\
+\midrule
+\texttt{mission\_examples/PiZero\_test.py} & Урок 2: первый взлёт и посадка \\
+\texttt{mission\_examples/set\_manual\_speed.py} & Урок 4: прямолинейный полёт \\
+\texttt{mission\_examples/go\_to\_local\_point.py} & Урок 5: полёт по точкам \\
+\texttt{mission\_examples/circle\_flight.py} & Урок 6: базовые фигуры \\
+\texttt{camera\_examples/camera\_calibration.py} & Урок 9: калибровка \\
+\texttt{aruco\_examples/aruco\_flight.py} & Урок 11: визуальная обратная связь \\
+\texttt{PioneerHumanTracking/human-tracking.py} & Урок 12: продвинутый CV \\
+\texttt{group\_flight\_examples/swarm\_OPT.py} & Урок 13: роевые алгоритмы \\
+\bottomrule
+\end{tabularx}
+\caption{Быстрый выбор скрипта под учебную цель}
+\end{table}
+
+\nocite{opencv_calibration}
+\nocite{mediapipe_pose}
+\nocite{python_threading}

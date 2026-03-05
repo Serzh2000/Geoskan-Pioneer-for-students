@@ -1,0 +1,33 @@
+\section{План-проспект главы по программированию на Python}
+
+\subsection*{Логика построения}
+План построен по траектории: базовые операции полёта $\rightarrow$ автономные фигуры $\rightarrow$ телеметрия и камера $\rightarrow$ компьютерное зрение $\rightarrow$ интеграционный проект.
+
+\subsection*{Поурочный конспект}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.08\textwidth}>{\raggedright\arraybackslash}p{0.18\textwidth}>{\raggedright\arraybackslash}p{0.22\textwidth}>{\raggedright\arraybackslash}p{0.18\textwidth}>{\raggedright\arraybackslash}p{0.16\textwidth}>{\raggedright\arraybackslash}p{0.16\textwidth}}
+\toprule
+№ & Цель урока & Необходимые знания & Ключевые команды & Минимальные упражнения & Критерии успеха \\
+\midrule
+1 & Подключение и базовый цикл & Запуск Python-скрипта & \texttt{Pioneer()}, \texttt{close\_connection()} & Запуск \texttt{test.py} & Есть стабильное соединение \\
+2 & Арминг, взлёт, посадка & \texttt{try/finally} & \texttt{arm()}, \texttt{takeoff()}, \texttt{land()} & Полный цикл взлёт-посадка & Посадка без аварии \\
+3 & Диагностика батареи и дальномера & \texttt{while}, \texttt{sleep} & \texttt{get\_battery\_status()}, \texttt{get\_dist\_sensor\_data()} & Цветовая индикация заряда & Индикация совпадает с порогами \\
+4 & Полёт по скорости & Время и интервалы & \texttt{set\_manual\_speed()} & Прямой участок 1--2 с & Устойчивое движение \\
+5 & Полёт по локальным точкам & СК \texttt{x,y,z} & \texttt{go\_to\_local\_point()}, \texttt{point\_reached()} & Маршрут из 3 точек & Все точки достигнуты \\
+6 & Базовые фигуры & Тригонометрия окружности & \texttt{math.sin}, \texttt{math.cos} & Квадрат и окружность & Фигура замкнута \\
+7 & Интерактивный режим & Клавиатурные события & \texttt{send\_rc\_channels()} & Настройка WASD-контроля & Команды соответствуют клавишам \\
+8 & Работа с видеопотоком & OpenCV-окно & \texttt{Camera()}, \texttt{get\_cv\_frame()} & Вывод кадров и выход по ESC & Поток без зависаний \\
+9 & Калибровка камеры & Шахматная доска & \texttt{calibrateCamera}, \texttt{FileStorage} & Получение \texttt{data.yml} & Файл коэффициентов создан \\
+10 & Детекция ArUco & Базовый CV-пайплайн & \texttt{ArucoDetector} & Детекция меток в кадре & Метка стабильно распознаётся \\
+11 & Координаты ArUco и управление & Геометрия \texttt{PnP} & \texttt{solvePnP()}, \texttt{set\_manual\_speed\_body\_fixed()} & Удержание дистанции до маркера & Нет рывков и потерь устойчивости \\
+12 & Трекинг человека & Скелетная модель & MediaPipe Pose, ПД-регулятор & Распознавание 2 жестов & Корректная реакция на жест \\
+13 & Роевой полёт & Потоки и события & \texttt{threading.Event} & Синхронный старт 2 дронов & Рассинхрон менее 2 с \\
+14 & Итоговый проект & Проектирование миссии & Комбинация изученного API & Полная миссия с отчётом & Пройдены критерии рубрики \\
+\bottomrule
+\end{longtable}
+
+\subsection*{Форма отчётности}
+\begin{itemize}
+\item Логи запуска и завершения каждого урока.
+\item Скриншоты ключевых моментов: маршрут, детекция, итоговая посадка.
+\item Самооценка по критериям урока: зачёт/незачёт с коротким пояснением.
+\end{itemize}

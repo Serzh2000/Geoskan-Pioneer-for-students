@@ -1,0 +1,29 @@
+\subsection{Логические операции}
+
+\textbf{Мотивирующий вопрос:} Как дрон понимает, что <<батарея разряжена>> И <<высота больше нуля>>?
+
+Логические операторы позволяют комбинировать условия. Результатом всегда является \texttt{True} (Истина) или \texttt{False} (Ложь).
+
+\subsubsection*{Операторы сравнения}
+\begin{itemize}
+    \item \texttt{==} Равно
+    \item \texttt{!=} Не равно
+    \item \texttt{>} Больше
+    \item \texttt{<} Меньше
+    \item \texttt{>=} Больше или равно
+    \item \texttt{<=} Меньше или равно
+\end{itemize}
+
+\subsubsection*{Логические связки}
+\begin{itemize}
+    \item \texttt{and} (И) — истина, только если оба условия истинны.
+    \item \texttt{or} (ИЛИ) — истина, если хотя бы одно условие истинно.
+    \item \texttt{not} (НЕ) — инвертирует значение (делает истину ложью и наоборот).
+\end{itemize}
+
+\begin{codefile}[python]{examples/python/04_logic.py}
+\end{codefile}
+
+\begin{taskbox}[Проверка безопасности]
+Создайте переменную \texttt{wind\_speed = 7}. Напишите логическое выражение, которое возвращает \texttt{True}, если скорость ветра меньше 5 м/с.
+\end{taskbox}

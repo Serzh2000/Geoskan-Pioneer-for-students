@@ -69,6 +69,16 @@
 \definecolor{SkyBottom}{RGB}{200, 230, 255}
 \definecolor{GroundGreen}{RGB}{34, 139, 34}
 
+% --- Bibliography (BibLaTeX) ---
+\usepackage[
+    backend=biber,
+    style=gost-numeric,
+    language=auto,
+    autolang=other,
+    sorting=none
+]{biblatex}
+\addbibresource{references.bib}
+
 % --- Page Layout (GOST 7.32-2017) ---
 \usepackage{geometry}
 \geometry{
