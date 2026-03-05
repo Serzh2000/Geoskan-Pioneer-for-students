@@ -6,14 +6,14 @@
   \item Таймеры и \hyperlink{term:state}{состояния} делайте \hyperlink{term:scope}{глобальными} (без \verb|local|), иначе сборщик мусора их удалит.
 \end{itemize}
 \textbf{Пример периодического таймера (мигание):}
-\begin{codefile}{examples/chapter_05/leds_timers_blink.lua}
+\begin{codefile}{lua/examples/chapter_05/leds_timers_blink.lua}
 \end{codefile}
 \textbf{Пояснение.} В примере функция \verb|updateBlink()| инвертирует флаг \verb|on| и по таймеру \verb|blinkTimer| раз в 0{,}5 секунды включает или выключает все светодиоды. Основной принцип — периодически вызывать одну и ту же функцию, чтобы реализовать мигание без блокирующих задержек.
 \textbf{Пример отложенного вызова (через 3 секунды):}
-\begin{codefile}{examples/chapter_05/leds_timers_delayed.lua}
+\begin{codefile}{lua/examples/chapter_05/leds_timers_delayed.lua}
 \end{codefile}
 \textbf{Пояснение.} Скрипт создаёт объект \verb|Ledbar| и с помощью \verb|Timer.callLater| один раз через 3 секунды включает синий цвет на всех светодиодах. Основной принцип — выполнить действие с задержкой, не блокируя основной поток выполнения.
 \textbf{Отложенный таймер внутри обработчика событий:}
-\begin{codefile}{examples/chapter_05/leds_timers_callback_delayed.lua}
+\begin{codefile}{lua/examples/chapter_05/leds_timers_callback_delayed.lua}
 \end{codefile}
 \textbf{Пояснение.} Здесь функция \verb|callback(event)| реагирует на событие \verb|Ev.LOW_VOLTAGE2| и внутри неё запускает \verb|Timer.callLater|, который через секунду заливает линейку красным цветом. Основной принцип — сочетать обработку событий и отложенные таймеры, оставаясь в неблокирующей модели.

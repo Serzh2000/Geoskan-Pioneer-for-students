@@ -1,0 +1,7 @@
+{
+    "dictionary": "DICT_APRILTAG_36h11",
+    "bits": "variable",
+    "count": 5,
+    "size_pixels": 200,
+    "description": "Marker set for Geoskan Pioneer"
+}

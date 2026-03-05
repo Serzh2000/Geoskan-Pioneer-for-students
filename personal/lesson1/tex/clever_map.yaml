@@ -1,0 +1,3329 @@
+markers:
+- frame_id: map
+  id: 0
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 0.0
+      y: 0.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 1
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 0.0
+      y: 0.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 2
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 0.0
+      y: 1.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 3
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 0.0
+      y: 1.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 4
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 0.0
+      y: 2.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 5
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 0.0
+      y: 2.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 6
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 0.0
+      y: 3.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 7
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 0.0
+      y: 3.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 8
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 0.0
+      y: 4.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 9
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 0.0
+      y: 4.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 10
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 0.0
+      y: 5.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 11
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 0.0
+      y: 5.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 12
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 0.0
+      y: 6.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 13
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 0.0
+      y: 6.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 14
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 0.0
+      y: 7.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 15
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 0.0
+      y: 7.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 16
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 0.5
+      y: 0.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 17
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 0.5
+      y: 0.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 18
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 0.5
+      y: 1.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 19
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 0.5
+      y: 1.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 20
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 0.5
+      y: 2.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 21
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 0.5
+      y: 2.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 22
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 0.5
+      y: 3.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 23
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 0.5
+      y: 3.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 24
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 0.5
+      y: 4.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 25
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 0.5
+      y: 4.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 26
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 0.5
+      y: 5.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 27
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 0.5
+      y: 5.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 28
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 0.5
+      y: 6.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 29
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 0.5
+      y: 6.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 30
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 0.5
+      y: 7.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 31
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 0.5
+      y: 7.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 32
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 1.0
+      y: 0.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 33
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 1.0
+      y: 0.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 34
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 1.0
+      y: 1.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 35
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 1.0
+      y: 1.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 36
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 1.0
+      y: 2.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 37
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 1.0
+      y: 2.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 38
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 1.0
+      y: 3.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 39
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 1.0
+      y: 3.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 40
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 1.0
+      y: 4.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 41
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 1.0
+      y: 4.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 42
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 1.0
+      y: 5.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 43
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 1.0
+      y: 5.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 44
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 1.0
+      y: 6.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 45
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 1.0
+      y: 6.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 46
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 1.0
+      y: 7.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 47
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 1.0
+      y: 7.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 48
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 1.5
+      y: 0.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 49
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 1.5
+      y: 0.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 50
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 1.5
+      y: 1.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 51
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 1.5
+      y: 1.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 52
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 1.5
+      y: 2.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 53
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 1.5
+      y: 2.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 54
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 1.5
+      y: 3.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 55
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 1.5
+      y: 3.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 56
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 1.5
+      y: 4.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 57
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 1.5
+      y: 4.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 58
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 1.5
+      y: 5.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 59
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 1.5
+      y: 5.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 60
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 1.5
+      y: 6.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 61
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 1.5
+      y: 6.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 62
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 1.5
+      y: 7.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 63
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 1.5
+      y: 7.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 64
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 2.0
+      y: 0.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 65
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 2.0
+      y: 0.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 66
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 2.0
+      y: 1.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 67
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 2.0
+      y: 1.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 68
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 2.0
+      y: 2.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 69
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 2.0
+      y: 2.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 70
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 2.0
+      y: 3.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 71
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 2.0
+      y: 3.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 72
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 2.0
+      y: 4.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 73
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 2.0
+      y: 4.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 74
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 2.0
+      y: 5.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 75
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 2.0
+      y: 5.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 76
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 2.0
+      y: 6.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 77
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 2.0
+      y: 6.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 78
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 2.0
+      y: 7.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 79
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 2.0
+      y: 7.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 80
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 2.5
+      y: 0.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 81
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 2.5
+      y: 0.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 82
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 2.5
+      y: 1.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 83
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 2.5
+      y: 1.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 84
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 2.5
+      y: 2.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 85
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 2.5
+      y: 2.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 86
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 2.5
+      y: 3.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 87
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 2.5
+      y: 3.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 88
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 2.5
+      y: 4.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 89
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 2.5
+      y: 4.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 90
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 2.5
+      y: 5.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 91
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 2.5
+      y: 5.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 92
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 2.5
+      y: 6.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 93
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 2.5
+      y: 6.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 94
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 2.5
+      y: 7.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 95
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 2.5
+      y: 7.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 96
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 3.0
+      y: 0.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 97
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 3.0
+      y: 0.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 98
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 3.0
+      y: 1.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 99
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 3.0
+      y: 1.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 100
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 3.0
+      y: 2.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 101
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 3.0
+      y: 2.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 102
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 3.0
+      y: 3.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 103
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 3.0
+      y: 3.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 104
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 3.0
+      y: 4.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 105
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 3.0
+      y: 4.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 106
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 3.0
+      y: 5.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 107
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 3.0
+      y: 5.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 108
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 3.0
+      y: 6.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 109
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 3.0
+      y: 6.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 110
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 3.0
+      y: 7.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 111
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 3.0
+      y: 7.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 112
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 3.5
+      y: 0.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 113
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 3.5
+      y: 0.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 114
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 3.5
+      y: 1.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 115
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 3.5
+      y: 1.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 116
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 3.5
+      y: 2.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 117
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 3.5
+      y: 2.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 118
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 3.5
+      y: 3.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 119
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 3.5
+      y: 3.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 120
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 3.5
+      y: 4.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 121
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 3.5
+      y: 4.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 122
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 3.5
+      y: 5.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 123
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 3.5
+      y: 5.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 124
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 3.5
+      y: 6.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 125
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 3.5
+      y: 6.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 126
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 3.5
+      y: 7.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 127
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 3.5
+      y: 7.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 128
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 4.0
+      y: 0.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 129
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 4.0
+      y: 0.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 130
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 4.0
+      y: 1.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 131
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 4.0
+      y: 1.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 132
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 4.0
+      y: 2.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 133
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 4.0
+      y: 2.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 134
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 4.0
+      y: 3.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 135
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 4.0
+      y: 3.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 136
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 4.0
+      y: 4.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 137
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 4.0
+      y: 4.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 138
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 4.0
+      y: 5.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 139
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 4.0
+      y: 5.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 140
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 4.0
+      y: 6.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 141
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 4.0
+      y: 6.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 142
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 4.0
+      y: 7.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 143
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 4.0
+      y: 7.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 144
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 4.5
+      y: 0.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 145
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 4.5
+      y: 0.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 146
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 4.5
+      y: 1.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 147
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 4.5
+      y: 1.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 148
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 4.5
+      y: 2.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 149
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 4.5
+      y: 2.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 150
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 4.5
+      y: 3.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 151
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 4.5
+      y: 3.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 152
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 4.5
+      y: 4.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 153
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 4.5
+      y: 4.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 154
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 4.5
+      y: 5.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 155
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 4.5
+      y: 5.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 156
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 4.5
+      y: 6.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 157
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 4.5
+      y: 6.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 158
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 4.5
+      y: 7.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 159
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 4.5
+      y: 7.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 160
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 5.0
+      y: 0.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 161
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 5.0
+      y: 0.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 162
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 5.0
+      y: 1.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 163
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 5.0
+      y: 1.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 164
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 5.0
+      y: 2.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 165
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 5.0
+      y: 2.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 166
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 5.0
+      y: 3.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 167
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 5.0
+      y: 3.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 168
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 5.0
+      y: 4.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 169
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 5.0
+      y: 4.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 170
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 5.0
+      y: 5.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 171
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 5.0
+      y: 5.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 172
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 5.0
+      y: 6.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 173
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 5.0
+      y: 6.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 174
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 5.0
+      y: 7.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 175
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 5.0
+      y: 7.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 176
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 5.5
+      y: 0.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 177
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 5.5
+      y: 0.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 178
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 5.5
+      y: 1.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 179
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 5.5
+      y: 1.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 180
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 5.5
+      y: 2.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 181
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 5.5
+      y: 2.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 182
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 5.5
+      y: 3.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 183
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 5.5
+      y: 3.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 184
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 5.5
+      y: 4.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 185
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 5.5
+      y: 4.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 186
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 5.5
+      y: 5.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 187
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 5.5
+      y: 5.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 188
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 5.5
+      y: 6.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 189
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 5.5
+      y: 6.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 190
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 5.5
+      y: 7.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 191
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 5.5
+      y: 7.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 192
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 6.0
+      y: 0.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 193
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 6.0
+      y: 0.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 194
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 6.0
+      y: 1.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 195
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 6.0
+      y: 1.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 196
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 6.0
+      y: 2.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 197
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 6.0
+      y: 2.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 198
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 6.0
+      y: 3.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 199
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 6.0
+      y: 3.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 200
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 6.0
+      y: 4.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 201
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 6.0
+      y: 4.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 202
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 6.0
+      y: 5.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 203
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 6.0
+      y: 5.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 204
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 6.0
+      y: 6.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 205
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 6.0
+      y: 6.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 206
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 6.0
+      y: 7.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 207
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 6.0
+      y: 7.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 208
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 6.5
+      y: 0.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 209
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 6.5
+      y: 0.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 210
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 6.5
+      y: 1.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 211
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 6.5
+      y: 1.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 212
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 6.5
+      y: 2.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 213
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 6.5
+      y: 2.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 214
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 6.5
+      y: 3.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 215
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 6.5
+      y: 3.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 216
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 6.5
+      y: 4.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 217
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 6.5
+      y: 4.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 218
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 6.5
+      y: 5.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 219
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 6.5
+      y: 5.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 220
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 6.5
+      y: 6.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 221
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 6.5
+      y: 6.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 222
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 6.5
+      y: 7.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 223
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 6.5
+      y: 7.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 224
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 7.0
+      y: 0.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 225
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 7.0
+      y: 0.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 226
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 7.0
+      y: 1.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 227
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 7.0
+      y: 1.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 228
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 7.0
+      y: 2.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 229
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 7.0
+      y: 2.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 230
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 7.0
+      y: 3.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 231
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 7.0
+      y: 3.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 232
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 7.0
+      y: 4.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 233
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 7.0
+      y: 4.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 234
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 7.0
+      y: 5.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 235
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 7.0
+      y: 5.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 236
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 7.0
+      y: 6.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 237
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 7.0
+      y: 6.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 238
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 7.0
+      y: 7.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 239
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 7.0
+      y: 7.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 240
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 7.5
+      y: 0.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 241
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 7.5
+      y: 0.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 242
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 7.5
+      y: 1.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 243
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 7.5
+      y: 1.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 244
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 7.5
+      y: 2.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 245
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 7.5
+      y: 2.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 246
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 7.5
+      y: 3.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 247
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 7.5
+      y: 3.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 248
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 7.5
+      y: 4.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 249
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 7.5
+      y: 4.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 250
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 7.5
+      y: 5.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 251
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 7.5
+      y: 5.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 252
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 7.5
+      y: 6.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 253
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 7.5
+      y: 6.5
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 254
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 7.5
+      y: 7.0
+      z: 0.0
+  size: 0.2
+- frame_id: map
+  id: 255
+  pose:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 7.5
+      y: 7.5
+      z: 0.0
+  size: 0.2

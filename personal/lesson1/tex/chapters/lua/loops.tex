@@ -1,10 +1,10 @@
 \subsection{Циклы}
 Циклы: числовой \verb|for| (счётчик от \verb|start| до \verb|finish| с шагом), \verb|while| (пока условие истинно), \verb|repeat ... until| (выполнить хотя бы один раз). Для таблиц: \hyperlink{term:ipairs}{ipairs} (массив) и \verb|pairs| (словарь). \verb|break| прерывает цикл; \verb|continue| отсутствует (можно имитировать через \verb|goto|, но лучше структурировать условие).
-\begin{codefile}{examples/chapter_04/loops_sum.lua}
+\begin{codefile}{lua/examples/chapter_04/loops_sum.lua}
 \end{codefile}
-\begin{codefile}{examples/chapter_04/loops_while.lua}
+\begin{codefile}{lua/examples/chapter_04/loops_while.lua}
 \end{codefile}
-\begin{codefile}{examples/chapter_04/loops_iterators.lua}
+\begin{codefile}{lua/examples/chapter_04/loops_iterators.lua}
 \end{codefile}
 \paragraph{Пояснения.}
 - \verb|ipairs| проходит по индексам 1..N без пропусков; \verb|pairs| проходит по всем полям словаря в произвольном порядке.

@@ -6,7 +6,7 @@
 
 Типовой шаблон инициализации выглядит так:
 
-\begin{codefile}{examples/chapter_05/leds_buffer_init.lua}
+\begin{codefile}{lua/examples/chapter_05/leds_buffer_init.lua}
 \end{codefile}
 
 \textbf{Пояснение.} В примере создаётся объект \verb|Ledbar| на 25 светодиодов и функция \verb|changeColor(col)|, которая проходит по индексам \verb|0..24| и вызывает \verb|leds:set(i, ...)|. Основной принцип — один раз инициализировать буфер нужного размера и затем менять цвет сразу всей ленты через обход по индексам.

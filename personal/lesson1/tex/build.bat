@@ -2,13 +2,13 @@
 if not exist build mkdir build
 
 :: Set PYTHONPATH to include settings folder for sitecustomize.py
-set PYTHONPATH=%~dp0settings;%PYTHONPATH%
+set PYTHONPATH=%~dp0styles;%PYTHONPATH%
 
 :: Update build version
-python settings/update_version.py
+python styles/update_version.py
 
-xelatex -interaction=nonstopmode -output-directory=build main.tex
-xelatex -interaction=nonstopmode -output-directory=build main.tex
+xelatex -shell-escape -interaction=nonstopmode -output-directory=build main.tex
+xelatex -shell-escape -interaction=nonstopmode -output-directory=build main.tex
 
 :: Clean up root directory (just in case)
 del *.aux *.log *.out *.toc *.synctex.gz *.xdv *.minted 2>nul

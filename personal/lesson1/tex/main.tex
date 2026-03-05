@@ -24,7 +24,7 @@
 ]{scrartcl}
 
 % --- Import Preamble ---
-\input{settings/preamble.tex}
+\input{styles/preamble.tex}
 
 % --- Main Document Content ---
 \begin{document}
@@ -54,7 +54,12 @@
 \input{chapters/rc_control/rc_control.tex}
 \clearpage
 
-% Lua Basics
+% ============================================================
+% PART 1: PROGRAMMING IN LUA
+% ============================================================
+\part{Программирование на LUA}
+
+% 1. Lua Language
 \input{chapters/lua/intro.tex}
 \input{chapters/lua/variables.tex}
 \input{chapters/lua/arithmetic.tex}
@@ -64,21 +69,20 @@
 \input{chapters/lua/platform.tex}
 \clearpage
 
-% Python Programming
-\input{chapters/python/00_section.tex}
-\input{chapters/python/01_intro.tex}
-\input{chapters/python/02_variables.tex}
-\input{chapters/python/03_arithmetic.tex}
-\input{chapters/python/04_logic.tex}
-\input{chapters/python/05_branching.tex}
-\input{chapters/python/06_loops.tex}
-\input{chapters/python/07_functions.tex}
-\input{chapters/python/08_drone_intro.tex}
-\input{chapters/python/09_drone_flight.tex}
-\input{chapters/python/10_tasks.tex}
+% 2. Tasks to the chapter
+\section{Задания к главе}
+% From LEDs
+\input{chapters/leds/14_quiz.tex}
+\input{chapters/leds/15_labs_base.tex}
+\input{chapters/leds/16_labs_algo.tex}
+\input{chapters/leds/17_labs_events.tex}
+% From Missions
+\input{chapters/missions/part2/01_quiz.tex}
+\input{chapters/missions/part2/03_labs_basic.tex}
+\input{chapters/missions/part2/04_labs_advanced.tex}
 \clearpage
 
-% Part 1: LEDs
+% 3. LED Programming
 \input{chapters/leds/00_section.tex}
 \input{chapters/leds/01_goals.tex}
 \input{chapters/leds/02_intro.tex}
@@ -94,14 +98,10 @@
 \input{chapters/leds/11_approaches.tex}
 \input{chapters/leds/12_examples.tex}
 \input{chapters/leds/13_random_color_example.tex}
-\input{chapters/leds/14_quiz.tex}
-\input{chapters/leds/15_labs_base.tex}
-\input{chapters/leds/16_labs_algo.tex}
-\input{chapters/leds/17_labs_events.tex}
 \input{chapters/leds/99_summary.tex}
 \clearpage
 
-% Part 2: Missions
+% 4. Missions Part 1
 \input{chapters/missions/part1/00_section.tex}
 \input{chapters/missions/part1/01_goals.tex}
 \input{chapters/missions/part1/02_intro.tex}
@@ -124,13 +124,79 @@
 \input{chapters/missions/part1/19_rc_initiation.tex}
 \input{chapters/missions/part1/20_local_points_leds.tex}
 \input{chapters/missions/part1/21_recommendations.tex}
-
-\input{chapters/missions/part2/01_quiz.tex}
-\input{chapters/missions/part2/02_summary.tex}
-\input{chapters/missions/part2/03_labs_basic.tex}
-\input{chapters/missions/part2/04_labs_advanced.tex}
-
 \clearpage
+
+% 5. Missions Part 2 (Summary)
+\input{chapters/missions/part2/02_summary.tex}
+\clearpage
+
+% ============================================================
+% PART 2: PROGRAMMING IN PYTHON
+% ============================================================
+\part{Программирование на Python}
+
+% 0. Intro Section
+\input{chapters/python/00_section.tex}
+
+% 1. Python Basics
+\input{chapters/python/01_intro.tex}
+\input{chapters/python/02_variables.tex}
+\input{chapters/python/03_arithmetic.tex}
+\input{chapters/python/04_logic.tex}
+\input{chapters/python/05_branching.tex}
+\input{chapters/python/06_loops.tex}
+\input{chapters/python/07_functions.tex}
+\clearpage
+
+% 2. Pioneer SDK
+\input{chapters/python/08_drone_intro.tex}
+\input{chapters/python/09_drone_flight.tex}
+
+% 3. Advanced Flight & CV
+\input{chapters/python/10_flight_maneuvers_theory.tex}
+\input{chapters/python/11_aruco_basics_theory.tex}
+\input{chapters/python/12_visual_nav.tex}
+\input{chapters/python/13_camera_advanced.tex}
+\input{chapters/python/14_telemetry.tex}
+\input{chapters/python/15_human_tracking.tex}
+\input{chapters/python/16_swarm.tex}
+\input{chapters/python/17_final_projects.tex}
+\input{chapters/python/10_tasks.tex}
+\clearpage
+
+% ============================================================
+% PART 3: PROFESSIONAL NAVIGATION
+% ============================================================
+\part{Профессиональные навигационные системы}
+
+% 1. Advanced Theory
+\input{chapters/python/18_advanced_theory.tex}
+\clearpage
+
+% 2. Map Creation
+\input{chapters/python/19_map_creation_theory.tex}
+\clearpage
+
+% 3. Complex Navigation
+\input{chapters/python/20_complex_navigation.tex}
+\clearpage
+
+% 4. Technical Implementation
+\input{chapters/python/21_technical_implementation.tex}
+\clearpage
+
+% 5. Practical Tasks
+\input{chapters/python/22_practical_tasks.tex}
+\clearpage
+
+% 6. Troubleshooting
+\input{chapters/python/23_troubleshooting.tex}
+\clearpage
+
+% 7. Appendices
+\input{chapters/python/24_appendices.tex}
+\clearpage
+
 \nocite{*}
 \printbibliography[heading=bibintoc, title={Список литературы}]
 

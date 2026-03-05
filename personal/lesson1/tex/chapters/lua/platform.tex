@@ -16,7 +16,7 @@
         \item Аппаратные модули (светодиоды, массивы из C++) часто нумеруются с \textbf{0}: \texttt{leds:set(0, ...)}. Будьте внимательны!
     \end{itemize}
     \item \textbf{Бесконечные циклы}:
-    \begin{codefile}{examples/chapter_04/lua_platform_infinite_loop.lua}
+    \begin{codefile}{lua/examples/chapter_04/lua_platform_infinite_loop.lua}
     \end{codefile}
     Вместо вечных циклов используйте \texttt{Timer}.
     \item \textbf{Ошибка "attempt to index a nil value"}: Вы пытаетесь обратиться к полю переменной, которая пуста (\texttt{nil}). Проверьте, правильно ли вы создали объект или таблицу.
@@ -26,9 +26,9 @@
 \begin{infobox}[Обратите внимание]
     В следующих примерах используется библиотека \texttt{Ledbar}, которую мы подробно изучим в следующей главе. Сейчас сосредоточьтесь на синтаксисе языка Lua (циклы, функции, таблицы), не вдаваясь в детали работы светодиодов.
 \end{infobox}
-\begin{codefile}{examples/chapter_04/lua_platform_leds_unpack.lua}
+\begin{codefile}{lua/examples/chapter_04/lua_platform_leds_unpack.lua}
 \end{codefile}
-\begin{codefile}{examples/chapter_04/lua_platform_timer.lua}
+\begin{codefile}{lua/examples/chapter_04/lua_platform_timer.lua}
 \end{codefile}
-\begin{codefile}{examples/chapter_04/lua_platform_blink.lua}
+\begin{codefile}{lua/examples/chapter_04/lua_platform_blink.lua}
 \end{codefile}

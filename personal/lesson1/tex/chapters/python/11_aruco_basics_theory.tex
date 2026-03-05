@@ -1,0 +1,42 @@
+\subsection{Компьютерное зрение: ArUco и AprilTag}
+
+Для роботов существуют специальные визуальные метки (маркеры), которые легко распознать на изображении. Самые популярные — \textbf{ArUco} и \textbf{AprilTag}.
+
+\subsubsection*{Что такое ArUco-маркер?}
+Это черно-белый квадрат с уникальным узором внутри. У каждого маркера есть свой \textbf{ID} (номер).
+\begin{itemize}
+    \item \textbf{Словарь (Dictionary):} Набор допустимых маркеров. Pioneer обычно использует словарь \texttt{DICT\_6X6\_50} (размер сетки 6x6 бит, всего 50 уникальных маркеров).
+    \item \textbf{AprilTag:} Другой популярный формат, поддерживаемый той же библиотекой (например, \texttt{DICT\_APRILTAG\_36h11}).
+\end{itemize}
+
+\subsubsection*{Детекция маркеров}
+Для работы с камерой и маркерами мы используем библиотеку \textbf{OpenCV} (\texttt{cv2}).
+
+\begin{codefile}[python]{python/examples/aruco_examples/11_aruco_basics_example1_detect.py}
+\end{codefile}
+
+\subsubsection*{Разбор кода}
+1. \texttt{camera.get\_cv\_frame()} получает изображение с камеры дрона.
+2. \texttt{cv2.cvtColor} переводит картинку в ч/б формат (так алгоритм работает быстрее и надежнее).
+3. \texttt{detectMarkers} ищет квадраты и сверяет их узор со словарем.
+4. Возвращает:
+   \begin{itemize}
+       \item \texttt{corners}: Координаты углов найденных маркеров.
+       \item \texttt{ids}: Список номеров (ID) найденных маркеров.
+   \end{itemize}
+
+\begin{taskbox}[Охота на маркеры]
+Распечатайте несколько маркеров ArUco (или откройте их на экране телефона). Напишите программу, которая пишет в консоль <<Вижу маркер X!>>, где X — номер маркера.
+\end{taskbox}
+
+\subsubsection*{Определение координат маркера}
+Зная размер маркера и параметры камеры (полученные при калибровке), можно вычислить расстояние и ориентацию относительно маркера.
+
+\begin{codefiletitle}[python]{Определение координат}{python/examples/aruco_examples/11_aruco_basics_example2_coordinates.py}
+\end{codefiletitle}
+
+\subsubsection*{Удержание позиции по маркеру}
+В этом примере дрон использует координаты маркера для удержания позиции над ним.
+
+\begin{codefiletitle}[python]{Полет по маркеру}{python/examples/aruco_examples/11_aruco_basics_example3_flight.py}
+\end{codefiletitle}

@@ -1,0 +1,12 @@
+{
+    "grid": {
+        "rows": 16,
+        "cols": 16,
+        "step_x": 0.5,
+        "step_y": 0.5
+    },
+    "marker": {
+        "size": 0.2,
+        "dictionary": "DICT_6X6_1000"
+    }
+}
