@@ -1,13 +1,32 @@
-
+/* eslint-disable @typescript-eslint/triple-slash-reference */
+/// <reference path="./global.d.ts" />
+/// <reference path="./shims.d.ts" />
+import * as THREE from 'three';
+import * as fengari from 'fengari-web';
 import { simState, resetState } from './modules/state.js';
 import { init3D, updateDrone3D, is3DActive, addObject, deleteSelectedObject } from './modules/drone.js';
 import { updatePhysics } from './modules/physics.js';
-import { runLuaScript, stopLuaScript, updateTimers, triggerLuaCallback } from './modules/lua-bridge.js';
+import { runLuaScript, stopLuaScript, updateTimers, triggerLuaCallback } from './modules/lua/index.js';
 import { initEditor, getEditorValue, setEditorValue, layoutEditor } from './modules/editor.js';
-import { initUI, updateStats, log } from './modules/ui.js';
+import { initUI } from './modules/ui/index.js';
+import { log } from './modules/ui/logger.js';
+import { updateStats } from './modules/ui/stats.js';
+
+// Global assignments for legacy/Lua support
+(window as any).THREE = THREE;
+(window as any).fengari = fengari;
 
 // Global Loop
-let animationFrameId;
+let animationFrameId: number;
+let lastTime = 0;
+
+// Global error handler for debugging
+window.onerror = function(message, source, lineno, colno, error) {
+    const errorMsg = `[Global Error] ${message} at ${source}:${lineno}:${colno}`;
+    console.error(errorMsg, error);
+    log(errorMsg, 'error');
+    return false;
+};
 
 function init() {
     log('Инициализация системы...', 'info');
@@ -34,10 +53,10 @@ function init() {
 
     // Initialize 3D Scene
     const container = document.getElementById('canvas-container');
-    init3D(container);
+    if (container) init3D(container);
 
     // Start Loop
-    animate();
+    animate(0);
 }
 
 function startSimulation() {
@@ -66,7 +85,7 @@ function startSimulation() {
 function stopSimulation() {
     if (!simState.running) return;
     simState.running = false;
-    simState.status = 'ОСТАНОВЛЕН';
+    simState.status = 'IDLE';
     stopLuaScript();
     log('Симуляция остановлена', 'warn');
 }
@@ -78,7 +97,7 @@ function resetSimulation() {
     // Re-run init code or just wait for start
 }
 
-async function loadFileContent(path) {
+async function loadFileContent(path: string) {
     try {
         const res = await fetch(`/api/file-content?path=${encodeURIComponent(path)}`);
         const data = await res.json();
@@ -89,22 +108,36 @@ async function loadFileContent(path) {
     }
 }
 
-function animate() {
+function animate(time: number) {
     animationFrameId = requestAnimationFrame(animate);
 
-    const now = performance.now() / 1000;
-    // Simple delta time (fixed or calculated)
-    const dt = 0.02; // 50Hz physics
+    if (!lastTime) lastTime = time;
+    let dt = (time - lastTime) / 1000;
+    if (dt > 0.1) dt = 0.1; // Cap dt
+    lastTime = time;
+
+    updateTimers();
 
     if (simState.running) {
         simState.current_time += dt;
-        updateTimers();
         updatePhysics(dt);
+        // Additional loop logic if needed
     }
 
-    updateDrone3D();
+    if (is3DActive) {
+        updateDrone3D(dt);
+    }
+    
     updateStats();
 }
+
+// Make sure global functions are accessible for HTML events
+declare global {
+    interface Window {
+        init: () => void;
+    }
+}
+window.init = init;
 
 // Start everything
 window.addEventListener('DOMContentLoaded', init);

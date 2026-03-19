@@ -1,5 +1,15 @@
 
-export const apiDocs = {
+export interface ApiDoc {
+    desc: string;
+    syntax?: string;
+    params?: string;
+    returns?: string;
+    example?: string;
+    kind?: string;
+    insertText?: string;
+}
+
+export const apiDocs: Record<string, ApiDoc> = {
     // Autopilot
     'ap.push': {
         desc: 'Добавляет команду в очередь автопилота.',

@@ -1,7 +1,7 @@
 
 const logs = document.getElementById('logs');
 
-export function log(msg, type = 'info') {
+export function log(msg: string, type: 'info' | 'error' | 'warn' | 'success' = 'info') {
     if (!logs) return;
     const div = document.createElement('div');
     div.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
@@ -12,7 +12,7 @@ export function log(msg, type = 'info') {
     logs.scrollTop = logs.scrollHeight;
 }
 
-export function luaToStr(luaVal, L) {
+export function luaToStr(luaVal: any, L: any): string {
     if (luaVal === null || luaVal === undefined) {
         if (L) {
             const top = window.fengari.lua.lua_gettop(L);

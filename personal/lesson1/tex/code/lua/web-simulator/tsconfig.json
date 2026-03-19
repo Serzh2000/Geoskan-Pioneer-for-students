@@ -1,0 +1,32 @@
+{
+    "compilerOptions": {
+        "target": "ES2020",
+        "module": "Node16",
+        "moduleResolution": "Node16",
+        "resolveJsonModule": true,
+        "isolatedModules": true,
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
+        "forceConsistentCasingInFileNames": true,
+        "strict": true,
+        "noImplicitAny": true,
+        "strictNullChecks": true,
+        "skipLibCheck": true,
+        "allowJs": true, // Allow JS files temporarily during migration
+        "checkJs": false,
+        "outDir": "./dist",
+        "rootDir": ".",
+        "typeRoots": ["./node_modules/@types"]
+    },
+    "include": [
+        "./public/global.d.ts",
+        "./public/modules/**/*.ts",
+        "./public/main.ts",
+        "./server.ts",
+        "./tests/**/*.ts"
+    ],
+    "exclude": [
+        "node_modules",
+        "dist"
+    ]
+}

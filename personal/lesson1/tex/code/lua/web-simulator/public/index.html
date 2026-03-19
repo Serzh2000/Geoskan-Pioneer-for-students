@@ -176,14 +176,10 @@
         h1 { margin: 0; font-size: 20px; font-weight: 700; color: var(--accent-color); }
         h3 { margin: 0 0 10px 0; font-size: 14px; color: #94a3b8; }
     </style>
+    <!-- Three.js and modules loaded via Vite -->
     <!-- Fengari for Lua in browser -->
     <script src="https://cdn.jsdelivr.net/npm/fengari-web@0.1.4/dist/fengari-web.js"></script>
-    <!-- Three.js for 3D Visualization -->
-    <script src="/three.min.js" onerror="console.error('Failed to load three.min.js')"></script>
-    <script src="/OrbitControls.js" onerror="console.error('Failed to load OrbitControls.js')"></script>
-    <!-- TransformControls for Gizmo -->
-    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/TransformControls.js"></script>
-    <!-- Monaco Editor from CDN (load after Three.js to avoid AMD conflicts) -->
+    <!-- Monaco Editor from CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs/loader.js"></script>
 </head>
 <body>
@@ -279,11 +275,6 @@
                 <div id="canvas-container" style="width: 100%; height: 100%;">
                     <canvas id="canvas"></canvas>
                 </div>
-                <div class="osd" id="osd">
-                    ВЫСОТА: <span id="osd-alt">0.0</span>м<br>
-                    СКОРОСТЬ: <span id="osd-spd">0.0</span>м/с<br>
-                    ЗАРЯД: <span id="osd-bat">100</span>%
-                </div>
                 <div class="camera-controls">
                     <div id="cam-params" style="display:none; flex-direction:column; background:rgba(0,0,0,0.7); padding:10px; border-radius:8px; margin-right:10px; font-size:10px; color:#38bdf8;">
                         <div>OV2640 [1600x1200]</div>
@@ -305,16 +296,20 @@
                         <div class="stat-value"><span id="state-alt">0.00</span>м</div>
                     </div>
                     <div class="stat-item">
+                        <div class="stat-label">Скорость</div>
+                        <div class="stat-value"><span id="state-spd">0.0</span>м/с</div>
+                    </div>
+                    <div class="stat-item">
                         <div class="stat-label">Батарея</div>
                         <div class="stat-value"><span id="state-bat">100</span>%</div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-label">Статус</div>
-                        <div class="stat-value" style="font-size: 14px; color: #fff;"><span id="state-status">ОЖИДАНИЕ</span></div>
-                    </div>
-                    <div class="stat-item">
                         <div class="stat-label">Время</div>
                         <div class="stat-value"><span id="state-time">0.0</span>с</div>
+                    </div>
+                    <div class="stat-item" style="grid-column: span 2;">
+                        <div class="stat-label">Статус системы</div>
+                        <div class="stat-value" style="font-size: 15px; color: #fff; margin-top: 4px;"><span id="state-status">ОЖИДАНИЕ</span></div>
                     </div>
                 </div>
             </div>
@@ -322,6 +317,6 @@
         </div>
     </div>
 
-    <script type="module" src="main.js"></script>
+    <script type="module" src="main.ts"></script>
 </body>
 </html>

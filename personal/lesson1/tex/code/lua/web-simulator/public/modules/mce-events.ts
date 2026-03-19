@@ -1,40 +1,25 @@
-import { log } from './ui.js';
+import { log } from './ui/logger.js';
 
-/**
- * @class EventEmitter
- * @description Простая реализация EventEmitter для событий автопилота
- */
 export class EventEmitter {
+    private listeners: { [event: string]: Array<(...args: any[]) => void> };
+
     constructor() {
-        /** @type {Object.<string, Array<Function>>} */
         this.listeners = {};
     }
 
-    /**
-     * @param {string} event 
-     * @param {Function} callback 
-     */
-    on(event, callback) {
+    on(event: string, callback: (...args: any[]) => void) {
         if (!this.listeners[event]) {
             this.listeners[event] = [];
         }
         this.listeners[event].push(callback);
     }
 
-    /**
-     * @param {string} event 
-     * @param {Function} callback 
-     */
-    off(event, callback) {
+    off(event: string, callback: (...args: any[]) => void) {
         if (!this.listeners[event]) return;
         this.listeners[event] = this.listeners[event].filter(cb => cb !== callback);
     }
 
-    /**
-     * @param {string} event 
-     * @param {...any} args 
-     */
-    emit(event, ...args) {
+    emit(event: string, ...args: any[]) {
         if (!this.listeners[event]) return;
         this.listeners[event].forEach(cb => cb(...args));
     }
@@ -72,11 +57,7 @@ export const MCEEvents = {
     ENGINE_FAIL: 18
 };
 
-/**
- * @description Описание команд на русском языке
- * @type {Object.<number, string>}
- */
-export const MCECommandDesc = {
+export const MCECommandDesc: { [key: number]: string } = {
     [MCECommands.MCE_PREFLIGHT]: 'Предполетная подготовка',
     [MCECommands.ENGINES_DISARM]: 'Отключение двигателей',
     [MCECommands.MCE_LANDING]: 'Посадка',
@@ -84,11 +65,7 @@ export const MCECommandDesc = {
     [MCECommands.ENGINES_ARM]: 'Взвод двигателей'
 };
 
-/**
- * @description Описание событий на русском языке
- * @type {Object.<number, string>}
- */
-export const MCEEventDesc = {
+export const MCEEventDesc: { [key: number]: string } = {
     [MCECommands.MCE_PREFLIGHT]: 'Предполетная подготовка',
     [MCECommands.MCE_TAKEOFF]: 'Взлет',
     [MCECommands.MCE_LANDING]: 'Посадка',
@@ -107,28 +84,18 @@ export const MCEEventDesc = {
     [MCEEvents.ENGINE_FAIL]: 'Отказ двигателя'
 };
 
-/**
- * @description Отправка команды MCE (возвращает Promise)
- * @param {number} cmdId ID команды из MCECommands
- * @returns {Promise<void>}
- */
-export function pushCommand(cmdId) {
+export function pushCommand(cmdId: number): Promise<void> {
     return new Promise((resolve) => {
         const desc = MCECommandDesc[cmdId] || `Неизвестная команда (${cmdId})`;
         log(`Команда MCE: ${desc}`, 'info');
         
-        // Симуляция асинхронного выполнения
         setTimeout(() => {
             resolve();
         }, 100);
     });
 }
 
-/**
- * @description Обработчик события автопилота, публикующий событие через EventEmitter
- * @param {number} eventId ID события из MCEEvents
- */
-export function triggerEvent(eventId) {
+export function triggerEvent(eventId: number) {
     // Check both command and event descriptions
     const desc = MCEEventDesc[eventId] || MCECommandDesc[eventId] || `Неизвестное событие (${eventId})`;
     log(`Событие MCE: ${desc}`, 'info');
@@ -153,7 +120,7 @@ export function runMCETests() {
     
     // Test EventEmitter
     let emitted = false;
-    const testCb = (id, desc) => { 
+    const testCb = (id: number, desc: string) => { 
         if(id === MCEEvents.SHOCK && desc === 'Удар') emitted = true; 
     };
     mceEmitter.on('autopilot_event', testCb);

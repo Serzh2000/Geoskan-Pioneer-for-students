@@ -1,0 +1,35 @@
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+describe('Path Resolution Tests', () => {
+    test('Examples directory should exist', () => {
+        const examplesDir = path.resolve(__dirname, '../../../../../../lessons/code/lua/examples');
+        const stat = fs.statSync(examplesDir);
+        expect(stat.isDirectory()).toBe(true);
+    });
+
+    test('Public modules directory should exist', () => {
+        const modulesPath = path.resolve(__dirname, '../public/modules');
+        expect(fs.existsSync(modulesPath)).toBe(true);
+    });
+
+    test('Important frontend assets should exist', () => {
+        const assets = [
+            '../public/index.html',
+            '../public/main.ts',
+            '../public/modules/drone.ts'
+        ];
+
+        assets.forEach(asset => {
+            const assetPath = path.resolve(__dirname, asset);
+            if (!fs.existsSync(assetPath)) {
+                console.error(`Asset missing: ${assetPath}`);
+            }
+            expect(fs.existsSync(assetPath)).toBe(true);
+        });
+    });
+});

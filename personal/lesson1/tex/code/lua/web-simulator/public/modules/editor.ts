@@ -1,12 +1,45 @@
 
 import { apiDocs, evConstants } from './api-docs.js';
 
-let editorInstance;
+let editorInstance: any;
+
+declare let require: any;
+declare let monaco: any;
 
 export function initEditor() {
+    // Check if monaco is already loaded
+    if (typeof monaco !== 'undefined') {
+        createEditor();
+        return;
+    }
+
     require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs' }});
+    
+    // Add error handling for Monaco Editor load
+    require.onError = function(err: any) {
+        console.error('Monaco Editor load error:', err);
+        fallbackEditor();
+    };
+
     require(['vs/editor/editor.main'], function() {
-        
+        createEditor();
+    });
+}
+
+function fallbackEditor() {
+    const ed = document.getElementById('editor');
+    if (ed) {
+        ed.innerHTML = '<div style="color:red; padding:20px;">Failed to load Monaco Editor. Please check your internet connection. Falling back to simple textarea.</div><textarea id="fallback-editor" style="width:100%; height:90%; background:#1e1e1e; color:#d4d4d4; font-family:monospace; padding:10px; border:none; resize:none;">-- Pioneer Lua Script\n\nap.push(Ev.MCE_TAKEOFF)</textarea>';
+        // Hook up fallback functions
+        window.getEditorValueFallback = () => (document.getElementById('fallback-editor') as HTMLTextAreaElement).value;
+        window.setEditorValueFallback = (val: string) => {
+            const el = document.getElementById('fallback-editor') as HTMLTextAreaElement;
+            if(el) el.value = val;
+        };
+    }
+}
+
+function createEditor() {
         // 1. Enhanced Syntax Highlighting
         monaco.languages.setMonarchTokensProvider('lua', {
             tokenizer: {
@@ -29,13 +62,13 @@ export function initEditor() {
                     [/--.*$/, "comment"],
                     
                     // Strings
-                    [/"([^"\\]|\\.)*$/, 'string.invalid'],  // non-teminated string
+                    [/"([^"\\]|\\.)*$/, 'string.invalid'],  // non-terminated string
                     [/"([^"\\]|\\.)*"/, 'string'],
                     [/'([^'\\]|\\.)*$/, 'string.invalid'],
                     [/'([^'\\]|\\.)*'/, 'string'],
                     
                     // Numbers
-                    [/\d*\.\d+([eE][\-+]?\d+)?/, "number.float"],
+                    [/\d*\.\d+([eE][-+]?\d+)?/, "number.float"],
                     [/\d+/, "number"]
                 ]
             }
@@ -62,19 +95,19 @@ export function initEditor() {
 
         // 3. Interactive Hover Provider (Tooltips)
         monaco.languages.registerHoverProvider('lua', {
-            provideHover: function(model, position) {
+            provideHover: function(model: any, position: any) {
                 const word = model.getWordAtPosition(position);
                 if (!word) return;
 
                 const line = model.getLineContent(position.lineNumber);
                 
                 // For Ev.MCE_LANDING, the word is 'MCE_LANDING', we need to check if 'Ev.' precedes it
-                let fullWord = getFullWordAtPosition(line, position.column - 1);
+                const fullWord = getFullWordAtPosition(line, position.column - 1);
                 
-                const doc = apiDocs[fullWord];
+                const doc = (apiDocs as any)[fullWord];
                 if (doc) {
                     return {
-                        range: new monaco.Range(position.lineNumber, line.indexOf(fullWord) + 1, position.lineNumber, line.indexOf(fullWord) + fullWord.length + 1),
+                        range: new monaco.Range(position.lineNumber, position.column, position.lineNumber, position.column),
                         contents: [
                             { value: `**Pioneer API: ${fullWord}**` },
                             { value: `_${doc.desc}_` },
@@ -90,7 +123,7 @@ export function initEditor() {
 
         // 4. Autocomplete (Intellisense)
         monaco.languages.registerCompletionItemProvider('lua', {
-            provideCompletionItems: function(model, position) {
+            provideCompletionItems: function(model: any, position: any) {
                 const word = model.getWordUntilPosition(position);
                 const range = {
                     startLineNumber: position.lineNumber,
@@ -99,24 +132,25 @@ export function initEditor() {
                     endColumn: word.endColumn
                 };
                 
-                const suggestions = [];
+                const suggestions: any[] = [];
+                const lineContent = model.getLineContent(position.lineNumber);
+                const textBeforeCursor = lineContent.substring(0, position.column - 1);
 
                 // API Methods suggestions
-                for (const [key, doc] of Object.entries(apiDocs)) {
+                for (const [key, doc] of Object.entries(apiDocs as any)) {
+                    const docObj = doc as any;
                     // Check if it's a module method (e.g. ap.push)
                     if (key.includes('.')) {
                         const [module, method] = key.split('.');
                         // Logic to suggest methods after dot
-                        const lineContent = model.getLineContent(position.lineNumber);
-                        const textBeforeCursor = lineContent.substring(0, position.column - 1);
                         
                         if (textBeforeCursor.trim().endsWith(module + '.')) {
                              suggestions.push({
                                 label: method,
-                                kind: monaco.languages.CompletionItemKind[doc.kind] || monaco.languages.CompletionItemKind.Method,
-                                insertText: doc.insertText || method,
+                                kind: (monaco.languages.CompletionItemKind as any)[docObj.kind] || monaco.languages.CompletionItemKind.Method,
+                                insertText: docObj.insertText || method,
                                 insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-                                documentation: { value: doc.desc },
+                                documentation: { value: docObj.desc },
                                 range: range
                             });
                         }
@@ -124,10 +158,10 @@ export function initEditor() {
                         // Global functions or Modules
                         suggestions.push({
                             label: key,
-                            kind: monaco.languages.CompletionItemKind[doc.kind] || monaco.languages.CompletionItemKind.Function,
-                            insertText: doc.insertText || key,
+                            kind: (monaco.languages.CompletionItemKind as any)[docObj.kind] || monaco.languages.CompletionItemKind.Function,
+                            insertText: docObj.insertText || key,
                             insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-                            documentation: { value: doc.desc },
+                            documentation: { value: docObj.desc },
                             range: range
                         });
                     }
@@ -146,8 +180,6 @@ export function initEditor() {
                 });
                 
                 // Suggest Ev constants
-                const lineContent = model.getLineContent(position.lineNumber);
-                const textBeforeCursor = lineContent.substring(0, position.column - 1);
                 if (textBeforeCursor.trim().endsWith('Ev.')) {
                     evConstants.forEach(ev => {
                          suggestions.push({
@@ -179,26 +211,27 @@ export function initEditor() {
                 snippetsPreventQuickSuggestions: false
             }
         });
-    });
 }
 
-function getFullWordAtPosition(line, index) {
+function getFullWordAtPosition(line: string, index: number) {
     // Look backward
     let start = index;
-    while (start > 0 && /[\w\.]/.test(line[start - 1])) start--;
+    while (start > 0 && /[\w.]/.test(line[start - 1])) start--;
     
     // Look forward
     let end = index;
-    while (end < line.length && /[\w\.]/.test(line[end])) end++;
+    while (end < line.length && /[\w.]/.test(line[end])) end++;
     
     return line.substring(start, end);
 }
 
-export function getEditorValue() {
+export function getEditorValue(): string {
+    if (window.getEditorValueFallback) return window.getEditorValueFallback();
     return editorInstance ? editorInstance.getValue() : '';
 }
 
-export function setEditorValue(val) {
+export function setEditorValue(val: string) {
+    if (window.setEditorValueFallback) return window.setEditorValueFallback(val);
     if (editorInstance) editorInstance.setValue(val);
 }
 
