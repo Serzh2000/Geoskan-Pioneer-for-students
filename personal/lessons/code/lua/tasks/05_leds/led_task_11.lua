@@ -16,7 +16,7 @@ end)
 t11_timer:start()
 
 function callback(event)
-    if event == Ev.COPTER_LANDED then
+    if event == COPTER_LANDED then
         t11_timer:stop()
         changeColor({0, 0, 0})
     end

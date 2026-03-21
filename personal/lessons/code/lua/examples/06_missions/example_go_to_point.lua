@@ -57,7 +57,7 @@ local function nextPoint()
     else
         Timer.callLater(1, function()
             -- Команда на посадку
-            ap.push(Ev.MCE_LANDING)
+            ap.push(MCE_LANDING)
         end)
     end
 end
@@ -65,15 +65,15 @@ end
 -- Функция обработки событий, автоматически вызывается автопилотом
 function callback(event)
     -- Когда коптер поднялся на высоту взлета Flight_com_takeoffAlt, переходим к полету по точкам
-    if(event == Ev.TAKEOFF_COMPLETE) then
+    if(event == TAKEOFF_COMPLETE) then
         nextPoint()
     end
     -- Когда коптер достиг текущей точки, переходим к следующей
-    if(event == Ev.POINT_REACHED) then
+    if(event == POINT_REACHED) then
         nextPoint()
     end
     -- Когда коптер приземлился, выключаем светодиоды
-    if (event == Ev.COPTER_LANDED) then
+    if (event == COPTER_LANDED) then
         changeColor(colors[8])
     end
 end
@@ -81,8 +81,8 @@ end
 
 
 -- Предстартовая подготовка
-ap.push(Ev.MCE_PREFLIGHT)
+ap.push(MCE_PREFLIGHT)
 -- Зажигание светодиодов белым цветом
 changeColor(colors[7])
 -- Таймер, через 2 секунды вызывающий функцию взлета
-Timer.callLater(2, function() ap.push(Ev.MCE_TAKEOFF) end)
+Timer.callLater(2, function() ap.push(MCE_TAKEOFF) end)

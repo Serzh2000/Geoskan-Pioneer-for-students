@@ -137,13 +137,13 @@ export function createGateMesh() {
     const mat = new THREE.MeshStandardMaterial({ color: 0xff8800, roughness: 0.7, emissive: 0xff4400, emissiveIntensity: 0.1 });
     const ringMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.1, metalness: 0.5 });
     
-    const legGeom = new THREE.CylinderGeometry(0.05, 0.05, 2);
-    const leg1 = new THREE.Mesh(legGeom, mat); leg1.position.set(0, -0.75, 1); leg1.rotation.x = Math.PI/2;
-    const leg2 = new THREE.Mesh(legGeom, mat); leg2.position.set(0, 0.75, 1); leg2.rotation.x = Math.PI/2;
+    const legGeom = new THREE.CylinderGeometry(0.04, 0.04, 1.5);
+    const leg1 = new THREE.Mesh(legGeom, mat); leg1.position.set(0, -0.6, 0.75); leg1.rotation.x = Math.PI/2;
+    const leg2 = new THREE.Mesh(legGeom, mat); leg2.position.set(0, 0.6, 0.75); leg2.rotation.x = Math.PI/2;
     group.add(leg1); group.add(leg2);
     
-    const torus = new THREE.Mesh(new THREE.TorusGeometry(0.75, 0.1, 16, 32), ringMat);
-    torus.position.z = 1.5;
+    const torus = new THREE.Mesh(new THREE.TorusGeometry(0.6, 0.08, 16, 32), ringMat);
+    torus.position.z = 1.2;
     torus.rotation.y = Math.PI/2;
     group.add(torus);
     

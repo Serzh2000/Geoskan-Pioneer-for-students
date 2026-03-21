@@ -1,6 +1,26 @@
 import * as THREE from 'three';
 import { simState } from './state.js';
 
+// Create a radial gradient texture for glowing LEDs
+function createGlowTexture() {
+    const canvas = document.createElement('canvas');
+    canvas.width = 64;
+    canvas.height = 64;
+    const context = canvas.getContext('2d');
+    if (context) {
+        const gradient = context.createRadialGradient(32, 32, 0, 32, 32, 32);
+        gradient.addColorStop(0, 'rgba(255,255,255,1)');
+        gradient.addColorStop(0.2, 'rgba(255,255,255,0.8)');
+        gradient.addColorStop(0.5, 'rgba(255,255,255,0.2)');
+        gradient.addColorStop(1, 'rgba(0,0,0,0)');
+        context.fillStyle = gradient;
+        context.fillRect(0, 0, 64, 64);
+    }
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.needsUpdate = true;
+    return texture;
+}
+
 export function createDroneModel() {
     const droneGroup = new THREE.Group();
     
@@ -54,6 +74,55 @@ export function createDroneModel() {
     battery.castShadow = true;
     droneGroup.add(battery);
 
+    // 4 Base LEDs (under the motors or on the arms, let's put them on the arms)
+    const baseLedOffsets = [
+        [0.04, 0.04],   // FR
+        [0.04, -0.04],  // BR
+        [-0.04, -0.04], // BL
+        [-0.04, 0.04]   // FL
+    ];
+    baseLedOffsets.forEach((offset, i) => {
+        const ledGeom = new THREE.SphereGeometry(0.008, 12, 12);
+        const ledMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
+        const ledMesh = new THREE.Mesh(ledGeom, ledMat);
+        ledMesh.name = `base_led_${i}`;
+        ledMesh.position.set(offset[0], offset[1], 0.038);
+        droneGroup.add(ledMesh);
+        
+        // Add a small light to each base LED
+        const light = new THREE.PointLight(0x000000, 0, 0.4);
+        light.name = `base_led_light_${i}`;
+        ledMesh.add(light);
+    });
+
+    // LED Matrix 5x5 Module (Top)
+    const ledMatrixGroup = new THREE.Group();
+    ledMatrixGroup.position.z = 0.045; // Above the top plate
+    const matrixBoardGeom = new THREE.BoxGeometry(0.07, 0.07, 0.002);
+    const matrixBoardMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.8 });
+    const matrixBoard = new THREE.Mesh(matrixBoardGeom, matrixBoardMat);
+    matrixBoard.castShadow = true;
+    ledMatrixGroup.add(matrixBoard);
+
+    // 5x5 Physical LED meshes
+    const ledSpacing = 0.012;
+    const ledGeom = new THREE.BoxGeometry(0.008, 0.008, 0.002);
+    for (let row = 0; row < 5; row++) {
+        for (let col = 0; col < 5; col++) {
+            const index = row * 5 + col;
+            const xOffset = (col - 2) * ledSpacing;
+            const yOffset = (2 - row) * ledSpacing;
+            
+            const ledMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
+            const ledMesh = new THREE.Mesh(ledGeom, ledMat);
+            ledMesh.name = `matrix_led_${index}`;
+            ledMesh.position.set(xOffset, yOffset, 0.002); // slightly above board
+            ledMatrixGroup.add(ledMesh);
+        }
+    }
+    
+    droneGroup.add(ledMatrixGroup);
+
     // Camera Module (Front)
     const camGroup = new THREE.Group();
     camGroup.position.set(0.07, 0, 0.02);
@@ -70,9 +139,12 @@ export function createDroneModel() {
     camGroup.add(lens);
     
     // FPV Camera Logic Object
-    const fpvCamera = new THREE.PerspectiveCamera(80, 16/9, 0.01, 1000);
-    fpvCamera.rotation.set(0, -Math.PI / 2, -Math.PI / 2); 
-    fpvCamera.position.x = 0.02;
+    const fpvCamera = new THREE.PerspectiveCamera(80, 16/9, 0.01, 1000); // Минимальный near
+    // Смещаем камеру вперед, поднимаем выше (0.05)
+    fpvCamera.position.set(0.18, 0, 0.05); 
+    fpvCamera.up.set(0, 0, 1); 
+    // Направляем взгляд чуть вниз, чтобы не было видно горизонта отсечения под дроном
+    fpvCamera.lookAt(new THREE.Vector3(1, 0, -0.1)); 
     camGroup.add(fpvCamera);
     window.fpvCamera = fpvCamera;
     
@@ -140,47 +212,56 @@ export function createDroneModel() {
     return droneGroup;
 }
 
-export function updateLEDs(droneMesh: THREE.Object3D) {
-    if (simState.leds && simState.leds.length > 0) {
-        const ledCount = 4;
-        for (let i = 0; i < ledCount; i++) {
-            const led = simState.leds[i] || {r:0, g:0, b:0, w:0};
-        let ledMesh = droneMesh.getObjectByName(`led_${i}`) as THREE.Mesh<THREE.SphereGeometry, THREE.MeshBasicMaterial> | undefined;
-        if (!ledMesh) {
-            const ledGeom = new THREE.SphereGeometry(0.012, 12, 12);
-            const ledMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
-            ledMesh = new THREE.Mesh(ledGeom, ledMat);
-            ledMesh.name = `led_${i}`;
-            const offset = 0.04;
-            const positions = [[offset, offset], [offset, -offset], [-offset, -offset], [-offset, offset]];
-            ledMesh.position.set(positions[i][0], positions[i][1], 0.038);
-            droneMesh.add(ledMesh);
-            const light = new THREE.PointLight(0x000000, 0, 0.4);
-            light.name = `led_light_${i}`;
-            ledMesh.add(light);
-        }
+export function updateLEDs(droneMesh: THREE.Object3D, droneState: any) {
+    if (!droneState.leds || droneState.leds.length === 0) return;
+
+    // Update Base LEDs (0-3)
+    for (let i = 0; i < 4; i++) {
+        const led = droneState.leds[i] || {r:0, g:0, b:0, w:0};
+        const ledMesh = droneMesh.getObjectByName(`base_led_${i}`) as THREE.Mesh<THREE.BufferGeometry, THREE.MeshBasicMaterial> | undefined;
+        
         if (ledMesh) {
-            const color = new THREE.Color((led.r||0)/255, (led.g||0)/255, (led.b||0)/255);
+            const r = (led.r || 0) / 255;
+            const g = (led.g || 0) / 255;
+            const b = (led.b || 0) / 255;
+            const color = new THREE.Color(r, g, b);
             ledMesh.material.color.set(color);
-            const light = ledMesh.getObjectByName(`led_light_${i}`) as THREE.PointLight | undefined;
+            
+            const light = ledMesh.getObjectByName(`base_led_light_${i}`) as THREE.PointLight | undefined;
             if (light) {
                 light.color.set(color);
-                light.intensity = (led.r + led.g + led.b > 0) ? 0.6 : 0;
+                light.intensity = (r + g + b > 0) ? 0.6 : 0;
             }
         }
     }
-}
+
+    // Update Matrix LEDs (4-28) using physical meshes
+    for (let i = 0; i < 25; i++) {
+        const stateIdx = i + 4;
+        if (stateIdx >= droneState.leds.length) break;
+        
+        const led = droneState.leds[stateIdx];
+        if (!led) continue;
+
+        const ledMesh = droneMesh.getObjectByName(`matrix_led_${i}`) as THREE.Mesh<THREE.BufferGeometry, THREE.MeshBasicMaterial> | undefined;
+        if (ledMesh) {
+            const r = (led.r || 0) / 255;
+            const g = (led.g || 0) / 255;
+            const b = (led.b || 0) / 255;
+            ledMesh.material.color.setRGB(r, g, b);
+        }
+    }
 }
 
-export function animateRotors(droneMesh: THREE.Object3D, dt: number) {
-    if (!simState.running) return;
-    const isArmed = simState.status !== 'ГОТОВ' && simState.status !== 'IDLE' && simState.status !== 'ПРИЗЕМЛЕН' && simState.status !== 'ОСТАНОВЛЕН' && simState.status !== 'ЗАПУСК';
+export function animateRotors(droneMesh: THREE.Object3D, dt: number, droneState: any) {
+    if (!droneState.running) return;
+    const isArmed = droneState.status !== 'ГОТОВ' && droneState.status !== 'IDLE' && droneState.status !== 'ПРИЗЕМЛЕН' && droneState.status !== 'ОСТАНОВЛЕН' && droneState.status !== 'ЗАПУСК';
     if (isArmed) {
         for (let i = 0; i < 4; i++) {
             const rotor = droneMesh.getObjectByName(`rotor_${i}`);
             if (rotor) {
                 const dir = (i === 0 || i === 1) ? 1 : -1; 
-                const speed = (simState.status === 'ВЗВЕДЕН') ? 15 : 40; // Rad/s
+                const speed = (droneState.status === 'ВЗВЕДЕН') ? 15 : 40; // Rad/s
                 rotor.rotation.z += speed * dir * dt;
             }
         }

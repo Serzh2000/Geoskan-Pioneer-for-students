@@ -1,7 +1,9 @@
 import * as THREE from 'three';
 import { simState } from './state.js';
 
-export function updateCamera(camera: THREE.PerspectiveCamera, droneMesh: THREE.Object3D, controls: any, mode: string) {
+export function updateCamera(camera: THREE.PerspectiveCamera, droneMesh: THREE.Object3D | null, controls: any, mode: string) {
+    if (!camera) return;
+
     const overlay = document.getElementById('fpv-overlay');
     
     if (controls) {
@@ -16,17 +18,30 @@ export function updateCamera(camera: THREE.PerspectiveCamera, droneMesh: THREE.O
         if (overlay) overlay.style.opacity = '0';
     }
 
+    if (!droneMesh) {
+        // Fallback to ground view if no drone selected
+        if (mode !== 'free') {
+            const groundPos = new THREE.Vector3(0, 0, 17.5);
+            camera.position.lerp(groundPos, 0.05);
+            const m = new THREE.Matrix4();
+            m.lookAt(camera.position, new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 1, 0));
+            camera.quaternion.slerp(new THREE.Quaternion().setFromRotationMatrix(m), 0.1);
+        } else if (controls) {
+            controls.update();
+        }
+        return;
+    }
+
     if (mode === 'drone') {
-        const relativeOffset = new THREE.Vector3(-0.8, 0, 0.4);
-        const cameraOffset = relativeOffset.applyMatrix4(droneMesh.matrixWorld);
-        camera.position.lerp(cameraOffset, 0.1);
-        const lookTarget = droneMesh.position.clone();
-        lookTarget.z += 0.1; 
-        const targetRotation = new THREE.Quaternion();
+        // Режим "Дрон" (chase) - плавное следование сверху
+        const targetPos = droneMesh.position.clone();
+        targetPos.z += 6; // Высота камеры для обзора (уменьшена в 2 раза)
+        camera.position.lerp(targetPos, 0.1);
+        
+        // Направляем камеру строго вниз на дрон с правильной ориентацией карты (Y - верх экрана)
         const m = new THREE.Matrix4();
-        m.lookAt(camera.position, lookTarget, camera.up);
-        targetRotation.setFromRotationMatrix(m);
-        camera.quaternion.slerp(targetRotation, 0.1);
+        m.lookAt(camera.position, droneMesh.position, new THREE.Vector3(0, 1, 0));
+        camera.quaternion.slerp(new THREE.Quaternion().setFromRotationMatrix(m), 0.1);
 
     } else if (mode === 'fpv') {
         if (window.fpvCamera) {
@@ -34,22 +49,41 @@ export function updateCamera(camera: THREE.PerspectiveCamera, droneMesh: THREE.O
             window.fpvCamera.getWorldPosition(camWorldPos);
             const camWorldRot = new THREE.Quaternion();
             window.fpvCamera.getWorldQuaternion(camWorldRot);
+
             camera.position.lerp(camWorldPos, 0.5);
             camera.quaternion.slerp(camWorldRot, 0.5);
-            camera.rotateZ(-Math.PI / 2);
+            
             // Ensure FPV camera is always updated
             window.fpvCamera.updateMatrixWorld();
         }
     } else if (mode === 'ground') {
-        const groundPos = new THREE.Vector3(3, 3, 2);
+        // Режим "Земля" - плавный переход к виду сверху
+        const groundPos = new THREE.Vector3(0, 0, 17.5); // Высота уменьшена в 2 раза
         camera.position.lerp(groundPos, 0.05);
-        const targetRotation = new THREE.Quaternion();
+        
+        // Направляем камеру строго вниз на центр сцены
         const m = new THREE.Matrix4();
-        m.lookAt(camera.position, droneMesh.position, camera.up);
-        targetRotation.setFromRotationMatrix(m);
-        camera.quaternion.slerp(targetRotation, 0.1);
+        m.lookAt(camera.position, new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 1, 0));
+        camera.quaternion.slerp(new THREE.Quaternion().setFromRotationMatrix(m), 0.1);
         
     } else if (mode === 'free') {
-        if (controls) controls.update();
+        if (controls) {
+            // Инициализация свободной камеры: если она была в FPV или слишком далеко,
+            // ставим ее в позицию "Drone Chase", но оставляем управление пользователю.
+            if ((window as any).lastCameraMode !== 'free') {
+                const targetPos = droneMesh.position.clone();
+                targetPos.z += 6; 
+                camera.position.copy(targetPos);
+                
+                const m = new THREE.Matrix4();
+                m.lookAt(camera.position, droneMesh.position, new THREE.Vector3(0, 1, 0));
+                camera.quaternion.setFromRotationMatrix(m);
+                
+                controls.target.copy(droneMesh.position);
+            }
+            controls.update();
+        }
     }
+    
+    (window as any).lastCameraMode = mode;
 }

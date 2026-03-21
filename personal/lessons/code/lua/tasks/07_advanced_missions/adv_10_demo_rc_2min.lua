@@ -15,13 +15,13 @@ startTimer = Timer.new(0.5, function()       -- опрос RC раз в 0.5с
   if chans[8] > 0 and not running then       -- старт по тумблеру
     running = true                           -- установить флаг
     setAll(1,1,1)                            -- белый: подготовка
-    ap.push(Ev.MCE_PREFLIGHT)                -- предстарт
-    Timer.callLater(2, function() ap.push(Ev.MCE_TAKEOFF) end) -- взлёт через 2с
+    ap.push(MCE_PREFLIGHT)                -- предстарт
+    Timer.callLater(2, function() ap.push(MCE_TAKEOFF) end) -- взлёт через 2с
   elseif running and angle >= 6*60*2 then    -- прошло ~2 минуты при 6°/тик
     pointT:stop()                            -- останов таймера
     setAll(1,1,0)                            -- жёлтый: посадка
     ap.goToLocalPoint(0,0,z)                 -- возврат в центр
-    ap.push(Ev.MCE_LANDING)                  -- посадка
+    ap.push(MCE_LANDING)                  -- посадка
     running = false                          -- снять флаг
   end
 end)

@@ -11,12 +11,12 @@ local function nextPoint()                -- переход к следующе�
     ap.goToLocalPoint(unpack(points[curr])) -- полёт к вершине
     curr = curr + 1                       -- увеличить индекс
   else
-    ap.push(Ev.MCE_LANDING)               -- завершение — посадка
+    ap.push(MCE_LANDING)               -- завершение — посадка
   end
 end
-ap.push(Ev.MCE_PREFLIGHT)                 -- предстарт
-Timer.callLater(1, function() ap.push(Ev.MCE_TAKEOFF) end) -- взлёт
+ap.push(MCE_PREFLIGHT)                 -- предстарт
+Timer.callLater(1, function() ap.push(MCE_TAKEOFF) end) -- взлёт
 function callback(event)                   -- обработчик событий
-  if event == Ev.TAKEOFF_COMPLETE then nextPoint() end     -- первый шаг
-  if event == Ev.POINT_REACHED then nextPoint() end        -- шаг по достижению
+  if event == TAKEOFF_COMPLETE then nextPoint() end     -- первый шаг
+  if event == POINT_REACHED then nextPoint() end        -- шаг по достижению
 end

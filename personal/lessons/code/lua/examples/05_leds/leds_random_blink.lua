@@ -28,7 +28,7 @@ end
 -- Функция обработки событий, автоматически вызывается автопилотом
 function callback(event)
     -- Вызов функции emergency() при низком напряжении на аккумуляторе
-    if (event == Ev.LOW_VOLTAGE2) then
+    if (event == LOW_VOLTAGE2) then
         emergency()
     end
 end

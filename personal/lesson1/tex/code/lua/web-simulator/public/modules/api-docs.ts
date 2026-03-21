@@ -67,6 +67,10 @@ export const apiDocs: Record<string, ApiDoc> = {
         kind: 'Method',
         insertText: 'new(${1:period}, function()\n\t${2}\nend)'
     },
+    'Timer.start': { desc: 'Запуск таймера.', syntax: 'timer:start()', kind: 'Method', insertText: 'start()' },
+    'Timer.stop': { desc: 'Остановка таймера.', syntax: 'timer:stop()', kind: 'Method', insertText: 'stop()' },
+    'Timer.callAt': { desc: 'Вызов функции в определенное локальное время.', syntax: 'Timer.callAt(time, func)', kind: 'Method', insertText: 'callAt(${1:time}, function()\n\t${2}\nend)' },
+    'Timer.callAtGlobal': { desc: 'Вызов функции в глобальное время.', syntax: 'Timer.callAtGlobal(time, func)', kind: 'Method', insertText: 'callAtGlobal(${1:time}, function()\n\t${2}\nend)' },
 
     // Ledbar
     'Ledbar.new': {
@@ -116,6 +120,7 @@ export const apiDocs: Record<string, ApiDoc> = {
         kind: 'Method',
         insertText: 'lpsVelocity()'
     },
+    'Sensors.lpsYaw': { desc: 'Угол рыскания в локальной системе координат.', syntax: 'Sensors.lpsYaw()', returns: 'yaw (радианы)', kind: 'Method', insertText: 'lpsYaw()' },
     'Sensors.orientation': {
         desc: 'Получение углов ориентации (Эйлер).',
         syntax: 'Sensors.orientation()',
@@ -125,6 +130,10 @@ export const apiDocs: Record<string, ApiDoc> = {
         kind: 'Method',
         insertText: 'orientation()'
     },
+    'Sensors.altitude': { desc: 'Высота по барометру.', syntax: 'Sensors.altitude()', returns: 'alt (метры)', kind: 'Method', insertText: 'altitude()' },
+    'Sensors.accel': { desc: 'Ускорение по осям.', syntax: 'Sensors.accel()', returns: 'ax, ay, az (м/с²)', kind: 'Method', insertText: 'accel()' },
+    'Sensors.gyro': { desc: 'Угловая скорость.', syntax: 'Sensors.gyro()', returns: 'gx, gy, gz (рад/с)', kind: 'Method', insertText: 'gyro()' },
+    'Sensors.rc': { desc: 'Значения каналов пульта РУ.', syntax: 'Sensors.rc()', returns: 'ch1, ch2, ch3, ch4, ...', kind: 'Method', insertText: 'rc()' },
     'Sensors.battery': {
         desc: 'Напряжение батареи.',
         syntax: 'Sensors.battery()',
@@ -163,6 +172,15 @@ export const apiDocs: Record<string, ApiDoc> = {
         kind: 'Method',
         insertText: 'requestMakeShot()'
     },
+    'camera.checkRequestShot': {
+        desc: 'Проверка статуса запроса на снимок.',
+        syntax: 'camera.checkRequestShot()',
+        params: 'none',
+        returns: '1 (готов) или 0 (в процессе)',
+        example: 'if camera.checkRequestShot() == 1 then print("Готово") end',
+        kind: 'Method',
+        insertText: 'checkRequestShot()'
+    },
     'camera.requestRecordStart': {
         desc: 'Запрос на старт записи видео.',
         syntax: 'camera.requestRecordStart()',
@@ -181,6 +199,15 @@ export const apiDocs: Record<string, ApiDoc> = {
         kind: 'Method',
         insertText: 'requestRecordStop()'
     },
+    'camera.checkRequestRecord': {
+        desc: 'Проверка статуса записи видео.',
+        syntax: 'camera.checkRequestRecord()',
+        params: 'none',
+        returns: '1 (запись идет) или 0',
+        example: 'if camera.checkRequestRecord() == 1 then print("Пишем...") end',
+        kind: 'Method',
+        insertText: 'checkRequestRecord()'
+    },
     
     // Globals
     'time': {
@@ -192,6 +219,7 @@ export const apiDocs: Record<string, ApiDoc> = {
         kind: 'Function',
         insertText: 'time()'
     },
+    'launchTime': { desc: 'Время с момента взлета коптера.', syntax: 'launchTime()', returns: 'seconds', kind: 'Function', insertText: 'launchTime()' },
     'deltaTime': {
         desc: 'Время, прошедшее с предыдущего кадра.',
         syntax: 'deltaTime()',
@@ -210,10 +238,34 @@ export const apiDocs: Record<string, ApiDoc> = {
         kind: 'Function',
         insertText: 'sleep(${1:seconds})'
     },
+    'boardNumber': { desc: 'Номер платы (коптера).', syntax: 'boardNumber()', returns: 'number', kind: 'Function', insertText: 'boardNumber()' },
     
     // Peripherals
     'Gpio.new': { desc: 'Создание GPIO.', kind: 'Method', insertText: 'new(${1:port}, ${2:pin}, ${3:mode})' },
+    'Gpio.read': { desc: 'Чтение значения пина.', kind: 'Method', insertText: 'read()' },
+    'Gpio.set': { desc: 'Установка пина в 1.', kind: 'Method', insertText: 'set()' },
+    'Gpio.reset': { desc: 'Установка пина в 0.', kind: 'Method', insertText: 'reset()' },
+    'Gpio.write': { desc: 'Запись значения на пин.', syntax: 'gpio:write(val)', kind: 'Method', insertText: 'write(${1:val})' },
+    'Gpio.setFunction': { desc: 'Установка альтернативной функции пина.', kind: 'Method', insertText: 'setFunction(${1:func})' },
+    
+    'Uart.new': { desc: 'Инициализация UART.', kind: 'Method', insertText: 'new(${1:num}, ${2:rate})' },
+    'Uart.read': { desc: 'Чтение из UART.', syntax: 'uart:read(bytes)', kind: 'Method', insertText: 'read(${1:bytes})' },
+    'Uart.write': { desc: 'Запись в UART.', syntax: 'uart:write(data)', kind: 'Method', insertText: 'write(${1:data})' },
+    'Uart.bytesToRead': { desc: 'Количество байт в буфере UART.', kind: 'Method', insertText: 'bytesToRead()' },
+    'Uart.setBaudRate': { desc: 'Изменение скорости UART.', kind: 'Method', insertText: 'setBaudRate(${1:rate})' },
+    
     'Spi.new':  { desc: 'Создание SPI.',  kind: 'Method', insertText: 'new(${1:num}, ${2:rate})' },
+    'Spi.read': { desc: 'Чтение из SPI.', syntax: 'spi:read(count)', kind: 'Method', insertText: 'read(${1:count})' },
+    'Spi.write': { desc: 'Запись в SPI.', syntax: 'spi:write(data)', kind: 'Method', insertText: 'write(${1:data})' },
+    'Spi.exchange': { desc: 'Двусторонний обмен по SPI.', syntax: 'spi:exchange(data)', kind: 'Method', insertText: 'exchange(${1:data})' },
+    
+    // Mailbox
+    'mailbox.connect': { desc: 'Подключение к почтовому ящику.', syntax: 'mailbox.connect(server)', kind: 'Method', insertText: 'connect(${1:server})' },
+    'mailbox.hasMessages': { desc: 'Проверка наличия сообщений.', syntax: 'mailbox.hasMessages()', kind: 'Method', insertText: 'hasMessages()' },
+    'mailbox.myHullNumber': { desc: 'Получение бортового номера из mailbox.', syntax: 'mailbox.myHullNumber()', kind: 'Method', insertText: 'myHullNumber()' },
+    'mailbox.receive': { desc: 'Получение сообщения.', syntax: 'mailbox.receive([wait])', kind: 'Method', insertText: 'receive()' },
+    'mailbox.send': { desc: 'Отправка сообщения.', syntax: 'mailbox.send(to, data)', kind: 'Method', insertText: 'send(${1:to}, ${2:data})' },
+    'mailbox.setHullNumber': { desc: 'Установка бортового номера в mailbox.', syntax: 'mailbox.setHullNumber(num)', kind: 'Method', insertText: 'setHullNumber(${1:num})' },
     
     // Ev Constants Descriptions (Tooltips)
     'Ev.MCE_PREFLIGHT': { desc: 'Предполетная подготовка. Запустить двигатели и провести подготовку', syntax: 'Ev.MCE_PREFLIGHT', params: '-', returns: 'число (ID события)', example: 'ap.push(Ev.MCE_PREFLIGHT)' },

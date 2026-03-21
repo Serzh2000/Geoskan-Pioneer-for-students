@@ -14,13 +14,13 @@ pointT = Timer.new(0.1, function()         -- периодический тай�
   if z >= z_max then                        -- достигли верхней границы
     pointT:stop()                           -- останов таймера
     ap.goToLocalPoint(0, 0, z)              -- возврат к центру
-    ap.push(Ev.MCE_LANDING)                 -- посадка
+    ap.push(MCE_LANDING)                 -- посадка
   end
 end)
-ap.push(Ev.MCE_PREFLIGHT)                   -- предстарт
-Timer.callLater(2, function() ap.push(Ev.MCE_TAKEOFF) end) -- взлёт
+ap.push(MCE_PREFLIGHT)                   -- предстарт
+Timer.callLater(2, function() ap.push(MCE_TAKEOFF) end) -- взлёт
 function callback(event)
-  if event == Ev.TAKEOFF_COMPLETE then
+  if event == TAKEOFF_COMPLETE then
     Timer.callLater(2, function() pointT:start() end) -- стабилизация
   end
 end

@@ -1,4 +1,4 @@
-import { simState } from '../state.js';
+import { drones, currentDroneId } from '../state.js';
 import { log } from '../ui/logger.js';
 import { luaToStr } from '../utils.js';
 import { triggerEvent } from '../mce-events.js';
@@ -7,11 +7,9 @@ import { ap_push, ap_goToPoint, ap_goToLocalPoint, ap_updateYaw } from './autopi
 import { sensors_pos, sensors_vel, sensors_accel, sensors_gyro, sensors_orientation, sensors_range, sensors_battery, sensors_tof } from './sensors.js';
 import { timer_callLater, timer_new, sys_time, sys_deltaTime, js_sleep } from './timers.js';
 import { camera_requestMakeShot, camera_checkRequestShot, camera_requestRecordStart, camera_requestRecordStop, gpio_new, uart_new, spi_new } from './hardware.js';
-import { ledbar_fromHSV, js_init_leds } from './leds.js';
+import { ledbar_fromHSV, js_init_leds, js_ledbar_set } from './leds.js';
 
-let globalLuaState: any = null;
-
-export function setupLuaBridge() {
+export function setupLuaBridgeForDrone(id: string) {
     const L = window.fengari.L;
     const lua = window.fengari.lua;
     const lauxlib = window.fengari.lauxlib;
@@ -24,6 +22,12 @@ export function setupLuaBridge() {
             ENGINES_STARTED=11, POINT_DECELERATION=12, LOW_VOLTAGE1=13, LOW_VOLTAGE2=14,
             SYNC_START=15, SHOCK=16, CONTROL_FAIL=17, ENGINE_FAIL=18
         }
+        
+        -- Поддержка старого API: делаем константы глобальными
+        for k, v in pairs(Ev) do
+            _G[k] = v
+        end
+
         ap = { 
             push = js_ap_push,
             goToPoint = js_ap_goToPoint,
@@ -103,107 +107,128 @@ export function setupLuaBridge() {
     lua.lua_register(luaState, "js_sys_deltaTime", sys_deltaTime);
     lua.lua_register(luaState, "js_ledbar_fromHSV", ledbar_fromHSV);
     lua.lua_register(luaState, "js_init_leds", js_init_leds);
-    lua.lua_register(luaState, "js_ledbar_set", function(L: any) {
-        const i = lua.lua_tointeger(L, 1);
-        const r = lua.lua_tonumber(L, 2);
-        const g = lua.lua_tonumber(L, 3);
-        const b = lua.lua_tonumber(L, 4);
-        const w = lua.lua_tonumber(L, 5);
-        if (simState.leds[i]) {
-            simState.leds[i] = { r: r*255, g: g*255, b: b*255, w: w*255 };
-        } else {
-            simState.leds[i] = { r: r*255, g: g*255, b: b*255, w: w*255 };
-        }
-        return 0;
-    });
+    lua.lua_register(luaState, "js_ledbar_set", js_ledbar_set);
     lua.lua_register(luaState, "js_sleep", js_sleep);
+
+    // Save Drone ID in the Lua registry/global
+    lua.lua_pushstring(luaState, window.fengari.to_luastring(id));
+    lua.lua_setglobal(luaState, window.fengari.to_luastring("__DRONE_ID__"));
 
     const res = lauxlib.luaL_dostring(luaState, window.fengari.to_luastring(setupScript));
     if (res !== 0) {
         const errVal = lua.lua_tostring(luaState, -1);
-        log(`Lua Setup Error: ${luaToStr(errVal, luaState)}`, 'error');
-    } else {
-        setLuaState(luaState);
+        console.error(`[Lua Bridge] Failed to setup environment for ${id}:`, luaToStr(errVal, luaState));
+        log(`Lua Setup Error (${id}): ${luaToStr(errVal, luaState)}`, 'error');
+    }
+
+    if (drones[id]) {
+        drones[id].luaState = luaState;
+    }
+    return luaState;
+}
+
+export function runLuaScript(id: string, scriptContent: string) {
+    const drone = drones[id];
+    if (!drone) return;
+
+    if (drone.luaState) {
+        try {
+            window.fengari.lua.lua_close(drone.luaState);
+        } catch (e) {
+            console.error("Error closing lua state:", e);
+        }
+    }
+    
+    let L;
+    try {
+        L = setupLuaBridgeForDrone(id);
+    } catch (e) {
+        console.error("Error in setupLuaBridgeForDrone:", e);
+        throw e;
+    }
+
+    const loadStatus = window.fengari.lauxlib.luaL_loadstring(L, window.fengari.to_luastring(scriptContent));
+    if (loadStatus !== 0) {
+        const errVal = window.fengari.lua.lua_tostring(L, -1);
+        const errorMsg = luaToStr(errVal, L);
+        log(`Ошибка синтаксиса (${id}): ${errorMsg}`, 'error');
+        window.fengari.lua.lua_pop(L, 1);
+        return;
+    }
+
+    const T = window.fengari.lua.lua_newthread(L);
+    window.fengari.lua.lua_pushvalue(L, -2); // copy function to top of L
+    window.fengari.lua.lua_xmove(L, T, 1);   // move function from L to T
+    
+    try {
+        runCoroutine(L, T, 0, id);
+    } catch (e) {
+        console.error("Error in runCoroutine:", e);
+        throw e;
     }
 }
 
-export function runLuaScript(code: string) {
-    if (!globalLuaState) setupLuaBridge();
-    const lua = window.fengari.lua;
-    const lauxlib = window.fengari.lauxlib;
-    
-    const res = lauxlib.luaL_loadstring(globalLuaState, window.fengari.to_luastring(code));
-    if (res !== 0) {
-        const errVal = lua.lua_tostring(globalLuaState, -1);
-        log(`Compile Error: ${luaToStr(errVal, globalLuaState)}`, 'error');
-        return false;
+export function stopLuaScript(id: string) {
+    const drone = drones[id];
+    if (drone && drone.luaState) {
+        window.fengari.lua.lua_close(drone.luaState);
+        drone.luaState = null;
     }
-    
-    const T = lua.lua_newthread(globalLuaState);
-    lua.lua_pushvalue(globalLuaState, -2);
-    lua.lua_xmove(globalLuaState, T, 1);
-    lua.lua_pop(globalLuaState, 2); 
-    
-    runCoroutine(globalLuaState, T, 0, globalLuaState);
-    return true;
-}
-
-export function stopLuaScript() {
-    globalLuaState = null;
 }
 
 export function updateTimers() {
-    if (!globalLuaState) return;
     const lua = window.fengari.lua;
     const lauxlib = window.fengari.lauxlib;
 
-    for (let i = simState.timers.length - 1; i >= 0; i--) {
-        const t = simState.timers[i];
-        if (t.running && simState.current_time >= t.trigger_time) {
-            
-            const T = lua.lua_newthread(globalLuaState);
-            lua.lua_rawgeti(globalLuaState, lua.LUA_REGISTRYINDEX, t.callback_ref);
-            lua.lua_xmove(globalLuaState, T, 1);
-            
-            if (lua.lua_isfunction(T, -1)) {
-                runCoroutine(globalLuaState, T, 0, globalLuaState);
-            } else {
-                lua.lua_pop(T, 1);
-            }
-            
-            lua.lua_pop(globalLuaState, 1);
+    for (const id in drones) {
+        const drone = drones[id];
+        if (!drone.running || !drone.luaState) continue;
+        const L = drone.luaState;
 
-            if (t.one_shot) {
-                lauxlib.luaL_unref(globalLuaState, lua.LUA_REGISTRYINDEX, t.callback_ref);
-                simState.timers.splice(i, 1);
-            } else {
-                t.trigger_time = simState.current_time + (t.period || 0); 
-                if(t.next_trigger) t.next_trigger = t.trigger_time;
+        for (let i = drone.timers.length - 1; i >= 0; i--) {
+            const t = drone.timers[i];
+            if (t.running && drone.current_time >= t.trigger_time) {
+                
+                const T = lua.lua_newthread(L);
+                lua.lua_rawgeti(L, lua.LUA_REGISTRYINDEX, t.callback_ref);
+                lua.lua_xmove(L, T, 1);
+                
+                if (lua.lua_isfunction(T, -1)) {
+                    runCoroutine(L, T, 0, id);
+                } else {
+                    lua.lua_pop(T, 1);
+                }
+                
+                lua.lua_pop(L, 1);
+
+                if (t.one_shot) {
+                    lauxlib.luaL_unref(L, lua.LUA_REGISTRYINDEX, t.callback_ref);
+                    drone.timers.splice(i, 1);
+                } else {
+                    t.trigger_time = drone.current_time + (t.period || 0); 
+                    if(t.next_trigger) t.next_trigger = t.trigger_time;
+                }
             }
         }
     }
 }
 
-export function triggerLuaCallback(eventCode: number) {
-    if (!globalLuaState) return;
-    const lua = window.fengari.lua;
+export function triggerLuaCallback(id: string, eventId: number) {
+    const drone = drones[id];
+    if (!drone || !drone.luaState) return;
+    const L = drone.luaState;
     
-    triggerEvent(eventCode);
-    
-    const T = lua.lua_newthread(globalLuaState);
-    lua.lua_getglobal(T, window.fengari.to_luastring("callback"));
-    
-    if (lua.lua_isfunction(T, -1)) {
-        lua.lua_pushinteger(T, eventCode);
-        runCoroutine(globalLuaState, T, 1, globalLuaState);
+    window.fengari.lua.lua_getglobal(L, window.fengari.to_luastring("callback"));
+    if (window.fengari.lua.lua_isfunction(L, -1)) {
+        window.fengari.lua.lua_pushinteger(L, eventId);
+        if (window.fengari.lua.lua_pcall(L, 1, 0, 0) !== 0) {
+            const errVal = window.fengari.lua.lua_tostring(L, -1);
+            const errorMsg = luaToStr(errVal, L);
+            console.error(`[Lua Error] callback(${eventId}) on ${id}:`, errorMsg);
+            window.fengari.lua.lua_pop(L, 1);
+        }
     } else {
-        lua.lua_pop(T, 1);
+        window.fengari.lua.lua_pop(L, 1);
     }
-    
-    lua.lua_pop(globalLuaState, 1); 
-}
-
-export function setLuaState(state: any) {
-    globalLuaState = state;
 }
 

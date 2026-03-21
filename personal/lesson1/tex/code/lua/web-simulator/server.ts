@@ -15,7 +15,8 @@ const isDist = __dirname.endsWith('dist');
 const rootDir = isDist ? path.resolve(__dirname, '..') : __dirname;
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+// Default to 1234 so it matches your reverse proxy
+const PORT = process.env.PORT || 1234; 
 // Fix: Resolve to the correct absolute path for examples
 // web-simulator is in personal\lesson1\tex\code\lua\web-simulator
 // examples are in personal\lessons\code\lua\examples
@@ -23,8 +24,6 @@ const LUA_EXAMPLES_PATH = path.resolve(rootDir, '../../../../lessons/code/lua/ex
 
 app.use(cors());
 app.use(express.json());
-// Serve static files from public directory
-// app.use(express.static(path.join(__dirname, 'public')));
 
 // API to list all lua files in examples
 app.get('/api/files', (req: express.Request, res: express.Response) => {
@@ -64,6 +63,21 @@ app.get('/api/file-content', (req: express.Request, res: express.Response) => {
 app.get('/api-docs', (req: express.Request, res: express.Response) => {
     res.json({ message: "OpenAPI documentation will be here" });
 });
+
+// If running from dist folder (production), serve the built frontend
+if (isDist) {
+    const publicPath = path.join(__dirname, 'public');
+    console.log(`Serving static files from: ${publicPath}`);
+    app.use(express.static(publicPath));
+    
+    // Fallback for SPA (Express 5.x / path-to-regexp v8 compatible)
+    // Обновленный обработчик для SPA.
+// Используем регулярное выражение, чтобы отлавливать все пути, КРОМЕ /api.
+// Это более надежный синтаксис для Express 5+
+app.get(/^\/(?!api).*/, (req: express.Request, res: express.Response) => {
+    res.sendFile(path.join(publicPath, 'index.html'));
+});
+}
 
 app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`);

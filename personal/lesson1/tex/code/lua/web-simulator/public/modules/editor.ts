@@ -45,10 +45,10 @@ function createEditor() {
             tokenizer: {
                 root: [
                     // Pioneer Modules
-                    [/\b(ap|Sensors|Timer|Ledbar|camera|Gpio|Uart|Spi)\b/, "keyword.class"],
+                    [/\b(ap|Sensors|Timer|Ledbar|camera|Gpio|Uart|Spi|mailbox)\b/, "keyword.class"],
                     
                     // Pioneer Methods (generic matcher for simplicity, specific ones handled by autocomplete)
-                    [/\b(push|goToLocalPoint|goToPoint|updateYaw|lpsPosition|lpsVelocity|accel|gyro|orientation|range|battery|tof|callLater|new|set|requestMakeShot|fromHSV)\b/, "function.call"],
+                    [/\b(push|goToLocalPoint|goToPoint|updateYaw|lpsPosition|lpsVelocity|lpsYaw|accel|gyro|orientation|range|battery|tof|altitude|rc|callLater|callAt|callAtGlobal|new|set|start|stop|read|write|reset|setFunction|bytesToRead|setBaudRate|exchange|connect|hasMessages|myHullNumber|receive|send|setHullNumber|requestMakeShot|checkRequestShot|requestRecordStart|requestRecordStop|checkRequestRecord|fromHSV|time|deltaTime|launchTime|sleep|boardNumber)\b/, "function.call"],
                     
                     // Constants
                     [/\b(Ev)\.[A-Z_]+\b/, "constant"],
@@ -168,7 +168,7 @@ function createEditor() {
                 }
 
                 // Suggest Modules if typing fresh
-                const modules = ['ap', 'Sensors', 'Timer', 'Ledbar', 'camera', 'Gpio', 'Uart', 'Spi', 'Ev'];
+                const modules = ['ap', 'Sensors', 'Timer', 'Ledbar', 'camera', 'Gpio', 'Uart', 'Spi', 'mailbox', 'Ev'];
                 modules.forEach(mod => {
                     suggestions.push({
                         label: mod,
@@ -207,6 +207,7 @@ function createEditor() {
             fontFamily: "'Fira Code', monospace",
             minimap: { enabled: false },
             scrollbar: { verticalScrollbarSize: 10, horizontalScrollbarSize: 10 },
+            fixedOverflowWidgets: true, // Fix for hover overflowing hidden containers!
             suggest: {
                 snippetsPreventQuickSuggestions: false
             }

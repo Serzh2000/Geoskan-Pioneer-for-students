@@ -27,10 +27,10 @@ local j = 1                                -- индекс текущей точ
 action = {                                 -- таблица функций по состояниям
   ["PREPARE_FLIGHT"] = function()          -- подготовка полёта
     changeColor(colors[2])                 -- белый — подготовка
-    Timer.callLater(2, function () ap.push(Ev.MCE_PREFLIGHT) end) -- предстарт
+    Timer.callLater(2, function () ap.push(MCE_PREFLIGHT) end) -- предстарт
     Timer.callLater(4, function () changeColor(colors[3]) end)    -- зелёный — готовность
     Timer.callLater(6, function ()        -- через 6 секунд
-      ap.push(Ev.MCE_TAKEOFF)             -- взлёт
+      ap.push(MCE_TAKEOFF)             -- взлёт
       curr_state = "FLIGHT"               -- переход к полёту
     end)
   end,
@@ -45,18 +45,18 @@ action = {                                 -- таблица функций по
   end,
   ["PIONEER_LANDING"] = function ()        -- состояние посадки
     changeColor(colors[6])                 -- синий — посадка
-    Timer.callLater(2, function () ap.push(Ev.MCE_LANDING) end) -- команда посадки
+    Timer.callLater(2, function () ap.push(MCE_LANDING) end) -- команда посадки
   end
 }
 
 function callback(event)                   -- обработчик системных событий
-  if (event == Ev.TAKEOFF_COMPLETE) then action[curr_state]() end -- старт логики
-  if (event == Ev.SHOCK) then              -- авария (столкновение)
+  if (event == TAKEOFF_COMPLETE) then action[curr_state]() end -- старт логики
+  if (event == SHOCK) then              -- авария (столкновение)
     changeColor(colors[1])                 -- красный цвет
-    ap.push(ENGINES_DISARM)                -- выключение двигателей (требуется Ev.ENGINES_DISARM)
+    ap.push(ENGINES_DISARM)                -- выключение двигателей (требуется ENGINES_DISARM)
   end
-  if (event == Ev.POINT_REACHED) then action[curr_state]() end -- переход по достижению точки
-  if (event == Ev.COPTER_LANDED) then changeColor(colors[7]) end -- выключить индикацию
+  if (event == POINT_REACHED) then action[curr_state]() end -- переход по достижению точки
+  if (event == COPTER_LANDED) then changeColor(colors[7]) end -- выключить индикацию
 end
 
 changeColor(colors[1])                     -- начальная индикация (красный)

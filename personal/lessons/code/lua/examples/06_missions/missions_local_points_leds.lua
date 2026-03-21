@@ -10,13 +10,13 @@ local function nextPoint()                 -- переход к следующе
     ap.goToLocalPoint(unpack(points[curr_point])) -- полёт к точке
     curr_point = curr_point + 1            -- увеличить индекс
   else
-    ap.push(Ev.MCE_LANDING)                -- завершение — посадка
+    ap.push(MCE_LANDING)                -- завершение — посадка
   end
 end
 
 function callback(event)                   -- обработчик событий
-  if(event == Ev.TAKEOFF_COMPLETE) then nextPoint() end    -- старт маршрута
-  if(event == Ev.POINT_REACHED) then nextPoint() end       -- шаг по событию
+  if(event == TAKEOFF_COMPLETE) then nextPoint() end    -- старт маршрута
+  if(event == POINT_REACHED) then nextPoint() end       -- шаг по событию
 end
 
 local leds = Ledbar.new(25)                -- объект линейки (буфер 25)
@@ -27,5 +27,5 @@ timerBlink = Timer.new(1, function ()      -- таймер мигания, пе�
   for i=0,3 do leds:set(i, blink, 0, 0) end  -- мигание красным
 end)
 timerBlink:start()                         -- запуск мигания
-ap.push(Ev.MCE_PREFLIGHT)                  -- предстарт
-Timer.callLater(1, function() ap.push(Ev.MCE_TAKEOFF) end) -- взлёт
+ap.push(MCE_PREFLIGHT)                  -- предстарт
+Timer.callLater(1, function() ap.push(MCE_TAKEOFF) end) -- взлёт

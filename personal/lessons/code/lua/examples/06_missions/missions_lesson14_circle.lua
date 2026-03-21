@@ -37,10 +37,10 @@ end)
 action = {                                 -- таблица состояний
   ["PREPARE_FLIGHT"] = function(x)         -- подготовка полёта
     changeColor(colors[2])                 -- белый
-    Timer.callLater(2, function () ap.push(Ev.MCE_PREFLIGHT) end) -- предстарт
+    Timer.callLater(2, function () ap.push(MCE_PREFLIGHT) end) -- предстарт
     Timer.callLater(4, function () changeColor(colors[3]) end)    -- зелёный
     Timer.callLater(6, function ()        -- через 6 секунд
-      ap.push(Ev.MCE_TAKEOFF)             -- взлёт
+      ap.push(MCE_TAKEOFF)             -- взлёт
       ap.goToLocalPoint(0,0,height)       -- выход в центр
       curr_state = "FLIGHT_TO_CIRCLE"     -- переход к полёту
     end)
@@ -68,19 +68,19 @@ action = {                                 -- таблица состояний
     pointT:stop()                          -- остановить таймер точки
     ap.goToLocalPoint(0, 0, height)        -- возврат в центр
     Timer.callLater(2, function ()         -- через 2 секунды
-      ap.push(Ev.MCE_LANDING)              -- посадка
+      ap.push(MCE_LANDING)              -- посадка
     end)
   end
 }
 
 function callback(event)                   -- обработчик системных событий
-  if (event == Ev.TAKEOFF_COMPLETE) then action[curr_state]() end -- запуск логики
-  if (event == Ev.SHOCK) then              -- авария
+  if (event == TAKEOFF_COMPLETE) then action[curr_state]() end -- запуск логики
+  if (event == SHOCK) then              -- авария
     changeColor(colors[1])                 -- красный
     angleT:stop(); pointT:stop()           -- останов таймеров
   end
-  if (event == Ev.POINT_REACHED) then action[curr_state]() end -- шаг логики
-  if (event == Ev.COPTER_LANDED) then changeColor(colors[7]) end -- выключение индикации
+  if (event == POINT_REACHED) then action[curr_state]() end -- шаг логики
+  if (event == COPTER_LANDED) then changeColor(colors[7]) end -- выключение индикации
 end
 
 changeColor(colors[1])                     -- начальный красный цвет

@@ -62,4 +62,34 @@ export function updateStats() {
             stopBtn.style.cursor = 'not-allowed';
         }
     }
+
+    // Update LED Matrix Debug UI
+    if (simState.leds) {
+        for (let i = 0; i < simState.leds.length; i++) {
+            const led = simState.leds[i];
+            if (!led) continue;
+            const r = Math.round(led.r || 0);
+            const g = Math.round(led.g || 0);
+            const b = Math.round(led.b || 0);
+            const colorStr = `rgb(${r},${g},${b})`;
+            
+            if (i < 4) {
+                // Base LEDs
+                const baseLedEl = document.getElementById(`led-base-${i}`);
+                if (baseLedEl) {
+                    baseLedEl.style.backgroundColor = colorStr;
+                    baseLedEl.style.boxShadow = (r+g+b > 0) ? `0 0 8px ${colorStr}` : 'none';
+                    baseLedEl.title = `Base LED ${i}\nRGB: ${r}, ${g}, ${b}`;
+                }
+            } else if (i < 29) {
+                // Matrix LEDs
+                const pixelEl = document.getElementById(`led-pixel-${i}`);
+                if (pixelEl) {
+                    pixelEl.style.backgroundColor = colorStr;
+                    pixelEl.style.boxShadow = (r+g+b > 0) ? `0 0 8px ${colorStr}` : 'none';
+                    pixelEl.title = `Matrix LED ${i}\nRGB: ${r}, ${g}, ${b}`;
+                }
+            }
+        }
+    }
 }

@@ -1,9 +1,19 @@
 import { log } from '../ui/logger.js';
 import { luaToStr } from '../utils.js';
+import { drones } from '../state.js';
 
-export function runCoroutine(L: any, T: any, nresults: any, globalLuaState: any) {
+export function runCoroutine(L: any, T: any, nresults: any, id: string) {
+    const drone = drones[id];
+    if (!drone || !drone.running || !drone.luaState) return;
+
     const lua = window.fengari.lua;
-    const status = lua.lua_resume(T, null, nresults);
+    let status;
+    try {
+        status = lua.lua_resume(T, L, nresults);
+    } catch (e) {
+        console.error(`[runCoroutine] lua_resume threw an error for drone ${id}:`, e);
+        throw e;
+    }
     
     if (status === lua.LUA_YIELD) {
         let sleepTime = 0;
@@ -12,11 +22,15 @@ export function runCoroutine(L: any, T: any, nresults: any, globalLuaState: any)
             lua.lua_pop(T, 1); 
         }
         setTimeout(() => {
-            if (globalLuaState) runCoroutine(L, T, 0, globalLuaState);
+            runCoroutine(L, T, 0, id);
         }, sleepTime * 1000);
         
     } else if (status !== lua.LUA_OK) {
         const errVal = lua.lua_tostring(T, -1);
-        log(`Runtime Error: ${luaToStr(errVal, T)}`, 'error');
+        log(`Runtime Error (${id}): ${luaToStr(errVal, T)}`, 'error');
+        if (drone) {
+            drone.running = false;
+            drone.status = 'ОШИБКА';
+        }
     }
 }

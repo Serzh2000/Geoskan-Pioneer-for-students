@@ -37,10 +37,10 @@ end)
 action = {                                 -- таблица состояний
   ["PREPARE_FLIGHT"] = function(x)         -- подготовка полёта
     changeColor(colors[2])                 -- белый
-    Timer.callLater(2, function () ap.push(Ev.MCE_PREFLIGHT) end) -- предстарт
+    Timer.callLater(2, function () ap.push(MCE_PREFLIGHT) end) -- предстарт
     Timer.callLater(4, function () changeColor(colors[3]) end)    -- зелёный
     Timer.callLater(6, function ()        -- через 6 секунд
-      ap.push(Ev.MCE_TAKEOFF)             -- взлёт
+      ap.push(MCE_TAKEOFF)             -- взлёт
       ap.goToLocalPoint(0,0,height)       -- выход в центр
       curr_state = "FLIGHT_TO_FIRST_POINT" -- переход к полёту
     end)
@@ -60,7 +60,7 @@ action = {                                 -- таблица состояний
       pointT:stop()                        -- остановить таймер точки
       angleT:stop()                        -- остановить таймер курса
       ap.goToLocalPoint(0, 0, height)      -- возврат в центр
-      ap.push(Ev.MCE_LANDING)              -- посадка
+      ap.push(MCE_LANDING)              -- посадка
     end)
   end
 }

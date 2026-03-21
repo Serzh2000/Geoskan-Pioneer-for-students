@@ -3,10 +3,11 @@
 /// <reference path="./shims.d.ts" />
 import * as THREE from 'three';
 import * as fengari from 'fengari-web';
-import { simState, resetState } from './modules/state.js';
-import { init3D, updateDrone3D, is3DActive, addObject, deleteSelectedObject } from './modules/drone.js';
+import { simState, resetState, resetRuntimeStatePreservePose, drones, currentDroneId } from './modules/state.js';
+import { init3D, updateDrone3D, is3DActive, addObject, deleteSelectedObject, listSceneObjects, selectSceneObjectById, deleteSceneObjectById, setSceneObjectTransformMode, resetDroneToOrigin, getSelectedSceneObjectId } from './modules/drone.js';
 import { updatePhysics } from './modules/physics.js';
-import { runLuaScript, stopLuaScript, updateTimers, triggerLuaCallback } from './modules/lua/index.js';
+import { runLuaScript, stopLuaScript, triggerLuaCallback } from './modules/lua/index.js';
+import { setLocalFrameOrigin } from './modules/lua/autopilot.js';
 import { initEditor, getEditorValue, setEditorValue, layoutEditor } from './modules/editor.js';
 import { initUI } from './modules/ui/index.js';
 import { log } from './modules/ui/logger.js';
@@ -45,6 +46,15 @@ function init() {
         onSceneAction: (action) => {
             if (action === 'delete') deleteSelectedObject();
             else addObject(action);
+        },
+        sceneManager: {
+            list: () => listSceneObjects(),
+            select: (id: string) => selectSceneObjectById(id),
+            remove: (id: string) => deleteSceneObjectById(id),
+            add: (type: string) => addObject(type),
+            setMode: (mode: 'translate' | 'rotate' | 'scale', id?: string) => setSceneObjectTransformMode(mode, id),
+            resetDroneOrigin: () => resetDroneToOrigin(),
+            getSelectedId: () => getSelectedSceneObjectId()
         }
     });
 
@@ -60,41 +70,79 @@ function init() {
 }
 
 function startSimulation() {
-    if (simState.running) return;
+    log(`[DEBUG] startSimulation called. currentDroneId: ${currentDroneId}`, 'info');
     
-    const code = getEditorValue();
-    if (!code.trim()) {
-        log('Пустой код, запуск отменен', 'warn');
-        return;
+    // Run all drones
+    let anyStarted = false;
+
+    // First save current editor code to the currently selected drone
+    if (drones[currentDroneId]) {
+        const editorCode = getEditorValue();
+        log(`[DEBUG] getEditorValue() returned length: ${editorCode.length}`, 'info');
+        drones[currentDroneId].script = editorCode;
+    } else {
+        log(`[DEBUG] drones[currentDroneId] is undefined!`, 'error');
     }
 
-    resetSimulation();
-    simState.running = true;
-    simState.status = 'ЗАПУСК';
+    for (const id in drones) {
+        const drone = drones[id];
+        
+        // Always try to run, even if it was running before (stop it first)
+        const code = drone.script;
+        log(`[DEBUG] Drone ${id} script length: ${code ? code.length : 0}`, 'info');
+        if (!code || !code.trim()) continue;
+
+        stopLuaScript(id);
+        resetRuntimeStatePreservePose(id);
+        setLocalFrameOrigin(drone.pos.x, drone.pos.y, drone.pos.z);
+        drone.running = true;
+        drone.status = 'ЗАПУСК';
+        
+        try {
+            runLuaScript(id, code);
+            log(`Скрипт запущен для ${drone.name}`, 'success');
+            
+            try {
+                triggerLuaCallback(id, 1); // Ev.MCE_PREFLIGHT
+            } catch (errCb) {
+                console.error("Error in triggerLuaCallback:", errCb);
+                throw errCb;
+            }
+            
+            anyStarted = true;
+        } catch (e: any) {
+            drone.running = false;
+            drone.status = 'ОШИБКА';
+            const errMsg = e instanceof Error ? e.message : String(e);
+            log(`Ошибка запуска скрипта ${drone.name}: ${errMsg}`, 'error');
+            console.error(`[Main] Error running script for ${id}:`, e);
+            anyStarted = true; // Set to true so we don't show the "Нет скриптов" warning if it actually tried to run
+        }
+    }
     
-    const success = runLuaScript(code);
-    if (success) {
-        log('Скрипт запущен', 'success');
-        triggerLuaCallback(1); // Ev.MCE_PREFLIGHT
-    } else {
-        simState.running = false;
-        simState.status = 'ОШИБКА';
+    if (!anyStarted) {
+        log('Нет скриптов для запуска', 'warn');
     }
 }
 
 function stopSimulation() {
-    if (!simState.running) return;
-    simState.running = false;
-    simState.status = 'IDLE';
-    stopLuaScript();
-    log('Симуляция остановлена', 'warn');
+    for (const id in drones) {
+        const drone = drones[id];
+        if (drone.running) {
+            stopLuaScript(id);
+            drone.running = false;
+            drone.status = 'ОСТАНОВЛЕН';
+            log(`Остановлен: ${drone.name}`, 'warn');
+        }
+    }
 }
 
 function resetSimulation() {
     stopSimulation();
-    resetState();
-    log('Состояние сброшено', 'info');
-    // Re-run init code or just wait for start
+    for (const id in drones) {
+        resetState(id);
+    }
+    log('Симуляция сброшена', 'info');
 }
 
 async function loadFileContent(path: string) {
@@ -116,13 +164,7 @@ function animate(time: number) {
     if (dt > 0.1) dt = 0.1; // Cap dt
     lastTime = time;
 
-    updateTimers();
-
-    if (simState.running) {
-        simState.current_time += dt;
-        updatePhysics(dt);
-        // Additional loop logic if needed
-    }
+    updatePhysics(dt);
 
     if (is3DActive) {
         updateDrone3D(dt);

@@ -20,7 +20,7 @@ action = {
 		ledbar:set(3, 1, 1, 0.0)
 
 		-- выключение двигателей и конец программы
-		ap.push(Ev.ENGINES_DISARM)
+		ap.push(ENGINES_DISARM)
 		curr_state = "NONE"
 
 	end,
@@ -32,11 +32,11 @@ function callback(event)
 		action[curr_state]()
 	end
 
-	if (event == Ev.POINT_REACHED) then
+	if (event == POINT_REACHED) then
 		action[curr_state]()
 	end
 
-	if (event == Ev.COPTER_LANDED) then
+	if (event == COPTER_LANDED) then
 		sleep(2)
 		action[curr_state]()
 	end
