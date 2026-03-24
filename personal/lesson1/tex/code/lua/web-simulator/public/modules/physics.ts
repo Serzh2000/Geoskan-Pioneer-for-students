@@ -1,7 +1,15 @@
+/**
+ * Модуль физического движка симулятора.
+ * Отвечает за расчет кинематики полета каждого дрона:
+ * применение управляющих воздействий (от автопилота или скрипта),
+ * расчет скоростей, координат, ориентации (кватернионов),
+ * а также обработку столкновений с объектами сцены (препятствиями).
+ */
 import { drones, pathPoints, DroneState } from './state.js';
 import { triggerLuaCallback, updateTimers } from './lua/index.js';
 import { getObstacles } from './drone.js';
 import { log } from './ui/logger.js';
+import * as THREE from 'three';
 
 export function updatePhysics(dt: number) {
     updateTimers();
@@ -121,7 +129,7 @@ export function updatePhysics(dt: number) {
 }
 
 function checkEvents(simState: DroneState) {
-    if (simState.status === 'CRASHED' || simState.status === 'IDLE' || simState.status === 'ГОТОВ' || simState.status === 'ВЗВЕДЕН') return;
+    if (simState.status === 'CRASHED' || simState.status === 'IDLE' || simState.status === 'ГОТОВ' || simState.status === 'ВЗВЕДЕН' || simState.status === 'ПРИЗЕМЛЕН') return;
 
     const id = simState.id;
 
@@ -141,9 +149,10 @@ function checkEvents(simState: DroneState) {
         const radius = (obj.userData.type === 'Ворота') ? 0.8 : 0.3;
         
         const isClose = dist < radius;
-        const isNotJustTakingOff = simState.pos.z > 0.1 || objPos.z < 0.5;
+        const isGround = obj.name === 'Ground' || obj.userData.type === 'Ground' || objPos.z <= 0.01;
+        const isNotJustTakingOff = simState.pos.z > 0.1;
 
-        if (isClose && isNotJustTakingOff) {
+        if (isClose && isNotJustTakingOff && !isGround) {
             simState.status = 'CRASHED';
             triggerLuaCallback(id, 16); // Ev.SHOCK
             log(`[Physics] Дрон ${id} столкнулся с препятствием!`, 'warn');

@@ -1,8 +1,17 @@
+/**
+ * Главный модуль пользовательского интерфейса (UI).
+ * Отвечает за инициализацию всех компонентов интерфейса, привязку обработчиков
+ * событий к кнопкам (запуск, остановка, перезапуск), управление переключением
+ * вкладок (редактор, справочник API, настройки и др.), а также настройку
+ * загрузки файлов с сервера и локально.
+ */
 import { log } from './logger.js';
 import { initContextMenu } from './context-menu.js';
-import { apiDocs } from '../api-docs.js';
-import { drones, createDroneState, currentDroneId, setCurrentDrone } from '../state.js';
-import { getEditorValue, setEditorValue } from '../editor.js';
+import { initSceneManager } from './scene-manager.js';
+import { initDroneManager } from './drone-manager.js';
+import { renderApiDocs } from './api-docs-ui.js';
+import { initLEDMatrixUI } from './led-matrix.js';
+import { initSettingsUI } from './settings.js';
 
 export interface UICallbacks {
     onEditorResize?: () => void;
@@ -12,6 +21,7 @@ export interface UICallbacks {
     onFileSelect: (path: string) => void;
     onLocalFileLoad: (name: string, content: string) => void;
     onSceneAction?: (type: string) => void;
+    onSceneUpdate?: () => void;
     sceneManager?: {
         list: () => Array<{
             id: string;
@@ -36,9 +46,10 @@ export interface UICallbacks {
 export function initUI(callbacks: UICallbacks) {
     initContextMenu();
     initSceneManager(callbacks);
-    initDroneManager(callbacks);
+    initDroneManager(callbacks.onSceneUpdate);
     renderApiDocs();
     initLEDMatrixUI();
+    initSettingsUI();
 
     // Tab Switching logic
     (window as any).switchTab = function(tabId: string) {
@@ -100,18 +111,12 @@ export function initUI(callbacks: UICallbacks) {
     // File Selector
     const fileSelector = document.getElementById('file-selector') as HTMLSelectElement | null;
     if (fileSelector) {
-        // loadFileList(fileSelector); // Assuming loadFileList is imported or defined elsewhere. 
-        // If not, we should probably fetch it.
-        // Based on main.ts, loadFileContent is passed as callback.
-        // We need to fetch list of files from server.
         fetch('/api/files')
             .then(res => {
                 if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
                 return res.json();
             })
             .then(files => {
-                // Remove the initial "Загрузка файлов..." option if needed, 
-                // or just clear it
                 fileSelector.innerHTML = '<option value="">Выберите файл...</option>';
                 if (Array.isArray(files)) {
                     files.forEach((f: string) => {
@@ -151,219 +156,4 @@ export function initUI(callbacks: UICallbacks) {
             reader.readAsText(file);
         });
     }
-}
-
-function initSceneManager(callbacks: UICallbacks) {
-    if (!callbacks.sceneManager) return;
-
-    const listEl = document.getElementById('scene-object-list');
-    const detailsEl = document.getElementById('scene-object-details');
-    const addTypeEl = document.getElementById('scene-add-type') as HTMLSelectElement | null;
-    const addBtn = document.getElementById('scene-add-btn');
-    const deleteBtn = document.getElementById('scene-delete-btn');
-    const resetDroneBtn = document.getElementById('scene-drone-origin-btn');
-    const modeTranslateBtn = document.getElementById('scene-mode-translate');
-    const modeRotateBtn = document.getElementById('scene-mode-rotate');
-    const modeScaleBtn = document.getElementById('scene-mode-scale');
-
-    const format = (v: number) => Number.isFinite(v) ? v.toFixed(2) : 'NaN';
-
-    const render = () => {
-        if (!listEl || !detailsEl || !callbacks.sceneManager) return;
-        const objects = callbacks.sceneManager.list();
-        const selectedId = callbacks.sceneManager.getSelectedId();
-
-        listEl.innerHTML = '';
-        for (const obj of objects) {
-            const row = document.createElement('button');
-            row.type = 'button';
-            row.className = 'scene-manager-item' + (obj.id === selectedId ? ' active' : '');
-            row.textContent = `${obj.sceneType}${obj.isDrone ? ' (дрон)' : ''}`;
-            row.onclick = () => {
-                callbacks.sceneManager && callbacks.sceneManager.select(obj.id);
-                render();
-            };
-            listEl.appendChild(row);
-        }
-
-        const selected = objects.find((o) => o.id === selectedId) || objects[0];
-        if (!selected) {
-            detailsEl.textContent = 'Объекты сцены не найдены';
-            return;
-        }
-        detailsEl.textContent = `Тип: ${selected.sceneType}
-Имя: ${selected.name}
-Перемещаемый: ${selected.draggable ? 'да' : 'нет'}
-Позиция: ${format(selected.position.x)}, ${format(selected.position.y)}, ${format(selected.position.z)}
-Поворот: ${format(selected.rotation.x)}, ${format(selected.rotation.y)}, ${format(selected.rotation.z)}
-Масштаб: ${format(selected.scale.x)}, ${format(selected.scale.y)}, ${format(selected.scale.z)}`;
-    };
-
-    if (addBtn && addTypeEl) {
-        addBtn.addEventListener('click', () => {
-            callbacks.sceneManager && callbacks.sceneManager.add(addTypeEl.value);
-            render();
-        });
-    }
-    if (deleteBtn) {
-        deleteBtn.addEventListener('click', () => {
-            const selectedId = callbacks.sceneManager && callbacks.sceneManager.getSelectedId();
-            if (selectedId && callbacks.sceneManager) callbacks.sceneManager.remove(selectedId);
-            render();
-        });
-    }
-    if (resetDroneBtn) {
-        resetDroneBtn.addEventListener('click', () => {
-            callbacks.sceneManager && callbacks.sceneManager.resetDroneOrigin();
-            render();
-        });
-    }
-    if (modeTranslateBtn) {
-        modeTranslateBtn.addEventListener('click', () => {
-            const selectedId = callbacks.sceneManager && callbacks.sceneManager.getSelectedId();
-            callbacks.sceneManager && callbacks.sceneManager.setMode('translate', selectedId || undefined);
-            render();
-        });
-    }
-    if (modeRotateBtn) {
-        modeRotateBtn.addEventListener('click', () => {
-            const selectedId = callbacks.sceneManager && callbacks.sceneManager.getSelectedId();
-            callbacks.sceneManager && callbacks.sceneManager.setMode('rotate', selectedId || undefined);
-            render();
-        });
-    }
-    if (modeScaleBtn) {
-        modeScaleBtn.addEventListener('click', () => {
-            const selectedId = callbacks.sceneManager && callbacks.sceneManager.getSelectedId();
-            callbacks.sceneManager && callbacks.sceneManager.setMode('scale', selectedId || undefined);
-            render();
-        });
-    }
-
-    window.setInterval(render, 250);
-    render();
-}
-
-async function loadFileList(selector: HTMLSelectElement) {
-    try {
-        const res = await fetch('/api/files');
-        const files: string[] = await res.json();
-        selector.innerHTML = '<option value="">Выберите пример...</option>' + 
-            files.map(f => `<option value="${f}">${f}</option>`).join('');
-    } catch (e) {
-        console.error('Failed to load files', e);
-        log('Failed to load files list', 'error');
-    }
-}
-
-function renderApiDocs() {
-    const container = document.getElementById('api-docs');
-    if (!container) return;
-
-    let html = '';
-    
-    // Group APIs by prefix
-    const groups: Record<string, any[]> = {};
-    for (const [name, doc] of Object.entries(apiDocs)) {
-        const prefix = name.includes('.') ? name.split('.')[0] : (name.startsWith('Ev.') ? 'Events' : 'Globals');
-        const groupName = name.startsWith('Ev.') ? 'События (Ev.*)' : (prefix === 'Globals' ? 'Глобальные функции' : `Объект ${prefix}`);
-        
-        if (!groups[groupName]) groups[groupName] = [];
-        groups[groupName].push({ name, ...doc });
-    }
-
-    for (const [groupName, entries] of Object.entries(groups)) {
-        html += `<div class="api-category-title">${groupName}</div>`;
-        for (const entry of entries) {
-            html += `
-                <div class="api-entry">
-                    <div class="api-header">
-                        <span class="api-name">${entry.name}</span>
-                        <span class="api-kind">${entry.kind || 'Method'}</span>
-                    </div>
-                    <div class="api-desc">${entry.desc}</div>
-                    <div class="api-details">
-                        ${entry.syntax ? `<div class="api-details-row"><span class="api-details-label">Синтаксис:</span><span class="api-details-value">${entry.syntax}</span></div>` : ''}
-                        ${entry.params ? `<div class="api-details-row"><span class="api-details-label">Аргументы:</span><span class="api-details-value">${entry.params}</span></div>` : ''}
-                        ${entry.returns ? `<div class="api-details-row"><span class="api-details-label">Возвращает:</span><span class="api-details-value">${entry.returns}</span></div>` : ''}
-                    </div>
-                    ${entry.example ? `<div class="api-example">${entry.example}</div>` : ''}
-                </div>
-            `;
-        }
-    }
-    
-    container.innerHTML = html;
-}
-
-function initLEDMatrixUI() {
-    const grid = document.getElementById('led-matrix-grid');
-    if (!grid) return;
-    grid.innerHTML = '';
-    for (let i = 0; i < 25; i++) {
-        const pixel = document.createElement('div');
-        pixel.className = 'led-pixel';
-        pixel.id = `led-pixel-${i + 4}`; // offset by 4 for base LEDs
-        pixel.title = `LED ${i + 4}`;
-        grid.appendChild(pixel);
-    }
-}
-
-function initDroneManager(callbacks: UICallbacks) {
-    const list = document.getElementById('drone-list') as HTMLSelectElement;
-    const addBtn = document.getElementById('add-drone-btn') as HTMLButtonElement;
-    const delBtn = document.getElementById('del-drone-btn') as HTMLButtonElement;
-
-    function updateList() {
-        list.innerHTML = '';
-        for (const id in drones) {
-            const opt = document.createElement('option');
-            opt.value = id;
-            opt.textContent = drones[id].name;
-            if (id === currentDroneId) opt.selected = true;
-            list.appendChild(opt);
-        }
-    }
-
-    list.addEventListener('change', () => {
-        // Save current script before switching
-        if (drones[currentDroneId]) {
-            drones[currentDroneId].script = getEditorValue();
-        }
-        setCurrentDrone(list.value);
-        setEditorValue(drones[currentDroneId].script);
-        // Refresh scene
-        if (callbacks.onSceneUpdate) callbacks.onSceneUpdate();
-    });
-
-    addBtn.addEventListener('click', () => {
-        const num = Object.keys(drones).length + 1;
-        const id = `drone_${num}_${Date.now()}`;
-        const name = `Pioneer ${num}`;
-        // Random offset for new drones
-        const x = (Math.random() - 0.5) * 4;
-        const y = (Math.random() - 0.5) * 4;
-        createDroneState(id, name, x, y, 0);
-        updateList();
-        if (callbacks.onSceneUpdate) callbacks.onSceneUpdate();
-        log(`Added new drone: ${name}`);
-    });
-
-    delBtn.addEventListener('click', () => {
-        if (Object.keys(drones).length <= 1) {
-            log('Cannot delete the last drone.', 'error');
-            return;
-        }
-        const id = list.value;
-        if (id) {
-            delete drones[id];
-            setCurrentDrone(Object.keys(drones)[0]);
-            setEditorValue(drones[currentDroneId].script);
-            updateList();
-            if (callbacks.onSceneUpdate) callbacks.onSceneUpdate();
-            log(`Deleted drone: ${id}`);
-        }
-    });
-
-    updateList();
 }

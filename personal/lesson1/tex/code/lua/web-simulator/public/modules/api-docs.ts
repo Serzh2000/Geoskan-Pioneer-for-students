@@ -9,7 +9,14 @@ export interface ApiDoc {
     insertText?: string;
 }
 
-export const apiDocs: Record<string, ApiDoc> = {
+/**
+ * Модуль документации Lua API.
+ * Содержит статический словарь `apiDocs`, описывающий все доступные 
+ * глобальные функции, события (Ev.*), методы объектов (ap, leds, sensors) 
+ * в эмулируемой среде Pioneer.
+ * Используется компонентом `api-docs-ui` для генерации HTML-справочника.
+ */
+export const apiDocs: Record<string, any> = {
     // Autopilot
     'ap.push': {
         desc: 'Добавляет команду в очередь автопилота.',

@@ -40,7 +40,7 @@ export function updateCamera(camera: THREE.PerspectiveCamera, droneMesh: THREE.O
         
         // Направляем камеру строго вниз на дрон с правильной ориентацией карты (Y - верх экрана)
         const m = new THREE.Matrix4();
-        m.lookAt(camera.position, droneMesh.position, new THREE.Vector3(0, 1, 0));
+        m.lookAt(camera.position, droneMesh.position, new THREE.Vector3(0, 0, 1));
         camera.quaternion.slerp(new THREE.Quaternion().setFromRotationMatrix(m), 0.1);
 
     } else if (mode === 'fpv') {
@@ -76,10 +76,12 @@ export function updateCamera(camera: THREE.PerspectiveCamera, droneMesh: THREE.O
                 camera.position.copy(targetPos);
                 
                 const m = new THREE.Matrix4();
-                m.lookAt(camera.position, droneMesh.position, new THREE.Vector3(0, 1, 0));
+                m.lookAt(camera.position, droneMesh.position, new THREE.Vector3(0, 0, 1));
                 camera.quaternion.setFromRotationMatrix(m);
+                camera.up.set(0, 0, 1); 
                 
                 controls.target.copy(droneMesh.position);
+                if (controls.update) controls.update();
             }
             controls.update();
         }

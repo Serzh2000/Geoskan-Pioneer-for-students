@@ -11,6 +11,12 @@ export interface TimerTask {
     next_trigger?: number;
 }
 
+/**
+ * Модуль глобального состояния симулятора.
+ * Хранит данные обо всех дронах (позиции, скорости, логика автопилота),
+ * настройках симуляции (скорость, трассеры), общем состоянии среды (работает/остановлено),
+ * а также точки траектории для отрисовки шлейфа (pathPoints).
+ */
 export interface DroneState {
     id: string;
     name: string;
@@ -35,6 +41,15 @@ export interface DroneState {
 
 export const drones: Record<string, DroneState> = {};
 export let currentDroneId: string = 'drone_1';
+
+export const simSettings = {
+    showTracer: true,
+    tracerColor: '#38bdf8',
+    tracerWidth: 2,
+    tracerShape: 'line', // 'line', 'points', 'both'
+    showGizmo: true,
+    simSpeed: 1.0
+};
 
 export function createDroneState(id: string, name: string, x: number = 0, y: number = 0, z: number = 0): DroneState {
     const drone: DroneState = {

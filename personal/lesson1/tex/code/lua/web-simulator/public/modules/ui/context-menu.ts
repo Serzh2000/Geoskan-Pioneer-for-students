@@ -95,7 +95,6 @@ export function initContextMenu() {
         const run = (e: Event) => {
             e.preventDefault();
             e.stopPropagation();
-            log(`[3DDBG] context-menu action "${label}"`, 'info');
             hide();
             action();
         };
@@ -111,7 +110,7 @@ export function initContextMenu() {
         menu.innerHTML = '';
         menu.appendChild(header);
         addButton('Переместить', '📍', () => callbacks.onTransform('translate'));
-        addButton('Повернуть', '🔄', () => callbacks.onTransform('rotate'));
+        addButton('Наклонить', '🔄', () => callbacks.onTransform('rotate'));
         addButton('Масштаб', '📏', () => callbacks.onTransform('scale'));
         addButton('Дублировать', '📋', () => callbacks.onDuplicate());
         if (callbacks.onResetOrigin) {
@@ -122,12 +121,10 @@ export function initContextMenu() {
     };
 
     const hide = () => {
-        if (menu.classList.contains('visible')) log('[3DDBG] context-menu hide', 'info');
         menu.classList.remove('visible');
     };
 
     const show = (x: number, y: number) => {
-        log(`[3DDBG] context-menu show x=${x} y=${y}`, 'info');
         renderButtons();
         menu.style.left = `${Math.max(0, x)}px`;
         menu.style.top = `${Math.max(0, y)}px`;
@@ -150,7 +147,6 @@ export function initContextMenu() {
 
     window.showContextMenu = (x: number, y: number, onTransform: (mode: string) => void, onDelete: () => void, onDuplicate: () => void, onResetOrigin?: () => void) => {
         callbacks = { onTransform, onDelete, onDuplicate, onResetOrigin };
-        log('[3DDBG] context-menu callbacks обновлены', 'info');
         show(x, y);
     };
 

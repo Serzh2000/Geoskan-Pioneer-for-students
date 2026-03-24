@@ -8,6 +8,13 @@ import { init3D, updateDrone3D, is3DActive, addObject, deleteSelectedObject, lis
 import { updatePhysics } from './modules/physics.js';
 import { runLuaScript, stopLuaScript, triggerLuaCallback } from './modules/lua/index.js';
 import { setLocalFrameOrigin } from './modules/lua/autopilot.js';
+/**
+ * Главный входной файл (Entry Point) клиентской части веб-симулятора.
+ * Инициализирует все подсистемы: 3D-сцену, пользовательский интерфейс, 
+ * редактор кода (Monaco Editor) и физический движок. 
+ * Управляет главным циклом обновления (requestAnimationFrame), 
+ * запуском/остановкой Lua-скриптов и связью между UI и логикой симуляции.
+ */
 import { initEditor, getEditorValue, setEditorValue, layoutEditor } from './modules/editor.js';
 import { initUI } from './modules/ui/index.js';
 import { log } from './modules/ui/logger.js';
@@ -18,6 +25,8 @@ import { updateStats } from './modules/ui/stats.js';
 (window as any).fengari = fengari;
 
 // Global Loop
+import { simSettings } from './modules/state.js';
+
 let animationFrameId: number;
 let lastTime = 0;
 
@@ -163,6 +172,8 @@ function animate(time: number) {
     let dt = (time - lastTime) / 1000;
     if (dt > 0.1) dt = 0.1; // Cap dt
     lastTime = time;
+
+    dt *= simSettings.simSpeed;
 
     updatePhysics(dt);
 
