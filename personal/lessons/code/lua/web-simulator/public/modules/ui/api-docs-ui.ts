@@ -5,18 +5,28 @@
  * и встраивает во вкладку "Справочник API" в интерфейсе.
  */
 import { apiDocs } from '../api-docs.js';
+import { pythonApiDocs } from '../api-docs.js';
 
-export function renderApiDocs() {
+export function renderApiDocs(language: 'lua' | 'python' = 'lua') {
     const container = document.getElementById('api-docs');
     if (!container) return;
+
+    const docs = language === 'python' ? pythonApiDocs : apiDocs;
 
     let html = '';
     
     // Group APIs by prefix
     const groups: Record<string, any[]> = {};
-    for (const [name, doc] of Object.entries(apiDocs)) {
+    for (const [name, doc] of Object.entries(docs)) {
         const prefix = name.includes('.') ? name.split('.')[0] : (name.startsWith('Ev.') ? 'Events' : 'Globals');
-        const groupName = name.startsWith('Ev.') ? 'События (Ev.*)' : (prefix === 'Globals' ? 'Глобальные функции' : `Объект ${prefix}`);
+        let groupName = '';
+        if (language === 'lua') {
+            groupName = name.startsWith('Ev.')
+                ? 'События (Ev.*)'
+                : (prefix === 'Globals' ? 'Глобальные функции' : `Объект ${prefix}`);
+        } else {
+            groupName = prefix === 'Pioneer' ? 'Класс Pioneer' : (prefix === 'Camera' ? 'Класс Camera' : `Объект ${prefix}`);
+        }
         
         if (!groups[groupName]) groups[groupName] = [];
         groups[groupName].push({ name, ...doc });

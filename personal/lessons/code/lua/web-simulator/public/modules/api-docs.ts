@@ -293,6 +293,166 @@ export const apiDocs: Record<string, any> = {
     'Ev.ENGINE_FAIL': { desc: 'Отказ двигателя', syntax: 'Ev.ENGINE_FAIL', params: '-', returns: 'число', example: 'if event == Ev.ENGINE_FAIL then ...' },
 };
 
+// Минимальный набор Pioneer SDK API для режима Python.
+// Этот словарь используется для подсветки/автодополнения/hover и справочника API.
+export const pythonApiDocs: Record<string, any> = {
+    'Pioneer.arm': {
+        desc: 'Запуск моторов квадрокоптера.',
+        syntax: 'pioneer.arm() -> bool',
+        params: 'none',
+        returns: 'bool',
+        example: 'pioneer.arm()',
+        kind: 'Method',
+        insertText: 'arm()'
+    },
+    'Pioneer.disarm': {
+        desc: 'Отключение моторов квадрокоптера.',
+        syntax: 'pioneer.disarm() -> bool',
+        params: 'none',
+        returns: 'bool',
+        example: 'pioneer.disarm()',
+        kind: 'Method',
+        insertText: 'disarm()'
+    },
+    'Pioneer.takeoff': {
+        desc: 'Команда взлёта на высоту takeoffAlt (параметр автопилота).',
+        syntax: 'pioneer.takeoff() -> bool',
+        params: 'none',
+        returns: 'bool',
+        example: 'pioneer.takeoff()',
+        kind: 'Method',
+        insertText: 'takeoff()'
+    },
+    'Pioneer.land': {
+        desc: 'Команда посадки.',
+        syntax: 'pioneer.land() -> bool',
+        params: 'none',
+        returns: 'bool',
+        example: 'pioneer.land()',
+        kind: 'Method',
+        insertText: 'land()'
+    },
+    'Pioneer.close_connection': {
+        desc: 'Закрыть MAVLink соединение (в симуляторе может быть заглушкой).',
+        syntax: 'pioneer.close_connection()',
+        params: 'none',
+        returns: 'nil',
+        example: 'pioneer.close_connection()',
+        kind: 'Method',
+        insertText: 'close_connection()'
+    },
+    'Pioneer.go_to_local_point': {
+        desc: 'Полёт в точку в локальной системе координат (метры).',
+        syntax: 'pioneer.go_to_local_point(x=None, y=None, z=None, yaw=None) -> bool',
+        params: 'x,y,z (м), yaw (радианы, опционально)',
+        returns: 'bool',
+        example: 'pioneer.go_to_local_point(x=1, y=1, z=1, yaw=0)',
+        kind: 'Method',
+        insertText: 'go_to_local_point(x=${1:x}, y=${2:y}, z=${3:z}, yaw=${4:yaw})'
+    },
+    'Pioneer.go_to_local_point_body_fixed': {
+        desc: 'Полёт в точку в системе координат дрона (body-fixed).',
+        syntax: 'pioneer.go_to_local_point_body_fixed(x, y, z, yaw) -> bool',
+        params: 'x,y,z (м), yaw (радианы)',
+        returns: 'bool',
+        example: 'pioneer.go_to_local_point_body_fixed(x=0, y=0, z=1, yaw=0)',
+        kind: 'Method',
+        insertText: 'go_to_local_point_body_fixed(x=${1:x}, y=${2:y}, z=${3:z}, yaw=${4:yaw})'
+    },
+    'Pioneer.point_reached': {
+        desc: 'Латч-флаг достижения новой точки (сбрасывается после вызова).',
+        syntax: 'pioneer.point_reached() -> bool',
+        params: 'none',
+        returns: 'bool',
+        example: 'if pioneer.point_reached():\n    print("reached")',
+        kind: 'Method',
+        insertText: 'point_reached()'
+    },
+    'Pioneer.set_manual_speed': {
+        desc: 'Полёт с заданной скоростью. Команду нужно отправлять постоянно.',
+        syntax: 'pioneer.set_manual_speed(vx, vy, vz, yaw_rate) -> bool',
+        params: 'vx,vy,vz (м/с), yaw_rate (рад/с)',
+        returns: 'bool',
+        example: 'pioneer.set_manual_speed(vx=0, vy=1, vz=0, yaw_rate=0)',
+        kind: 'Method',
+        insertText: 'set_manual_speed(vx=${1:vx}, vy=${2:vy}, vz=${3:vz}, yaw_rate=${4:yaw_rate})'
+    },
+    'Pioneer.get_local_position_lps': {
+        desc: 'Текущие координаты в локальной системе (LPS).',
+        syntax: 'pioneer.get_local_position_lps(get_last_received=True) -> list|None',
+        params: 'get_last_received (bool)',
+        returns: '[x, y, z] или None',
+        example: 'pos = pioneer.get_local_position_lps()',
+        kind: 'Method',
+        insertText: 'get_local_position_lps(get_last_received=${1:True})'
+    },
+    'Pioneer.get_dist_sensor_data': {
+        desc: 'Данные дальномера (TOF/Rangefinder).',
+        syntax: 'pioneer.get_dist_sensor_data(get_last_received=True) -> float|None',
+        params: 'get_last_received (bool)',
+        returns: 'meters или None',
+        example: 'd = pioneer.get_dist_sensor_data()',
+        kind: 'Method',
+        insertText: 'get_dist_sensor_data(get_last_received=${1:True})'
+    },
+    'Pioneer.get_battery_status': {
+        desc: 'Статус батареи (напряжение).',
+        syntax: 'pioneer.get_battery_status(get_last_received=True) -> float|None',
+        params: 'get_last_received (bool)',
+        returns: 'voltage или None',
+        example: 'v = pioneer.get_battery_status()',
+        kind: 'Method',
+        insertText: 'get_battery_status(get_last_received=${1:True})'
+    },
+    'Pioneer.get_autopilot_state': {
+        desc: 'Текущее состояние автопилота.',
+        syntax: 'pioneer.get_autopilot_state() -> str',
+        params: 'none',
+        returns: 'str',
+        example: 'print(pioneer.get_autopilot_state())',
+        kind: 'Method',
+        insertText: 'get_autopilot_state()'
+    },
+    'Pioneer.led_control': {
+        desc: 'Управление RGB светодиодами.',
+        syntax: 'pioneer.led_control(r=0, g=0, b=0) -> bool',
+        params: 'r,g,b (0..255)',
+        returns: 'bool',
+        example: 'pioneer.led_control(r=255, g=0, b=0)',
+        kind: 'Method',
+        insertText: 'led_control(r=${1:r}, g=${2:g}, b=${3:b})'
+    },
+    'Pioneer.send_rc_channels': {
+        desc: 'Имитация приёма значений по каналам пульта.',
+        syntax: 'pioneer.send_rc_channels(channel_1..channel_8) -> bool',
+        params: 'channel_1..channel_8 (int)',
+        returns: 'bool',
+        example: 'pioneer.send_rc_channels(channel_1=1500, channel_2=1500, channel_3=1500, channel_4=1500)',
+        kind: 'Method',
+        insertText: 'send_rc_channels(channel_1=${1:1500}, channel_2=${2:1500}, channel_3=${3:1500}, channel_4=${4:1500})'
+    },
+
+    // Camera
+    'Camera.get_frame': {
+        desc: 'Получить кадр (как массив байтов).',
+        syntax: 'camera.get_frame() -> bytes|None',
+        params: 'none',
+        returns: 'bytes или None',
+        example: 'frame = camera.get_frame()',
+        kind: 'Method',
+        insertText: 'get_frame()'
+    },
+    'Camera.get_cv_frame': {
+        desc: 'Получить предварительно декодированный OpenCV-кадр.',
+        syntax: 'camera.get_cv_frame() -> frame',
+        params: 'none',
+        returns: 'frame',
+        example: 'img = camera.get_cv_frame()',
+        kind: 'Method',
+        insertText: 'get_cv_frame()'
+    }
+};
+
 export const evConstants = [
     'MCE_PREFLIGHT', 
     'MCE_TAKEOFF', 

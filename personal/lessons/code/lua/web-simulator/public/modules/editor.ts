@@ -8,8 +8,11 @@
 import { setupSyntaxHighlighting } from './editor/syntax.js';
 import { setupHoverProvider } from './editor/hover.js';
 import { setupCompletionProvider } from './editor/completion.js';
+import { ScriptLanguage } from './state.js';
 
 let editorInstance: any;
+let pendingValue: string | null = null;
+let pendingLanguage: ScriptLanguage | null = null;
 
 declare let require: any;
 declare let monaco: any;
@@ -49,9 +52,15 @@ function createEditor() {
     setupHoverProvider(monaco);
     setupCompletionProvider(monaco);
 
+    const initialLanguage: ScriptLanguage = pendingLanguage || 'lua';
+    const initialMonacoLang = initialLanguage === 'lua' ? 'lua' : 'python';
+    const initialValue =
+        pendingValue ||
+        '-- Pioneer Lua Script\n\nap.push(Ev.MCE_TAKEOFF)\n\nTimer.callLater(3, function()\n    ap.push(Ev.MCE_LANDING)\nend)';
+
     editorInstance = monaco.editor.create(document.getElementById('editor'), {
-        value: '-- Pioneer Lua Script\n\nap.push(Ev.MCE_TAKEOFF)\n\nTimer.callLater(3, function()\n    ap.push(Ev.MCE_LANDING)\nend)',
-        language: 'lua',
+        value: initialValue,
+        language: initialMonacoLang,
         theme: 'pioneer-dark',
         automaticLayout: true,
         fontSize: 14,
@@ -63,6 +72,9 @@ function createEditor() {
             snippetsPreventQuickSuggestions: false
         }
     });
+
+    pendingValue = null;
+    pendingLanguage = null;
 }
 
 export function getEditorValue(): string {
@@ -73,6 +85,19 @@ export function getEditorValue(): string {
 export function setEditorValue(val: string) {
     if ((window as any).setEditorValueFallback) return (window as any).setEditorValueFallback(val);
     if (editorInstance) editorInstance.setValue(val);
+    else pendingValue = val;
+}
+
+export function setEditorLanguage(language: ScriptLanguage) {
+    if ((window as any).getEditorValueFallback) return;
+    if (!editorInstance || !monaco) {
+        pendingLanguage = language;
+        return;
+    }
+    const model = editorInstance.getModel ? editorInstance.getModel() : null;
+    if (!model) return;
+    const langId = language === 'lua' ? 'lua' : 'python';
+    monaco.editor.setModelLanguage(model, langId);
 }
 
 export function layoutEditor() {

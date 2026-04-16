@@ -1,4 +1,4 @@
-import { apiDocs } from '../api-docs.js';
+import { apiDocs, pythonApiDocs } from '../api-docs.js';
 
 export function setupHoverProvider(monaco: any) {
     monaco.languages.registerHoverProvider('lua', {
@@ -23,6 +23,44 @@ export function setupHoverProvider(monaco: any) {
                     ]
                 };
             }
+        }
+    });
+
+    // Python hover: ищем подсказку по последнему сегменту после точки.
+    monaco.languages.registerHoverProvider('python', {
+        provideHover: function(model: any, position: any) {
+            const line = model.getLineContent(position.lineNumber);
+            const fullWord = getFullWordAtPosition(line, position.column - 1);
+            if (!fullWord) return;
+
+            const parts = fullWord.split('.');
+            const last = parts[parts.length - 1];
+            if (!last) return;
+
+            // Map methodName -> doc (делаем на месте, чтобы не усложнять и не хранить состояние)
+            let found: any = undefined;
+            for (const [key, doc] of Object.entries(pythonApiDocs as any)) {
+                if (!key.includes('.')) continue;
+                const method = key.split('.').slice(-1)[0];
+                if (method === last) {
+                    found = doc;
+                    break;
+                }
+            }
+
+            if (!found) return;
+
+            return {
+                range: new monaco.Range(position.lineNumber, position.column, position.lineNumber, position.column),
+                contents: [
+                    { value: `**Python SDK: ${fullWord}**` },
+                    { value: `_${found.desc || ''}_` },
+                    { value: `\`\`\`python\n${found.syntax || ''}\n\`\`\`` },
+                    { value: `**Параметры:** ${found.params || ''}` },
+                    { value: `**Возвращает:** ${found.returns || ''}` },
+                    ...(found.example ? [{ value: `**Пример:**\n\`\`\`python\n${found.example}\n\`\`\`` }] : [])
+                ]
+            };
         }
     });
 }

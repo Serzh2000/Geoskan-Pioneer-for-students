@@ -16,10 +16,14 @@
         <div class="controls">
             <select id="file-selector"><option>Загрузка файлов...</option></select>
             <button onclick="document.getElementById('file-input').click()">ОТКРЫТЬ ФАЙЛ</button>
-            <input type="file" id="file-input" style="display:none" accept=".lua">
+            <input type="file" id="file-input" style="display:none" accept=".lua,.py">
             <button id="run-btn">ЗАПУСТИТЬ</button>
             <button id="stop-btn">СТОП</button>
             <button id="restart-btn">СБРОС</button>
+            <select id="script-language-select" style="margin-left: 8px;">
+                <option value="lua">Lua</option>
+                <option value="python">Python</option>
+            </select>
         </div>
     </div>
 

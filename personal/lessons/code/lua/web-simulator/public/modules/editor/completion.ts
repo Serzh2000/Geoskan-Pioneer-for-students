@@ -1,4 +1,4 @@
-import { apiDocs, evConstants } from '../api-docs.js';
+import { apiDocs, evConstants, pythonApiDocs } from '../api-docs.js';
 
 export function setupCompletionProvider(monaco: any) {
     monaco.languages.registerCompletionItemProvider('lua', {
@@ -69,6 +69,70 @@ export function setupCompletionProvider(monaco: any) {
                         range: range
                     });
                 });
+            }
+
+            return { suggestions: suggestions };
+        },
+        triggerCharacters: ['.']
+    });
+
+    // Python completion: подсказываем методы Pioneer/Camera при вводе после точки.
+    monaco.languages.registerCompletionItemProvider('python', {
+        provideCompletionItems: function(model: any, position: any) {
+            const word = model.getWordUntilPosition(position);
+            const range = {
+                startLineNumber: position.lineNumber,
+                endLineNumber: position.lineNumber,
+                startColumn: word.startColumn,
+                endColumn: word.endColumn
+            };
+
+            const suggestions: any[] = [];
+            const lineContent = model.getLineContent(position.lineNumber);
+            const textBeforeCursor = lineContent.substring(0, position.column - 1);
+            const normalized = textBeforeCursor.trim();
+
+            const methodDocs = Object.entries(pythonApiDocs as Record<string, any>)
+                .filter(([key]) => key.includes('.'))
+                .map(([key, doc]: [string, any]) => {
+                    const method = key.split('.').slice(-1)[0];
+                    return { method, key, doc };
+                });
+
+            // Если курсор после точки (пример: "pioneer_mini.")
+            if (normalized.endsWith('.')) {
+                methodDocs.forEach(({ method, doc }) => {
+                    suggestions.push({
+                        label: method,
+                        kind: (monaco.languages.CompletionItemKind as any)[doc.kind] || monaco.languages.CompletionItemKind.Method,
+                        insertText: doc.insertText || method,
+                        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                        documentation: { value: doc.desc || '' },
+                        range: range
+                    });
+                });
+            } else {
+                // Предложим ключевые классы.
+                ['Pioneer', 'Camera', 'VideoStream', 'time'].forEach((cls) => {
+                    suggestions.push({
+                        label: cls,
+                        kind: monaco.languages.CompletionItemKind.Module,
+                        insertText: cls,
+                        documentation: 'Pioneer SDK',
+                        range: range
+                    });
+                });
+
+                // И чуть-чуть подсказок для конструктора/часто используемых функций.
+                if (normalized.length === 0) {
+                    suggestions.push({
+                        label: 'pioneer',
+                        kind: monaco.languages.CompletionItemKind.Variable,
+                        insertText: 'pioneer',
+                        documentation: 'Instance of Pioneer',
+                        range: range
+                    });
+                }
             }
 
             return { suggestions: suggestions };

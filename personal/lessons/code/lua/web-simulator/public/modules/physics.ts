@@ -5,7 +5,7 @@
  * расчет скоростей, координат, ориентации (кватернионов),
  * а также обработку столкновений с объектами сцены (препятствиями).
  */
-import { drones, pathPoints, DroneState } from './state.js';
+import { drones, pathPoints, DroneState, MAX_PATH_POINTS } from './state.js';
 import { triggerLuaCallback, updateTimers } from './lua/index.js';
 import { getObstacles } from './drone.js';
 import { log } from './ui/logger.js';
@@ -27,6 +27,15 @@ export function updatePhysics(dt: number) {
                 triggerLuaCallback(id, 11); // Ev.ENGINES_STARTED
             }
             if (cmd === 2) { // Ev.MCE_TAKEOFF
+                // Взлёт должен быть разрешен только после арминга (ВЗВЕДЕН).
+                // Иначе скрипты могут "притянуть" дрон в полёт/к точке без arming.
+                if (simState.status !== 'ВЗВЕДЕН') {
+                    log(
+                        `[Physics] TAKEOFF игнорирован: status=${simState.status} (нужен ВЗВЕДЕН)`,
+                        'warn'
+                    );
+                    return;
+                }
                 // Устанавливаем высоту взлета 1.0м ТОЛЬКО если целевая высота не была задана выше
                 if (simState.target_pos.z < 1.0) {
                     simState.target_pos.z = 1.0;
@@ -42,23 +51,42 @@ export function updatePhysics(dt: number) {
                 simState.target_pos.x = simState.pos.x;
                 simState.target_pos.y = simState.pos.y;
                 simState.status = 'ПОСАДКА';
+                simState.pendingLocalPoint = false;
+                simState.pointReachedFlag = false;
             }
             if (cmd === 4) simState.status = 'ВЗВЕДЕН'; // Ev.ENGINES_ARM
-            if (cmd === 5) simState.status = 'ГОТОВ';   // Ev.ENGINES_DISARM
+            if (cmd === 5) {
+                simState.status = 'ГОТОВ';   // Ev.ENGINES_DISARM
+                simState.pendingLocalPoint = false;
+                simState.pointReachedFlag = false;
+            }
         }
 
         // Physics Update Logic
-        const isFlying = (simState.status !== 'ГОТОВ' && simState.status !== 'ПРИЗЕМЛЕН' && simState.status !== 'ВЗВЕДЕН' && simState.status !== 'IDLE');
+        // Дрона нельзя считать "летящим", пока он в статусах подготовки/запуска:
+        // иначе команды вроде goToLocalPoint смогут двигать дрон на земле.
+        const isFlying = (
+            simState.status !== 'ГОТОВ' &&
+            simState.status !== 'ПРИЗЕМЛЕН' &&
+            simState.status !== 'ВЗВЕДЕН' &&
+            simState.status !== 'IDLE' &&
+            simState.status !== 'ЗАПУСК' &&
+            simState.status !== 'ОСТАНОВЛЕН' &&
+            simState.status !== 'ОШИБКА' &&
+            simState.status !== 'CRASHED'
+        );
         
         if (simState.running) {
             simState.current_time += dt;
-            
-            // Track path
-            if (Math.random() < 0.1) { // Add point every 10 frames approx
-                if (!pathPoints[id]) pathPoints[id] = [];
-                pathPoints[id].push({ ...simState.pos });
-                if (pathPoints[id].length > 2000) pathPoints[id].shift();
-            }
+        }
+
+        // Track path (tracer) должен работать и при посадке в Python,
+        // даже если скрипт уже завершился и `running=false`.
+        // Поэтому привязываем запись траектории к факту полёта/движения, а не к runtime-флагу.
+        if (isFlying && Math.random() < 0.1) { // Add point every 10 frames approx
+            if (!pathPoints[id]) pathPoints[id] = [];
+            pathPoints[id].push({ ...simState.pos });
+            if (pathPoints[id].length > MAX_PATH_POINTS) pathPoints[id].shift();
         }
 
         if (isFlying) {
@@ -154,6 +182,8 @@ function checkEvents(simState: DroneState) {
 
         if (isClose && isNotJustTakingOff && !isGround) {
             simState.status = 'CRASHED';
+            simState.pendingLocalPoint = false;
+            simState.pointReachedFlag = false;
             triggerLuaCallback(id, 16); // Ev.SHOCK
             log(`[Physics] Дрон ${id} столкнулся с препятствием!`, 'warn');
             return;
@@ -164,6 +194,12 @@ function checkEvents(simState: DroneState) {
     if (simState.status === 'ВЗЛЕТ' && Math.abs(simState.pos.z - simState.target_pos.z) < 0.1) {
         simState.status = 'ПОЛЕТ';
         triggerLuaCallback(id, 6); // Ev.TAKEOFF_COMPLETE
+
+        // Если во время взлёта был задан gotoLocalPoint — переводим в режим полёта к точке.
+        if (simState.pendingLocalPoint) {
+            simState.pendingLocalPoint = false;
+            simState.status = 'ПОЛЕТ_К_ТОЧКЕ';
+        }
     }
     
     // Landing Complete
@@ -182,6 +218,7 @@ function checkEvents(simState: DroneState) {
         if (dist < 0.15) {
             simState.status = 'ПОЛЕТ';
             triggerLuaCallback(id, 10); // Ev.POINT_REACHED
+            simState.pointReachedFlag = true;
         }
     }
 }

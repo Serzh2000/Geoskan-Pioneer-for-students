@@ -15,8 +15,10 @@ const isDist = __dirname.endsWith('dist');
 const rootDir = isDist ? path.resolve(__dirname, '..') : __dirname;
 
 const app = express();
-// Default to 1234 so it matches your reverse proxy
-const PORT = process.env.PORT || 1234; 
+// В dev-режиме Express отвечает только за API.
+// UI отдаёт Vite, а корень (`GET /`) редиректим на него.
+const VITE_PORT = 3001;
+const PORT = process.env.PORT || (isDist ? 1234 : 3000);
 // Fix: Resolve to the correct absolute path for examples
 // web-simulator is in personal\lesson1\tex\code\lua\web-simulator
 // examples are in personal\lessons\code\lua\examples
@@ -77,6 +79,12 @@ if (isDist) {
 app.get(/^\/(?!api).*/, (req: express.Request, res: express.Response) => {
     res.sendFile(path.join(publicPath, 'index.html'));
 });
+} else {
+    // Dev: Vite отдаёт UI, поэтому чтобы не получать "Cannot GET /"
+    // редиректим корень на Vite.
+    app.get('/', (req: express.Request, res: express.Response) => {
+        res.redirect(302, `http://localhost:${VITE_PORT}/`);
+    });
 }
 
 app.listen(PORT, () => {

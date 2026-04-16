@@ -3,11 +3,12 @@
 /// <reference path="./shims.d.ts" />
 import * as THREE from 'three';
 import * as fengari from 'fengari-web';
-import { simState, resetState, resetRuntimeStatePreservePose, drones, currentDroneId } from './modules/state.js';
+import { simState, resetState, resetRuntimeStatePreservePose, drones, currentDroneId, currentScriptLanguage, setCurrentScriptLanguage, ScriptLanguage } from './modules/state.js';
 import { init3D, updateDrone3D, is3DActive, addObject, deleteSelectedObject, listSceneObjects, selectSceneObjectById, deleteSceneObjectById, setSceneObjectTransformMode, resetDroneToOrigin, getSelectedSceneObjectId } from './modules/drone.js';
 import { updatePhysics } from './modules/physics.js';
 import { runLuaScript, stopLuaScript, triggerLuaCallback } from './modules/lua/index.js';
 import { setLocalFrameOrigin } from './modules/lua/autopilot.js';
+import { runPythonScript, stopPythonScript } from './modules/python/index.js';
 /**
  * Главный входной файл (Entry Point) клиентской части веб-симулятора.
  * Инициализирует все подсистемы: 3D-сцену, пользовательский интерфейс, 
@@ -15,10 +16,11 @@ import { setLocalFrameOrigin } from './modules/lua/autopilot.js';
  * Управляет главным циклом обновления (requestAnimationFrame), 
  * запуском/остановкой Lua-скриптов и связью между UI и логикой симуляции.
  */
-import { initEditor, getEditorValue, setEditorValue, layoutEditor } from './modules/editor.js';
+import { initEditor, getEditorValue, setEditorValue, layoutEditor, setEditorLanguage } from './modules/editor.js';
 import { initUI } from './modules/ui/index.js';
 import { log } from './modules/ui/logger.js';
 import { updateStats } from './modules/ui/stats.js';
+import { renderApiDocs } from './modules/ui/api-docs-ui.js';
 
 // Global assignments for legacy/Lua support
 (window as any).THREE = THREE;
@@ -70,6 +72,33 @@ function init() {
     // Initialize Editor
     initEditor();
 
+    // Initialize script language selector (Lua/Python)
+    const langSelect = document.getElementById('script-language-select') as HTMLSelectElement | null;
+    if (langSelect) {
+        // Ensure selector reflects current state
+        langSelect.value = currentScriptLanguage;
+        // Load appropriate buffer into editor
+        const drone = drones[currentDroneId];
+        if (drone) {
+            setEditorLanguage(currentScriptLanguage);
+            const initialCode = currentScriptLanguage === 'lua' ? drone.script : drone.pythonScript;
+            setEditorValue(initialCode);
+            renderApiDocs(currentScriptLanguage);
+        }
+
+        langSelect.addEventListener('change', () => {
+            const lang = langSelect.value as ScriptLanguage;
+            setCurrentScriptLanguage(lang);
+            const selectedDrone = drones[currentDroneId];
+            if (!selectedDrone) return;
+            setEditorLanguage(lang);
+            const code = lang === 'lua' ? selectedDrone.script : selectedDrone.pythonScript;
+            setEditorValue(code);
+            renderApiDocs(lang);
+            log(`Язык скрипта: ${lang.toUpperCase()}`, 'info');
+        });
+    }
+
     // Initialize 3D Scene
     const container = document.getElementById('canvas-container');
     if (container) init3D(container);
@@ -88,9 +117,52 @@ function startSimulation() {
     if (drones[currentDroneId]) {
         const editorCode = getEditorValue();
         log(`[DEBUG] getEditorValue() returned length: ${editorCode.length}`, 'info');
-        drones[currentDroneId].script = editorCode;
+        if (currentScriptLanguage === 'lua') drones[currentDroneId].script = editorCode;
+        else drones[currentDroneId].pythonScript = editorCode;
     } else {
         log(`[DEBUG] drones[currentDroneId] is undefined!`, 'error');
+    }
+
+    // Пока Python runtime не реализован: запускаем только Lua.
+    if (currentScriptLanguage === 'python') {
+        const id = currentDroneId;
+        const drone = drones[id];
+        if (!drone) {
+            log(`Python: drone '${id}' не найден`, 'error');
+            return;
+        }
+
+        const code = drone.pythonScript;
+        if (!code || !code.trim()) {
+            log('Python: пустой скрипт. Нечего запускать.', 'warn');
+            return;
+        }
+
+        // Остановим любые активные Lua/py run для этого дрона.
+        stopLuaScript(id);
+        stopPythonScript(id);
+
+        resetRuntimeStatePreservePose(id);
+        drone.running = true;
+        drone.status = 'ЗАПУСК';
+
+        try {
+            runPythonScript(id, code).catch((e: any) => {
+                drone.running = false;
+                drone.status = 'ОШИБКА';
+                const errMsg = e instanceof Error ? e.message : String(e);
+                log(`Ошибка запуска Python скрипта ${drone.name}: ${errMsg}`, 'error');
+            });
+            anyStarted = true;
+            log(`Python скрипт запущен для ${drone.name}`, 'success');
+        } catch (e: any) {
+            drone.running = false;
+            drone.status = 'ОШИБКА';
+            const errMsg = e instanceof Error ? e.message : String(e);
+            log(`Ошибка запуска Python скрипта ${drone.name}: ${errMsg}`, 'error');
+        }
+
+        return;
     }
 
     for (const id in drones) {
@@ -139,6 +211,7 @@ function stopSimulation() {
         const drone = drones[id];
         if (drone.running) {
             stopLuaScript(id);
+            stopPythonScript(id);
             drone.running = false;
             drone.status = 'ОСТАНОВЛЕН';
             log(`Остановлен: ${drone.name}`, 'warn');
@@ -150,7 +223,19 @@ function resetSimulation() {
     stopSimulation();
     for (const id in drones) {
         resetState(id);
+
+        // СБРОС должен мгновенно вернуть дрон в начало координат (0,0,0)
+        // resetState() сбрасывает "управляющую/физическую" часть, но не позу.
+        const drone = drones[id];
+        drone.pos = { x: 0, y: 0, z: 0 };
+        drone.orientation = { roll: 0, pitch: 0, yaw: 0 };
+        drone.target_alt = 0;
+        drone.target_pos = { x: 0, y: 0, z: 0 };
+        drone.target_yaw = 0;
     }
+
+    // Принудительно рендерим, чтобы изменения в координатах были видны сразу.
+    if (is3DActive) updateDrone3D(0);
     log('Симуляция сброшена', 'info');
 }
 

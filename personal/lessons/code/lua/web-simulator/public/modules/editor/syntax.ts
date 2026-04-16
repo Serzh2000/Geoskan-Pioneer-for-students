@@ -32,6 +32,34 @@ export function setupSyntaxHighlighting(monaco: any) {
         }
     });
 
+    monaco.languages.setMonarchTokensProvider('python', {
+        tokenizer: {
+            root: [
+                // Python keywords
+                [/\b(from|import|as|class|def|return|if|elif|else|while|for|try|except|finally|with|yield|lambda|pass|break|continue|global|nonlocal|raise|True|False|None|and|or|not|in|is)\b/, "keyword"],
+                
+                // Pioneer SDK classes
+                [/\b(Pioneer|Camera|VideoStream)\b/, "keyword.class"],
+
+                // Common Pioneer SDK methods (minimal subset)
+                [/\b(arm|disarm|takeoff|land|close_connection|go_to_local_point|go_to_local_point_body_fixed|point_reached|set_manual_speed|set_manual_speed_body_fixed|get_local_position_lps|get_dist_sensor_data|get_battery_status|get_autopilot_state|led_control|send_rc_channels|get_frame|get_cv_frame)\b/, "function.call"],
+
+                // Python comments
+                [/#.*$/, 'comment'],
+                
+                // Strings (single/double quotes + simple triple quotes)
+                [/""".*?"""/, 'string'],
+                [/'''[\s\S]*?'''/, 'string'],
+                [/"([^"\\]|\\.)*"/, 'string'],
+                [/'([^'\\]|\\.)*'/, 'string'],
+                
+                // Numbers
+                [/\d*\.\d+([eE][-+]?\d+)?/, "number.float"],
+                [/\d+([eE][-+]?\d+)?/, "number"]
+            ]
+        }
+    });
+
     monaco.editor.defineTheme('pioneer-dark', {
         base: 'vs-dark',
         inherit: true,

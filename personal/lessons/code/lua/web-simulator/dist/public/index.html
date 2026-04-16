@@ -8,7 +8,7 @@
     <script src="https://cdn.jsdelivr.net/npm/fengari-web@0.1.4/dist/fengari-web.js"></script>
     <!-- Monaco Editor from CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs/loader.js"></script>
-  <script type="module" crossorigin src="/assets/index-DxnbokQz.js"></script>
+  <script type="module" crossorigin src="/assets/index-DfLOiQZc.js"></script>
   <link rel="stylesheet" crossorigin href="/assets/index-B8PC_dbm.css">
 </head>
 <body>
@@ -17,10 +17,14 @@
         <div class="controls">
             <select id="file-selector"><option>Загрузка файлов...</option></select>
             <button onclick="document.getElementById('file-input').click()">ОТКРЫТЬ ФАЙЛ</button>
-            <input type="file" id="file-input" style="display:none" accept=".lua">
+            <input type="file" id="file-input" style="display:none" accept=".lua,.py">
             <button id="run-btn">ЗАПУСТИТЬ</button>
             <button id="stop-btn">СТОП</button>
             <button id="restart-btn">СБРОС</button>
+            <select id="script-language-select" style="margin-left: 8px;">
+                <option value="lua">Lua</option>
+                <option value="python">Python</option>
+            </select>
         </div>
     </div>
 

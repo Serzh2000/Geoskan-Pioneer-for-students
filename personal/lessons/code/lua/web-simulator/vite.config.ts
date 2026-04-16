@@ -9,7 +9,7 @@ export default defineConfig({
     target: 'es2020'
   },
   server: {
-    port: 1234,
+    port: 3001,
     proxy: {
       '/api': {
         target: 'http://localhost:3000',

@@ -1,4 +1,4 @@
-import { getDroneFromLua } from '../state.js';
+import { getDroneFromLua, isDroneArmed } from '../state.js';
 import { log } from '../ui/logger.js';
 import { pushCommand, triggerEvent, MCECommands, MCEEvents } from '../mce-events.js';
 
@@ -39,12 +39,42 @@ export const ap_goToLocalPoint = function(L: any) {
     const time = (window.fengari.lua.lua_gettop(L) >= 4) ? window.fengari.lua.lua_tonumber(L, 4) : 0;
     
     const simState = getDroneFromLua(L);
+
     simState.target_pos = {
         x: localFrameOrigin.x + x,
         y: localFrameOrigin.y + y,
         z: localFrameOrigin.z + z
     };
-    simState.status = 'ПОЛЕТ_К_ТОЧКЕ';
+
+    const hasTakenOff =
+        simState.status === 'ВЗЛЕТ' ||
+        simState.status === 'ПОЛЕТ';
+
+    // "Заармлен" на момент вызова может быть еще не выставлен (команды из Lua обрабатываются в physics на следующем кадре),
+    // поэтому учитываем также то, что релевантные команды уже стоят в очереди.
+    const armedNow = isDroneArmed(simState);
+    const takeoffQueued = simState.command_queue.includes(MCECommands.MCE_TAKEOFF);
+    const preflightQueued = simState.command_queue.includes(MCECommands.MCE_PREFLIGHT) || simState.command_queue.includes(MCECommands.ENGINES_ARM);
+
+    // Если дрон вообще не собирается лететь (нет арминга/взлёта ни в текущем статусе, ни в очереди) —
+    // запрещаем переводить его в режим полёта к точке.
+    if (!hasTakenOff && !armedNow && !takeoffQueued && !preflightQueued) {
+        log(
+            `[Lua AP] ap.goToLocalPoint blocked (armedNow=${armedNow}, takeoffQueued=${takeoffQueued}, preflightQueued=${preflightQueued})`,
+            'warn'
+        );
+        return 0;
+    }
+
+    if (hasTakenOff) {
+        simState.status = 'ПОЛЕТ_К_ТОЧКЕ';
+        simState.pendingLocalPoint = false;
+    } else {
+        // Не меняем статус, чтобы не "включить" полёт на земле.
+        // Когда физика завершит взлёт и переведёт статус в "ПОЛЕТ" — включим режим точки.
+        simState.pendingLocalPoint = true;
+    }
+
     log(`[Lua AP] ap.goToLocalPoint(${x.toFixed(2)}, ${y.toFixed(2)}, ${z.toFixed(2)}) -> глобально (${simState.target_pos.x.toFixed(2)}, ${simState.target_pos.y.toFixed(2)}, ${simState.target_pos.z.toFixed(2)})${time > 0 ? ' за ' + time + 'с' : ''}`, 'info');
     return 0;
 };
