@@ -1,9 +1,9 @@
 import * as THREE from 'three';
 
-export function createMotors(motorMat: THREE.Material, propMatCW: THREE.Material, propMatCCW: THREE.Material) {
+export function createMotors(motorMat: THREE.Material, hubMat: THREE.Material, propMatCW: THREE.Material, propMatCCW: THREE.Material) {
     const motorsGroup = new THREE.Group();
     
-    const motorGeom = new THREE.CylinderGeometry(0.025, 0.025, 0.03, 16);
+    const motorGeom = new THREE.CylinderGeometry(0.015, 0.015, 0.02, 16);
     const armLen = 0.16;
     const motorOffsets = [
         [armLen, -armLen],  // FR
@@ -21,9 +21,9 @@ export function createMotors(motorMat: THREE.Material, propMatCW: THREE.Material
         
         const propGroup = new THREE.Group();
         propGroup.name = `rotor_${i}`;
-        propGroup.position.set(offset[0], offset[1], 0.04);
+        propGroup.position.set(offset[0], offset[1], 0.035);
         
-        const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.005, 0.005, 0.01, 8), motorMat);
+        const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.015, 8), hubMat);
         hub.rotation.x = Math.PI / 2;
         propGroup.add(hub);
         

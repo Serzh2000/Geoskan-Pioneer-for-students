@@ -1,12 +1,50 @@
 import * as THREE from 'three';
 import { log } from '../ui/logger.js';
-import { transformControl, transformHelper, controls, droneMeshes, selectedObject, scene } from './scene-init.js';
+import { transformControl, transformHelper, controls, droneMeshes, selectedObject } from './scene-init.js';
 import { drones, currentDroneId, simState } from '../state.js';
-import { envGroup, addObjectToScene } from '../environment.js';
-import { handleDeselection, deselectObject } from './selection.js';
+import { envGroup, addObjectToScene, updateSceneObjectPoints, updateSceneObjectValue } from '../environment.js';
+import { MarkerMapOptions, SceneObjectOptions, ScenePathPoint } from '../environment/obstacles.js';
+import { handleDeselection } from './selection.js';
 import { handleSelection } from './input.js';
 
 export type TransformMode = 'translate' | 'rotate' | 'scale';
+
+function formatPoints(points: ScenePathPoint[]) {
+    return points.map((point) => `${point.x.toFixed(2)}, ${point.y.toFixed(2)}, ${point.z.toFixed(2)}`).join('\n');
+}
+
+function normalizePoints(points: unknown): ScenePathPoint[] {
+    if (!Array.isArray(points)) return [];
+    return points
+        .map((point: any) => ({
+            x: Number(point?.x),
+            y: Number(point?.y),
+            z: Number(point?.z ?? 0)
+        }))
+        .filter((point) => Number.isFinite(point.x) && Number.isFinite(point.y) && Number.isFinite(point.z));
+}
+
+function parsePointsText(pointsText: string) {
+    const points = pointsText
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .map((line) => {
+            const values = line
+                .split(/[;, ]+/)
+                .map((value) => value.trim())
+                .filter(Boolean)
+                .map(Number);
+            return {
+                x: values[0],
+                y: values[1],
+                z: Number.isFinite(values[2]) ? values[2] : 0
+            };
+        })
+        .filter((point) => Number.isFinite(point.x) && Number.isFinite(point.y));
+
+    return points;
+}
 
 export function getSceneTopLevelObjects() {
     const objects: THREE.Object3D[] = [];
@@ -43,6 +81,18 @@ export function listSceneObjects(): any[] {
         for (const id in droneMeshes) {
             if (obj === droneMeshes[id]) isDrone = true;
         }
+        const metaLines: string[] = [];
+        if (obj.userData?.value !== undefined) metaLines.push(`Значение: ${obj.userData.value}`);
+        if (obj.userData?.markerDictionaryLabel && !obj.userData?.isMarkerMap) {
+            metaLines.push(`Словарь: ${obj.userData.markerDictionaryLabel}`);
+        }
+        if (obj.userData?.floors !== undefined) metaLines.push(`Этажей: ${obj.userData.floors}`);
+        if (obj.userData?.featureKind === 'road') metaLines.push('Редактируемый маршрут: дорога');
+        if (obj.userData?.featureKind === 'rail') metaLines.push('Редактируемый маршрут: железная дорога');
+        if (obj.userData?.presetName) metaLines.push(`Пресет: ${obj.userData.presetName}`);
+        if (Array.isArray(obj.userData?.markerMapSummaryLines)) metaLines.push(...obj.userData.markerMapSummaryLines);
+
+        const points = normalizePoints(obj.userData?.points);
         return {
             id: obj.uuid,
             name: obj.name || (obj.userData?.type || obj.type),
@@ -53,7 +103,15 @@ export function listSceneObjects(): any[] {
             selected: obj.uuid === selectedId,
             position: { x: obj.position.x, y: obj.position.y, z: obj.position.z },
             rotation: { x: obj.rotation.x, y: obj.rotation.y, z: obj.rotation.z },
-            scale: { x: obj.scale.x, y: obj.scale.y, z: obj.scale.z }
+            scale: { x: obj.scale.x, y: obj.scale.y, z: obj.scale.z },
+            supportsValue: !!obj.userData?.supportsValue,
+            supportsMarkerDictionary: !!obj.userData?.supportsMarkerDictionary,
+            supportsPoints: !!obj.userData?.supportsPoints,
+            markerKind: obj.userData?.markerKind ? String(obj.userData.markerKind) : '',
+            markerDictionary: obj.userData?.markerDictionary ? String(obj.userData.markerDictionary) : '',
+            value: obj.userData?.value !== undefined ? String(obj.userData.value) : '',
+            pointsText: points.length ? formatPoints(points) : '',
+            metaLines
         };
     });
 }
@@ -159,10 +217,78 @@ export function duplicateObject() {
     }
 }
 
-export function addObject(type: string) {
-    const obj = addObjectToScene(type, (window as any).camera);
+export function addObject(
+    type: string,
+    options: { value?: string; markerDictionary?: string; pointsText?: string; floors?: number; markerMap?: MarkerMapOptions } = {}
+) {
+    const parsedPoints = options.pointsText ? parsePointsText(options.pointsText) : [];
+    const objectOptions: SceneObjectOptions = {
+        value: options.value,
+        markerDictionary: options.markerDictionary,
+        floors: options.floors,
+        points: parsedPoints.length >= 2 ? parsedPoints : undefined,
+        markerMap: options.markerMap
+    };
+    const obj = addObjectToScene(type, controls?.camera || null, objectOptions);
     if (obj) {
         handleDeselection();
         handleSelection(obj, window.innerWidth / 2, window.innerHeight / 2);
+        log(`Добавлен объект: ${obj.userData?.type || obj.name}`, 'success');
+    } else {
+        log(`Не удалось добавить объект типа "${type}"`, 'warn');
     }
+}
+
+export function updateSelectedSceneObject(params: { value?: string; markerDictionary?: string; pointsText?: string }) {
+    if (!selectedObject || selectedObject.userData?.draggable === false) return false;
+
+    let updated = false;
+    if ((params.value !== undefined || params.markerDictionary !== undefined) && selectedObject.userData?.supportsValue) {
+        updated = updateSceneObjectValue(selectedObject, {
+            value: params.value,
+            markerDictionary: params.markerDictionary
+        }) || updated;
+    }
+
+    if (params.pointsText !== undefined && selectedObject.userData?.supportsPoints) {
+        const points = parsePointsText(params.pointsText);
+        if (points.length < 2) {
+            log('Для дороги или рельс нужно минимум 2 точки', 'warn');
+            return false;
+        }
+        updated = updateSceneObjectPoints(selectedObject, points) || updated;
+    }
+
+    if (updated) {
+        handleSelection(selectedObject, window.innerWidth / 2, window.innerHeight / 2, false);
+        log('Параметры объекта обновлены', 'success');
+    }
+
+    return updated;
+}
+
+export function appendPointToSelectedLinearObject() {
+    if (!selectedObject || !selectedObject.userData?.supportsPoints) return false;
+
+    const points = normalizePoints(selectedObject.userData?.points);
+    if (points.length < 2) return false;
+
+    const last = points[points.length - 1];
+    const prev = points[points.length - 2];
+    const dir = new THREE.Vector3(last.x - prev.x, last.y - prev.y, last.z - prev.z);
+    if (dir.lengthSq() < 0.0001) dir.set(4, 0, 0);
+    dir.normalize().multiplyScalar(5);
+
+    points.push({
+        x: last.x + dir.x,
+        y: last.y + dir.y,
+        z: Math.max(0, last.z + dir.z)
+    });
+
+    const ok = updateSceneObjectPoints(selectedObject, points);
+    if (ok) {
+        handleSelection(selectedObject, window.innerWidth / 2, window.innerHeight / 2, false);
+        log('В маршрут добавлена новая точка', 'success');
+    }
+    return ok;
 }

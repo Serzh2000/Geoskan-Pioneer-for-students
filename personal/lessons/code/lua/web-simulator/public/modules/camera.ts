@@ -1,6 +1,14 @@
 import * as THREE from 'three';
 import { simState } from './state.js';
 
+function syncOrbitControlsFromCamera(camera: THREE.PerspectiveCamera, controls: any) {
+    if (!controls) return;
+    const offset = new THREE.Vector3().subVectors(camera.position, controls.target);
+    controls.radius = offset.length() || 10;
+    controls.elevation = Math.asin(Math.max(-1, Math.min(1, offset.z / controls.radius)));
+    controls.azimuth = Math.atan2(offset.y, offset.x);
+}
+
 export function updateCamera(camera: THREE.PerspectiveCamera, droneMesh: THREE.Object3D | null, controls: any, mode: string) {
     if (!camera) return;
 
@@ -68,20 +76,15 @@ export function updateCamera(camera: THREE.PerspectiveCamera, droneMesh: THREE.O
         
     } else if (mode === 'free') {
         if (controls) {
-            // Инициализация свободной камеры: если она была в FPV или слишком далеко,
-            // ставим ее в позицию "Drone Chase", но оставляем управление пользователю.
+            // При переходе в свободный режим ставим камеру слева относительно прежнего
+            // ракурса так, чтобы она смотрела вдоль оси Y на текущий объект.
             if ((window as any).lastCameraMode !== 'free') {
                 const targetPos = droneMesh.position.clone();
-                targetPos.z += 6; 
-                camera.position.copy(targetPos);
-                
-                const m = new THREE.Matrix4();
-                m.lookAt(camera.position, droneMesh.position, new THREE.Vector3(0, 0, 1));
-                camera.quaternion.setFromRotationMatrix(m);
-                camera.up.set(0, 0, 1); 
-                
                 controls.target.copy(droneMesh.position);
-                if (controls.update) controls.update();
+                camera.position.copy(targetPos.add(new THREE.Vector3(0, -9, 6)));
+                camera.up.set(0, 0, 1);
+                syncOrbitControlsFromCamera(camera, controls);
+                controls.update();
             }
             controls.update();
         }

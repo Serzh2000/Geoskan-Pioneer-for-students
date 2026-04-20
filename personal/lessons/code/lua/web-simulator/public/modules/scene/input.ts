@@ -45,21 +45,54 @@ export function onPointerUp(event: PointerEvent) {
     try {
         const intersects = raycaster.intersectObjects(targets, true);
         if (intersects.length > 0) {
-            let obj: any = intersects[0].object;
-            while (obj.parent && obj.parent !== (window as any).scene && obj.parent !== envGroup) obj = obj.parent;
-            
-            if (obj.name === 'Ground' || obj.userData?.type === 'ground') {
-                handleDeselection();
-                return;
-            }
-            
-            let isDrone = false;
-            for (const id in droneMeshes) {
-                if (obj === droneMeshes[id]) isDrone = true;
+            let groundPoint: THREE.Vector3 | null = null;
+
+            for (const intersect of intersects) {
+                let obj: any = intersect.object;
+                while (obj.parent && obj.parent !== (window as any).scene && obj.parent !== envGroup) obj = obj.parent;
+
+                if (obj.name === 'Ground' || obj.userData?.type === 'ground') {
+                    if (!groundPoint) groundPoint = intersect.point.clone();
+                    continue;
+                }
+
+                let isDrone = false;
+                for (const id in droneMeshes) {
+                    if (obj === droneMeshes[id]) isDrone = true;
+                }
+
+                if (isDrone || (obj.userData && obj.userData.draggable)) {
+                    handleSelection(obj, event.clientX, event.clientY);
+                    return;
+                }
             }
 
-            if (isDrone || (obj.userData && obj.userData.draggable)) {
-                handleSelection(obj, event.clientX, event.clientY);
+            if (groundPoint) {
+                const point = groundPoint;
+                log(`Координаты точки на полу: X: ${point.x.toFixed(2)}, Y: ${point.y.toFixed(2)}, Z: ${point.z.toFixed(2)}`, 'info');
+                
+                // Add a small temporary visual marker
+                const markerGeom = new THREE.SphereGeometry(0.05, 16, 16);
+                const markerMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
+                const marker = new THREE.Mesh(markerGeom, markerMat);
+                marker.position.copy(point);
+                (window as any).scene.add(marker);
+                
+                // Fade out and remove marker
+                let opacity = 1.0;
+                const fade = setInterval(() => {
+                    opacity -= 0.1;
+                    if (opacity <= 0) {
+                        clearInterval(fade);
+                        (window as any).scene.remove(marker);
+                    } else {
+                        marker.scale.multiplyScalar(1.1);
+                        marker.material.opacity = opacity;
+                        marker.material.transparent = true;
+                    }
+                }, 50);
+
+                handleDeselection();
                 return;
             }
         }

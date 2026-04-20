@@ -1,140 +1,151 @@
 import * as THREE from 'three';
+import { createTrussArena } from './truss-arena.js';
 
 export function createGround(scene: THREE.Scene, envGroup: THREE.Group) {
-    // Ground Plane (Geoscan Arena style)
     const groundSize = 200;
     const groundGeom = new THREE.PlaneGeometry(groundSize, groundSize);
     
-    // Procedural "arena" texture (dark rubber + subtle pattern + grid + orange markings)
     const canvas = document.createElement('canvas');
-    canvas.width = 2048; canvas.height = 2048;
+    canvas.width = 1024; canvas.height = 1024;
     const ctx = canvas.getContext('2d');
     if (ctx) {
         const W = canvas.width;
         const H = canvas.height;
-
-        // Base
-        ctx.fillStyle = '#0b1220';
+        
+        // Base background - professional dark slate
+        ctx.fillStyle = '#0f172a';
         ctx.fillRect(0, 0, W, H);
 
-        // Subtle diagonal pattern
-        ctx.globalAlpha = 0.18;
-        ctx.strokeStyle = '#111c2f';
-        ctx.lineWidth = 6;
-        for (let i = -H; i < W + H; i += 96) {
-            ctx.beginPath();
-            ctx.moveTo(i, 0);
-            ctx.lineTo(i - H, H);
-            ctx.stroke();
-        }
-        ctx.globalAlpha = 1;
+        // Draw coordinate grid
+        const pxPerMeter = 102.4;
 
-        // Micro noise (cheap)
-        ctx.globalAlpha = 0.08;
-        for (let i = 0; i < 5000; i++) {
-            const x = Math.random() * W;
-            const y = Math.random() * H;
-            const v = Math.floor(40 + Math.random() * 40);
-            ctx.fillStyle = `rgb(${v},${v},${v})`;
-            ctx.fillRect(x, y, 2, 2);
-        }
-        ctx.globalAlpha = 1;
-
-        // Grid
-        const stepMajor = 128;   // major grid
-        const stepMinor = 32;    // minor grid
-
-        ctx.strokeStyle = '#1e2b44';
+        // Minor grid lines (every 0.5m) - subtle blue
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.1)';
         ctx.lineWidth = 1;
-        for (let i = 0; i <= W; i += stepMinor) {
-            if (i % stepMajor === 0) continue;
-            ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, H); ctx.stroke();
-            ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(W, i); ctx.stroke();
+        for (let i = 0; i <= 10; i += 0.5) {
+            const pos = i * pxPerMeter;
+            ctx.beginPath(); ctx.moveTo(pos, 0); ctx.lineTo(pos, H); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(0, pos); ctx.lineTo(W, pos); ctx.stroke();
         }
 
-        ctx.strokeStyle = '#2a3a5c';
+        // Major grid lines (every 1m) - brighter blue
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.3)';
         ctx.lineWidth = 2;
-        for (let i = 0; i <= W; i += stepMajor) {
-            ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, H); ctx.stroke();
-            ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(W, i); ctx.stroke();
+        for (let i = 0; i <= 10; i += 1) {
+            const pos = i * pxPerMeter;
+            ctx.beginPath(); ctx.moveTo(pos, 0); ctx.lineTo(pos, H); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(0, pos); ctx.lineTo(W, pos); ctx.stroke();
         }
 
-        // Arena border + markings (orange)
-        const pad = 140;
-        const pad2 = 260;
-        ctx.strokeStyle = '#ff6a00';
-        ctx.lineWidth = 10;
-        ctx.strokeRect(pad, pad, W - pad * 2, H - pad * 2);
+        // 10m boundary lines (thickest)
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 4;
+        ctx.strokeRect(0, 0, W, H);
 
-        ctx.globalAlpha = 0.85;
-        ctx.lineWidth = 6;
-        ctx.strokeRect(pad2, pad2, W - pad2 * 2, H - pad2 * 2);
+        // Add some digital noise/texture
+        ctx.globalAlpha = 0.05;
+        for (let i = 0; i < 5000; i++) {
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(Math.random() * W, Math.random() * H, 1, 1);
+        }
         ctx.globalAlpha = 1;
-
-        // Corner "L" markers
-        const mark = 90;
-        const corners: Array<[number, number, number, number]> = [
-            [pad, pad, 1, 1],
-            [W - pad, pad, -1, 1],
-            [pad, H - pad, 1, -1],
-            [W - pad, H - pad, -1, -1]
-        ];
-        ctx.strokeStyle = '#ffb020';
-        ctx.lineWidth = 14;
-        corners.forEach(([cx, cy, sx, sy]) => {
-            ctx.beginPath();
-            ctx.moveTo(cx, cy);
-            ctx.lineTo(cx + sx * mark, cy);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(cx, cy);
-            ctx.lineTo(cx, cy + sy * mark);
-            ctx.stroke();
-        });
-
-        // Center text
-        ctx.globalAlpha = 0.35;
-        ctx.fillStyle = '#38bdf8';
-        ctx.font = 'bold 120px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('GEOSCAN', W / 2, H / 2 - 50);
-        ctx.font = 'bold 64px sans-serif';
-        ctx.fillText('ARENA', W / 2, H / 2 + 40);
-        ctx.globalAlpha = 1;
-
-        // Vignette
-        const grad = ctx.createRadialGradient(W / 2, H / 2, W * 0.1, W / 2, H / 2, W * 0.75);
-        grad.addColorStop(0, 'rgba(0,0,0,0)');
-        grad.addColorStop(1, 'rgba(0,0,0,0.55)');
-        ctx.fillStyle = grad;
-        ctx.fillRect(0, 0, W, H);
     }
     
     const gridTex = new THREE.CanvasTexture(canvas);
     gridTex.wrapS = THREE.RepeatWrapping;
     gridTex.wrapT = THREE.RepeatWrapping;
-    // Keep markings readable at typical zoom levels
-    gridTex.repeat.set(groundSize / 50, groundSize / 50);
+    gridTex.repeat.set(groundSize / 10, groundSize / 10);
     gridTex.anisotropy = 16;
     gridTex.colorSpace = THREE.SRGBColorSpace;
 
     const groundMat = new THREE.MeshStandardMaterial({ 
         map: gridTex,
-        roughness: 0.95,
-        metalness: 0.05
+        roughness: 0.8,
+        metalness: 0.2
     });
     const ground = new THREE.Mesh(groundGeom, groundMat);
     ground.receiveShadow = true;
+    ground.name = 'Ground';
     ground.userData = { type: 'ground' };
+    scene.add(ground); // Explicitly add to scene for easier raycasting
+
+    const arenaAccentMat = new THREE.MeshStandardMaterial({
+        color: 0x38bdf8,
+        transparent: true,
+        opacity: 0.15,
+        roughness: 0.5,
+        metalness: 0.1
+    });
+    const arenaAccent = new THREE.Mesh(new THREE.PlaneGeometry(20, 20), arenaAccentMat);
+    arenaAccent.position.z = 0.01;
+    ground.add(arenaAccent);
+
+    const ringMat = new THREE.MeshStandardMaterial({
+        color: 0x38bdf8,
+        transparent: true,
+        opacity: 0.4,
+        roughness: 0.2,
+        metalness: 0.5,
+        side: THREE.DoubleSide
+    });
+    const centerRing = new THREE.Mesh(new THREE.RingGeometry(1.35, 1.9, 64), ringMat);
+    centerRing.position.z = 0.012;
+    ground.add(centerRing);
+
+    // Добавляем площадку H (Landing Pad) под дроном (0,0)
+    const padGeom = new THREE.PlaneGeometry(2, 2);
+    const padCanvas = document.createElement('canvas');
+    padCanvas.width = 256; padCanvas.height = 256;
+    const pctx = padCanvas.getContext('2d');
+    if (pctx) {
+        pctx.fillStyle = 'rgba(15, 23, 42, 0.8)';
+        pctx.fillRect(0, 0, 256, 256);
+        pctx.strokeStyle = '#38bdf8';
+        pctx.lineWidth = 15;
+        pctx.strokeRect(10, 10, 236, 236);
+        pctx.fillStyle = '#38bdf8';
+        pctx.font = 'bold 160px sans-serif';
+        pctx.textAlign = 'center';
+        pctx.textBaseline = 'middle';
+        pctx.fillText('H', 128, 128);
+    }
+    const padTex = new THREE.CanvasTexture(padCanvas);
+    const padMat = new THREE.MeshStandardMaterial({ map: padTex, transparent: true, opacity: 0.95 });
+    const landingPad = new THREE.Mesh(padGeom, padMat);
+    landingPad.position.set(0, 0, 0.015);
+    ground.add(landingPad);
+
+    const borderMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.4, metalness: 0.1 });
+    const cornerMat = new THREE.MeshStandardMaterial({ color: 0x38bdf8, roughness: 0.2, metalness: 0.5 });
+    const borderSegments = [
+        { x: 0, y: 8.4, w: 17.6, h: 0.34 },
+        { x: 0, y: -8.4, w: 17.6, h: 0.34 },
+        { x: 8.4, y: 0, w: 0.34, h: 17.6 },
+        { x: -8.4, y: 0, w: 0.34, h: 17.6 }
+    ];
+    borderSegments.forEach(({ x, y, w, h }) => {
+        const strip = new THREE.Mesh(new THREE.BoxGeometry(w, h, 0.08), borderMat);
+        strip.position.set(x, y, 0.045);
+        strip.receiveShadow = true;
+        ground.add(strip);
+    });
+
+    [
+        [7.95, 7.95],
+        [-7.95, 7.95],
+        [7.95, -7.95],
+        [-7.95, -7.95]
+    ].forEach(([x, y]) => {
+        const corner = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.9, 0.085), cornerMat);
+        corner.position.set(x, y, 0.048);
+        corner.receiveShadow = true;
+        ground.add(corner);
+    });
+
     envGroup.add(ground);
 
-    // Invisible plane for mouse interaction (Ground)
-    const planeGeo = new THREE.PlaneGeometry(100, 100);
-    const planeMat = new THREE.MeshBasicMaterial({ visible: false });
-    const groundPlane = new THREE.Mesh(planeGeo, planeMat);
-    groundPlane.name = 'Ground';
-    scene.add(groundPlane);
+    // Добавляем фермовую конструкцию (Truss Arena) и сетку как на фото
+    createTrussArena(envGroup);
 }
 
 export function createAxesLabels(scene: THREE.Scene) {

@@ -4,7 +4,7 @@
 import * as THREE from 'three';
 import * as fengari from 'fengari-web';
 import { simState, resetState, resetRuntimeStatePreservePose, drones, currentDroneId, currentScriptLanguage, setCurrentScriptLanguage, ScriptLanguage } from './modules/state.js';
-import { init3D, updateDrone3D, is3DActive, addObject, deleteSelectedObject, listSceneObjects, selectSceneObjectById, deleteSceneObjectById, setSceneObjectTransformMode, resetDroneToOrigin, getSelectedSceneObjectId } from './modules/drone.js';
+import { init3D, updateDrone3D, is3DActive, addObject, appendPointToSelectedLinearObject, deleteSelectedObject, listSceneObjects, selectSceneObjectById, deleteSceneObjectById, setSceneObjectTransformMode, resetDroneToOrigin, getSelectedSceneObjectId, updateSelectedSceneObject } from './modules/drone.js';
 import { updatePhysics } from './modules/physics.js';
 import { runLuaScript, stopLuaScript, triggerLuaCallback } from './modules/lua/index.js';
 import { setLocalFrameOrigin } from './modules/lua/autopilot.js';
@@ -21,6 +21,7 @@ import { initUI } from './modules/ui/index.js';
 import { log } from './modules/ui/logger.js';
 import { updateStats } from './modules/ui/stats.js';
 import { renderApiDocs } from './modules/ui/api-docs-ui.js';
+import type { MarkerMapOptions } from './modules/environment/obstacles.js';
 
 // Global assignments for legacy/Lua support
 (window as any).THREE = THREE;
@@ -62,7 +63,12 @@ function init() {
             list: () => listSceneObjects(),
             select: (id: string) => selectSceneObjectById(id),
             remove: (id: string) => deleteSceneObjectById(id),
-            add: (type: string) => addObject(type),
+            add: (
+                type: string,
+                options?: { value?: string; markerDictionary?: string; pointsText?: string; floors?: number; markerMap?: MarkerMapOptions }
+            ) => addObject(type, options),
+            updateSelected: (params: { value?: string; markerDictionary?: string; pointsText?: string }) => updateSelectedSceneObject(params),
+            appendPoint: () => appendPointToSelectedLinearObject(),
             setMode: (mode: 'translate' | 'rotate' | 'scale', id?: string) => setSceneObjectTransformMode(mode, id),
             resetDroneOrigin: () => resetDroneToOrigin(),
             getSelectedId: () => getSelectedSceneObjectId()

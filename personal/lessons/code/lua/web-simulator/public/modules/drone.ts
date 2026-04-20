@@ -20,7 +20,7 @@ import { handleDeselection, deselectObject } from './scene/selection.js';
 import { 
     getSceneTopLevelObjects, findSceneObjectById, activateTransformMode, 
     getSelectedSceneObjectId, resetDroneToOrigin, deleteSelectedObject, 
-    duplicateObject, addObject, TransformMode
+    duplicateObject, addObject, appendPointToSelectedLinearObject, updateSelectedSceneObject, TransformMode
 } from './scene/object-manager.js';
 
 (window as any).scene = scene;
@@ -30,7 +30,8 @@ import {
 export { is3DActive, selectedObject, droneMeshes, envGroup, scene };
 export { 
     addObject, deleteSelectedObject, duplicateObject, resetDroneToOrigin,
-    listSceneObjects, selectSceneObjectById, deleteSceneObjectById, 
+    listSceneObjects, selectSceneObjectById, deleteSceneObjectById,
+    appendPointToSelectedLinearObject, updateSelectedSceneObject,
     setSceneObjectTransformMode, getSelectedSceneObjectId
 } from './scene/object-manager.js';
 export type { TransformMode } from './scene/object-manager.js';
@@ -46,6 +47,11 @@ export interface SceneObjectInfo {
     position: { x: number; y: number; z: number };
     rotation: { x: number; y: number; z: number };
     scale: { x: number; y: number; z: number };
+    supportsValue?: boolean;
+    supportsPoints?: boolean;
+    value?: string;
+    pointsText?: string;
+    metaLines?: string[];
 }
 
 export function init3D(container: HTMLElement) {

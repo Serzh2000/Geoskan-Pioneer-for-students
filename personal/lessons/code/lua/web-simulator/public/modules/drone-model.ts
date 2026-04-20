@@ -14,15 +14,29 @@ export function createDroneModel() {
     // Materials
     const carbonMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.4, metalness: 0.3 });
     const pcbMat = new THREE.MeshStandardMaterial({ color: 0x1e3a8a, roughness: 0.3, metalness: 0.6 });
-    const plasticMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.8 });
-    const motorMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.2, metalness: 0.9 });
-    const propMatCW = new THREE.MeshStandardMaterial({ color: 0xf1f5f9, transparent: true, opacity: 0.9 });
-    const propMatCCW = new THREE.MeshStandardMaterial({ color: 0xf87171, transparent: true, opacity: 0.9 });
+    const plasticMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.8 });
+    const motorMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.3, metalness: 0.8 });
+    const silverMat = new THREE.MeshStandardMaterial({ color: 0xc0c0c0, roughness: 0.1, metalness: 1.0 });
+    const propMatCW = new THREE.MeshStandardMaterial({ color: 0xff6600, transparent: false, opacity: 1.0 });
+    const propMatCCW = new THREE.MeshStandardMaterial({ color: 0xff6600, transparent: false, opacity: 1.0 });
 
-    droneGroup.add(createFrame(carbonMat, pcbMat, plasticMat));
-    droneGroup.add(createLEDs());
-    droneGroup.add(createCameraAndAntenna());
-    droneGroup.add(createMotors(motorMat, propMatCW, propMatCCW));
+    const modelOffset = 0.125; // Increased to ensure legs touch ground properly
+    
+    const frame = createFrame(carbonMat, pcbMat, plasticMat);
+    frame.position.z += modelOffset;
+    droneGroup.add(frame);
+
+    const leds = createLEDs();
+    leds.position.z += modelOffset;
+    droneGroup.add(leds);
+
+    const cam = createCameraAndAntenna();
+    cam.position.z += modelOffset;
+    droneGroup.add(cam);
+
+    const motors = createMotors(motorMat, silverMat, propMatCW, propMatCCW);
+    motors.position.z += modelOffset;
+    droneGroup.add(motors);
 
     return droneGroup;
 }

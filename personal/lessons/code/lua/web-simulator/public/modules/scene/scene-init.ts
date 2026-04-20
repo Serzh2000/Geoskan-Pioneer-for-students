@@ -41,26 +41,31 @@ export function initScene(container: HTMLElement) {
     
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x0f172a);
-    scene.fog = new THREE.FogExp2(0x0f172a, 0.02);
+    scene.fog = new THREE.FogExp2(0x0f172a, 0.015);
 
     const width = canvasContainer.clientWidth || window.innerWidth;
     const height = canvasContainer.clientHeight || window.innerHeight;
     const aspect = width / height;
     
     camera = new THREE.PerspectiveCamera(75, aspect, 0.1, 1000);
-    camera.position.set(5, 5, 5);
+    camera.position.set(0, -10, 6.5);
     camera.up.set(0, 0, 1);
-    camera.lookAt(0, 0, 0);
+    camera.lookAt(0, 0, 1);
 
     renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(width, height);
     renderer.setPixelRatio(window.devicePixelRatio || 1);
     renderer.shadowMap.enabled = true;
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.08;
     
     canvasContainer.innerHTML = '';
     canvasContainer.appendChild(renderer.domElement);
 
     controls = new DroneOrbitControls(camera, renderer.domElement);
+    controls.target.set(0, 0, 1);
+    controls.update();
     controls.rotateSpeed = 2.0;
     controls.zoomSpeed = 1.2;
     controls.panSpeed = 0.8;
@@ -91,6 +96,9 @@ export function initScene(container: HTMLElement) {
     selectionHelper.renderOrder = 9999;
     scene.add(selectionHelper);
     (window as any).selectionHelper = selectionHelper;
+    (window as any).scene = scene;
+    (window as any).camera = camera;
+    (window as any).controls = controls;
 
     setupEnvironment(scene);
 

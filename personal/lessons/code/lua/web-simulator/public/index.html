@@ -11,188 +11,367 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs/loader.js"></script>
 </head>
 <body>
-    <div class="header">
-        <h1>СИМУЛЯТОР PIONEER</h1>
-        <div class="controls">
-            <select id="file-selector"><option>Загрузка файлов...</option></select>
-            <button onclick="document.getElementById('file-input').click()">ОТКРЫТЬ ФАЙЛ</button>
-            <input type="file" id="file-input" style="display:none" accept=".lua,.py">
-            <button id="run-btn">ЗАПУСТИТЬ</button>
-            <button id="stop-btn">СТОП</button>
-            <button id="restart-btn">СБРОС</button>
-            <select id="script-language-select" style="margin-left: 8px;">
-                <option value="lua">Lua</option>
-                <option value="python">Python</option>
-            </select>
-        </div>
-    </div>
-
     <div class="container">
-        <div class="left-panel">
-            <div class="tab-container">
-                <div class="tab-header">
-                    <button class="tab-btn active" onclick="switchTab('editor-tab')">РЕДАКТОР</button>
-                    <button class="tab-btn" onclick="switchTab('drones-tab')">РОЙ</button>
-                    <button class="tab-btn" onclick="switchTab('docs-tab')">СПРАВОЧНИК API</button>
-                    <button class="tab-btn" onclick="switchTab('settings-tab')">НАСТРОЙКИ</button>
+        <!-- Sidebar Tabs -->
+        <div class="sidebar-tabs">
+            <button class="sidebar-tab-btn active" onclick="openPanel('editor-panel')" title="Редактор">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+            </button>
+            <button class="sidebar-tab-btn" onclick="openPanel('drones-panel')" title="Рой">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            </button>
+            <button class="sidebar-tab-btn" onclick="openPanel('manager-panel')" title="Менеджер сцены">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+            </button>
+            <button class="sidebar-tab-btn" onclick="openPanel('docs-panel')" title="API">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+            </button>
+            <button class="sidebar-tab-btn" onclick="openPanel('logs-panel')" title="Логи">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
+            </button>
+            <div style="flex: 1;"></div>
+            <button class="sidebar-tab-btn" onclick="openPanel('settings-panel')" title="Настройки">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+            </button>
+        </div>
+
+        <!-- Sidebar Panels -->
+        <div class="sidebar-panels" style="width: 450px;">
+            <div id="editor-panel" class="sidebar-panel active">
+                <div class="panel-header">
+                    <span class="panel-title">Редактор кода</span>
+                    <button class="panel-close-btn" onclick="closePanel()">✕</button>
                 </div>
-                <div id="editor-tab" class="tab-content active">
-                    <div id="editor"></div>
+                <div class="panel-content">
+                    <div id="editor" style="height: 100%;"></div>
                 </div>
-                <!-- TAB: DRONES (NEW) -->
-                <div id="drones-tab" class="tab-content">
+            </div>
+
+            <div id="drones-panel" class="sidebar-panel">
+                <div class="panel-header">
+                    <span class="panel-title">Управление роем</span>
+                    <button class="panel-close-btn" onclick="closePanel()">✕</button>
+                </div>
+                <div class="panel-content">
                     <div class="card">
-                        <h3><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg> УПРАВЛЕНИЕ РОЕМ</h3>
                         <div class="swarm-manager">
                             <div class="swarm-list">
-                                <select id="drone-list" size="6"></select>
+                                <select id="drone-list" size="10"></select>
                             </div>
                             <div class="swarm-actions">
-                                <button id="add-drone-btn" class="btn-add-drone"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> Добавить</button>
-                                <button id="del-drone-btn" class="btn-del-drone"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg> Удалить</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="docs-tab" class="tab-content">
-                    <div id="api-docs">
-                        <!-- Content will be dynamically generated here from api-docs.ts -->
-                    </div>
-                </div>
-
-                <div id="settings-tab" class="tab-content">
-                    <div class="card" style="margin: 16px;">
-                        <h3><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg> НАСТРОЙКИ СИМУЛЯТОРА</h3>
-                        <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 10px;">
-                            <label style="display: flex; align-items: center; gap: 8px; color: var(--text-color); font-size: 13px; cursor: pointer;">
-                                <input type="checkbox" id="setting-show-tracer" checked>
-                                Показывать трассер полета
-                            </label>
-                            <div style="display: flex; flex-direction: column; gap: 4px; margin-left: 24px;">
-                                <div style="display: flex; align-items: center; gap: 8px; color: var(--text-color); font-size: 12px;">
-                                    <span>Цвет:</span>
-                                    <input type="color" id="setting-tracer-color" value="#38bdf8" style="width: 24px; height: 24px; padding: 0; border: none; border-radius: 4px; cursor: pointer; background: transparent;">
-                                </div>
-                                <div style="display: flex; align-items: center; gap: 8px; color: var(--text-color); font-size: 12px;">
-                                    <span>Толщина:</span>
-                                    <input type="range" id="setting-tracer-width" min="1" max="10" step="1" value="2" style="flex: 1;">
-                                </div>
-                                <div style="display: flex; align-items: center; gap: 8px; color: var(--text-color); font-size: 12px;">
-                                    <span>Форма:</span>
-                                    <select id="setting-tracer-shape" style="padding: 4px; font-size: 12px;">
-                                        <option value="line">Линия</option>
-                                        <option value="points">Точки</option>
-                                        <option value="both">Линия + Точки</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <label style="display: flex; align-items: center; gap: 8px; color: var(--text-color); font-size: 13px; cursor: pointer;" title="Гизмо (Gizmo) — это 3D-стрелочки, которые появляются при выделении объекта (например, дрона или препятствия). Они позволяют перемещать, вращать и изменять размер объекта с помощью мыши.">
-                                <input type="checkbox" id="setting-show-gizmo" checked>
-                                Показывать гизмо трансформации
-                                <span style="font-size: 11px; color: var(--text-muted); margin-left: auto;">(?)</span>
-                            </label>
-                            <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 8px;">
-                                <span style="color: var(--text-color); font-size: 13px;">Скорость симуляции:</span>
-                                <input type="range" id="setting-sim-speed" min="0.1" max="5" step="0.1" value="1">
-                                <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted);">
-                                    <span>0.1x</span>
-                                    <span id="sim-speed-val">1.0x</span>
-                                    <span>5.0x</span>
-                                </div>
+                                <button id="add-drone-btn" class="btn-add-drone"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> Добавить</button>
+                                <button id="del-drone-btn" class="btn-del-drone"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg> Удалить</button>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="right-panel">
-            <div class="card scene-card">
-                <div id="canvas-container">
-                    <canvas id="canvas"></canvas>
+
+            <div id="manager-panel" class="sidebar-panel">
+                <div class="panel-header">
+                    <span class="panel-title">Менеджер сцены</span>
+                    <button class="panel-close-btn" onclick="closePanel()">✕</button>
                 </div>
+                <div class="panel-content">
+                    <div class="scene-manager">
+                        <div id="scene-object-list" class="scene-manager-list"></div>
+                        <div id="scene-object-details" class="scene-manager-details">Выберите объект в списке</div>
+                        
+                        <div class="scene-manager-actions">
+                            <div class="action-group">
+                                <div class="action-group-title">Добавление объекта</div>
+                                <select id="scene-add-type">
+                                    <option value="gate">Ворота</option>
+                                    <option value="pylon">Пилон</option>
+                                    <option value="flag">Флаг</option>
+                                    <option value="building">Многоэтажка</option>
+                                    <option value="aruco">ArUco маркер</option>
+                                    <option value="aruco-map">ArUco карта</option>
+                                    <option value="apriltag">AprilTag маркер</option>
+                                    <option value="apriltag-map">AprilTag карта</option>
+                                    <option value="road">Автомобильная дорога</option>
+                                    <option value="rail">Железнодорожные пути</option>
+                                    <option value="hill">Холм</option>
+                                    <option value="arena-hills">Группа холмов</option>
+                                    <option value="tree">Ель</option>
+                                    <option value="forest-patch">Лесной массив</option>
+                                    <option value="settlement">Макет поселения</option>
+                                    <option value="transport">Транспорт</option>
+                                    <option value="cargo">Грузик</option>
+                                    <option value="start-position">Стартовая позиция</option>
+                                    <option value="heliport">Хелипорт</option>
+                                    <option value="charge-station">Станция заряда</option>
+                                    <option value="locus-beacon">Локус-маяк</option>
+                                    <option value="light-tower">Световая мачта</option>
+                                    <option value="video-tower">Видеомачта</option>
+                                    <option value="control-station">Пульт полигона</option>
+                                    <option value="arena-space">Арена с сеткой</option>
+                                    <option value="pad-h">Площадка H</option>
+                                    <option value="pad-charge">Площадка ⚡</option>
+                                </select>
+                                <select id="scene-add-dictionary">
+                                    <option value="">Выберите словарь</option>
+                                </select>
+                                <input id="scene-add-value" type="text" placeholder="Значение маркера">
+                                <div id="scene-add-map-settings" class="scene-map-settings">
+                                    <div class="scene-map-settings-title">Настройки карты маркеров</div>
+                                    <div id="scene-add-map-summary" class="scene-map-summary">5 x 5, старт ID 0, по строкам</div>
+                                    <div class="scene-map-settings-grid">
+                                        <label class="scene-field">
+                                            <span>Строки</span>
+                                            <input id="scene-add-map-rows" type="number" min="1" max="20" value="5">
+                                        </label>
+                                        <label class="scene-field">
+                                            <span>Столбцы</span>
+                                            <input id="scene-add-map-columns" type="number" min="1" max="20" value="5">
+                                        </label>
+                                        <label class="scene-field">
+                                            <span>Стартовый ID</span>
+                                            <input id="scene-add-map-start-id" type="number" min="0" step="1" value="0">
+                                        </label>
+                                        <label class="scene-field">
+                                            <span>Шаг ID</span>
+                                            <input id="scene-add-map-id-step" type="number" min="1" step="1" value="1">
+                                        </label>
+                                        <label class="scene-field">
+                                            <span>Размер маркера, м</span>
+                                            <input id="scene-add-map-marker-size" type="number" min="0.2" max="5" step="0.05" value="1.05">
+                                        </label>
+                                        <label class="scene-field">
+                                            <span>Поворот, °</span>
+                                            <input id="scene-add-map-rotation" type="number" min="-180" max="180" step="1" value="0">
+                                        </label>
+                                        <label class="scene-field">
+                                            <span>Зазор X, м</span>
+                                            <input id="scene-add-map-gap-x" type="number" min="0" max="10" step="0.05" value="0.2">
+                                        </label>
+                                        <label class="scene-field">
+                                            <span>Зазор Y, м</span>
+                                            <input id="scene-add-map-gap-y" type="number" min="0" max="10" step="0.05" value="0.2">
+                                        </label>
+                                        <label class="scene-field">
+                                            <span>Порядок обхода</span>
+                                            <select id="scene-add-map-traversal">
+                                                <option value="row-major">По строкам</option>
+                                                <option value="column-major">По столбцам</option>
+                                            </select>
+                                        </label>
+                                        <label class="scene-field">
+                                            <span>Старт нумерации</span>
+                                            <select id="scene-add-map-start-corner">
+                                                <option value="top-left">Сверху слева</option>
+                                                <option value="top-right">Сверху справа</option>
+                                                <option value="bottom-left">Снизу слева</option>
+                                                <option value="bottom-right">Снизу справа</option>
+                                            </select>
+                                        </label>
+                                        <label class="scene-field">
+                                            <span>Точка привязки</span>
+                                            <select id="scene-add-map-anchor">
+                                                <option value="center">Центр карты</option>
+                                                <option value="start">Стартовая ячейка</option>
+                                                <option value="top-left">Верхний левый угол</option>
+                                                <option value="top-right">Верхний правый угол</option>
+                                                <option value="bottom-left">Нижний левый угол</option>
+                                                <option value="bottom-right">Нижний правый угол</option>
+                                            </select>
+                                        </label>
+                                        <label class="scene-check">
+                                            <input id="scene-add-map-snake" type="checkbox">
+                                            <span>Нумерация змейкой</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <textarea id="scene-add-points" rows="2" placeholder="Точки маршрута: X, Y, Z"></textarea>
+                                <button id="scene-add-btn" class="btn-primary">Добавить объект</button>
+                            </div>
+
+                            <div class="action-group">
+                                <div class="action-group-title">Пресеты сцены</div>
+                                <select id="scene-preset-type">
+                                    <option value="preset-race-track">Гоночная трасса</option>
+                                    <option value="preset-residential">Спальный район</option>
+                                    <option value="preset-geoskan-arena">Геоскан Арена</option>
+                                </select>
+                                <button id="scene-preset-btn" class="btn-secondary" style="color: var(--success); border-color: rgba(16,185,129,0.3);">Загрузить пресет</button>
+                            </div>
+
+                            <div class="action-group">
+                                <div class="action-group-title">Редактирование выбранного</div>
+                                <select id="scene-selected-dictionary">
+                                    <option value="">Словарь маркера</option>
+                                </select>
+                                <input id="scene-selected-value" type="text" placeholder="Значение объекта">
+                                <textarea id="scene-selected-points" rows="2" placeholder="Точки маршрута (для дорог)"></textarea>
+                                <div class="action-row">
+                                    <button id="scene-apply-meta-btn" class="btn-secondary">Применить</button>
+                                    <button id="scene-append-point-btn" class="btn-secondary">+ Точка</button>
+                                </div>
+                            </div>
+
+                            <div class="action-group">
+                                <div class="action-group-title">Трансформация</div>
+                                <div class="action-row">
+                                    <button id="scene-mode-translate" class="btn-secondary">Позиция</button>
+                                    <button id="scene-mode-rotate" class="btn-secondary">Вращение</button>
+                                </div>
+                                <div class="action-row">
+                                    <button id="scene-mode-scale" class="btn-secondary">Масштаб</button>
+                                    <button id="scene-drone-origin-btn" class="btn-secondary">Дрон в (0,0)</button>
+                                </div>
+                            </div>
+                            
+                            <button id="scene-delete-btn" class="btn-secondary" style="color: var(--danger); border-color: rgba(239,68,68,0.3); width: 100%;">Удалить выбранное</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="docs-panel" class="sidebar-panel">
+                <div class="panel-header">
+                    <span class="panel-title">Справочник API</span>
+                    <button class="panel-close-btn" onclick="closePanel()">✕</button>
+                </div>
+                <div class="panel-content">
+                    <div id="api-docs"></div>
+                </div>
+            </div>
+
+            <div id="logs-panel" class="sidebar-panel">
+                <div class="panel-header">
+                    <span class="panel-title">Системный журнал</span>
+                    <button class="panel-close-btn" onclick="closePanel()">✕</button>
+                </div>
+                <div class="panel-content">
+                    <div class="logs-panel-content">
+                        <div id="logs"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="settings-panel" class="sidebar-panel">
+                <div class="panel-header">
+                    <span class="panel-title">Настройки</span>
+                    <button class="panel-close-btn" onclick="closePanel()">✕</button>
+                </div>
+                <div class="panel-content" style="padding: 20px;">
+                    <div style="display: flex; flex-direction: column; gap: 20px;">
+                        <div class="settings-group">
+                            <div class="settings-label">Визуализация</div>
+                            <label class="checkbox-container">
+                                <input type="checkbox" id="setting-show-tracer" checked>
+                                <span class="checkmark"></span>
+                                Трассер полета
+                            </label>
+                            <!-- ... rest of settings ... -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resizer -->
+            <div id="sidebar-resizer" class="resizer"></div>
+        </div>
+
+        <!-- Main Scene Area -->
+        <div class="main-scene">
+            <!-- Top Header -->
+            <header class="header">
+                <div class="header-brand">
+                    <div class="header-brand-mark">P</div>
+                    <div class="header-brand-copy">
+                        <div class="header-eyebrow">Pioneer Control Deck</div>
+                        <div class="header-logo">Симулятор <span>Pioneer</span></div>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <div class="header-controls-group">
+                        <div class="header-group-label">Сценарий</div>
+                        <select id="file-selector" class="btn-secondary header-select">
+                            <option value="">Выберите файл...</option>
+                        </select>
+                        <button onclick="document.getElementById('file-input').click()" class="btn-secondary">Открыть файл</button>
+                        <input type="file" id="file-input" style="display:none" accept=".lua,.py">
+                        <select id="script-language-select" class="btn-secondary header-select header-lang-select">
+                            <option value="lua">Lua</option>
+                            <option value="python">Python</option>
+                        </select>
+                    </div>
+                    <div class="header-controls-group">
+                        <div class="header-group-label">Управление</div>
+                        <button id="run-btn" class="btn-primary">Запустить</button>
+                        <button id="stop-btn" class="btn-secondary header-danger-btn">Стоп</button>
+                        <button id="restart-btn" class="btn-secondary">Сброс</button>
+                    </div>
+                </div>
+            </header>
+
+            <div class="scene-container">
+                <div id="canvas-container"></div>
                 <div id="fpv-overlay">
                     <div class="fpv-header">
                         <div class="fpv-cam-info">
                             <div>OV2640 [1600x1200]</div>
                             <div>FPS: 24</div>
-                            <div>AWB: AUTO</div>
-                            <div>EXP: AUTO</div>
                         </div>
                     </div>
                 </div>
+                
                 <div class="camera-controls">
                     <button onclick="setCameraMode('ground')">ЗЕМЛЯ</button>
-                    <button onclick="setCameraMode('drone')">ДРОН (Chase)</button>
-                    <button onclick="setCameraMode('fpv')">FPV (CAM)</button>
+                    <button onclick="setCameraMode('drone')">ДРОН</button>
+                    <button onclick="setCameraMode('fpv')">FPV</button>
                     <button onclick="setCameraMode('free')">СВОБОДНАЯ</button>
                 </div>
-            </div>
-            
-            <div class="right-sidebar">
-                <div class="card">
-                    <h3><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg> ТЕЛЕМЕТРИЯ</h3>
-                    <div class="stats-grid">
-                        <div class="stat-item">
-                            <div class="stat-label">Высота</div>
-                            <div class="stat-value"><span id="state-alt">0.00</span><span>м</span></div>
+
+                <!-- Overlays -->
+                <div class="telemetry-overlay">
+                    <div class="card">
+                        <div class="hud-title">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                            ТЕЛЕМЕТРИЯ
                         </div>
-                        <div class="stat-item">
-                            <div class="stat-label">Скорость</div>
-                            <div class="stat-value"><span id="state-spd">0.0</span><span>м/с</span></div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-label">Батарея</div>
-                            <div class="stat-value"><span id="state-bat">100</span><span>%</span></div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-label">Время</div>
-                            <div class="stat-value"><span id="state-time">0.0</span><span>с</span></div>
-                        </div>
-                        <div class="stat-item" style="grid-column: span 2; background: rgba(56, 189, 248, 0.1); border-color: rgba(56, 189, 248, 0.2);">
-                            <div class="stat-label" style="color: #38bdf8;">Статус системы</div>
-                            <div class="stat-value" style="font-size: 16px; color: #fff; margin-top: 4px;"><span id="state-status">ОЖИДАНИЕ</span></div>
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <div class="stat-label">Высота</div>
+                                <div class="stat-value"><span id="state-alt">0.00</span><span>м</span></div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">Скорость</div>
+                                <div class="stat-value"><span id="state-spd">0.0</span><span>м/с</span></div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">Батарея</div>
+                                <div class="stat-value"><span id="state-bat">100</span><span>%</span></div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">Время</div>
+                                <div class="stat-value"><span id="state-time">0.0</span><span>с</span></div>
+                            </div>
+                            <div class="stat-item" style="grid-column: span 2; background: rgba(56, 189, 248, 0.05); border-color: rgba(56, 189, 248, 0.2);">
+                                <div class="stat-label" style="color: var(--accent-color);">Статус</div>
+                                <div class="stat-value" style="font-size: 14px; color: #fff;"><span id="state-status">ОЖИДАНИЕ</span></div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="card" style="flex: 1; display: flex; flex-direction: column;">
-                    <h3><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg> МЕНЕДЖЕР СЦЕНЫ</h3>
-                    <div class="scene-manager">
-                        <div id="scene-object-list" class="scene-manager-list"></div>
-                        <div id="scene-object-details" class="scene-manager-details">Выберите объект в списке</div>
-                        <div class="scene-manager-actions">
-                            <select id="scene-add-type">
-                                <option value="gate">Добавить ворота</option>
-                                <option value="pylon">Добавить пилон</option>
-                                <option value="flag">Добавить флаг</option>
-                            </select>
-                            <button id="scene-add-btn" style="background: rgba(56, 189, 248, 0.1); color: #38bdf8;">Добавить</button>
-                            <button id="scene-delete-btn" style="background: rgba(239, 68, 68, 0.1); color: #ef4444;">Удалить</button>
-                            <button id="scene-mode-translate">Переместить</button>
-                            <button id="scene-mode-rotate">Повернуть</button>
-                            <button id="scene-mode-scale">Масштаб</button>
-                            <button id="scene-drone-origin-btn">Дрон: вернуть в (0,0,0)</button>
+                <div class="matrix-overlay">
+                    <div class="card led-matrix-card">
+                        <div class="hud-title">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><circle cx="15.5" cy="8.5" r="1.5"></circle><circle cx="8.5" cy="15.5" r="1.5"></circle><circle cx="15.5" cy="15.5" r="1.5"></circle></svg>
+                            LED МАТРИЦА
                         </div>
+                        <div class="led-section-label">Бортовые индикаторы</div>
+                        <div class="led-base-grid">
+                            <div id="led-base-0" class="led-pixel-base" title="Base LED 0"></div>
+                            <div id="led-base-1" class="led-pixel-base" title="Base LED 1"></div>
+                            <div id="led-base-2" class="led-pixel-base" title="Base LED 2"></div>
+                            <div id="led-base-3" class="led-pixel-base" title="Base LED 3"></div>
+                        </div>
+                        <div class="led-section-label">Матрица 5x5</div>
+                        <div class="led-matrix-grid" id="led-matrix-grid"></div>
                     </div>
-                </div>
-
-                <div class="card led-matrix-card">
-                    <h3><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><circle cx="15.5" cy="8.5" r="1.5"></circle><circle cx="8.5" cy="15.5" r="1.5"></circle><circle cx="15.5" cy="15.5" r="1.5"></circle></svg> LED МАТРИЦА</h3>
-                    <div class="led-base-grid">
-                        <div id="led-base-0" class="led-pixel-base" title="Base LED 0"></div>
-                        <div id="led-base-1" class="led-pixel-base" title="Base LED 1"></div>
-                        <div id="led-base-2" class="led-pixel-base" title="Base LED 2"></div>
-                        <div id="led-base-3" class="led-pixel-base" title="Base LED 3"></div>
-                    </div>
-                    <div class="led-matrix-grid" id="led-matrix-grid">
-                        <!-- JS will populate 25 pixels here -->
-                    </div>
-                </div>
-
-                <div class="card logs-card">
-                    <h3><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg> СИСТЕМНЫЙ ЖУРНАЛ</h3>
-                    <div id="logs"></div>
                 </div>
             </div>
         </div>

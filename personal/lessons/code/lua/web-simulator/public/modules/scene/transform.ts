@@ -4,6 +4,8 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { drones, currentDroneId, simState } from '../state.js';
 import { log } from '../ui/logger.js';
 import { droneMeshes, selectedObject, setSelectedObject, transformControl, controls } from './scene-init.js';
+import { envGroup } from '../environment.js';
+import { snapMarkerToSurface } from '../environment/obstacles.js';
 
 export function setupTransformControlListeners() {
     transformControl.addEventListener('change', () => {
@@ -30,7 +32,11 @@ export function setupTransformControlListeners() {
                     drone.target_yaw = drone.orientation.yaw;
                 }
             } else if (selectedObject.userData && selectedObject.userData.draggable) {
-                selectedObject.position.z = Math.max(0, selectedObject.position.z);
+                if (selectedObject.userData?.markerKind && transformControl.getMode() !== 'rotate') {
+                    snapMarkerToSurface(selectedObject, envGroup?.children || []);
+                } else {
+                    selectedObject.position.z = Math.max(0, selectedObject.position.z);
+                }
             }
         }
     });
