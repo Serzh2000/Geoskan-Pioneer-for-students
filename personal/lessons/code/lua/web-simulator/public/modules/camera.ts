@@ -16,8 +16,7 @@ export function updateCamera(camera: THREE.PerspectiveCamera, droneMesh: THREE.O
     
     if (controls) {
         const isTransforming = (window as any).isTransforming || false;
-        const hasAttachedObject = (window as any).transformControl && (window as any).transformControl.object;
-        controls.enabled = (mode === 'free' && !isTransforming && !hasAttachedObject);
+        controls.enabled = (mode === 'free' && !isTransforming);
     }
     
     if (mode === 'fpv') {

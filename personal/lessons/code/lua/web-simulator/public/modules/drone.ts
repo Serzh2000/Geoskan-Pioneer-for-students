@@ -3,6 +3,9 @@
  * Экспортирует функции для инициализации и обновления сцены.
  */
 import * as THREE from 'three';
+import { Line2 } from 'three/examples/jsm/lines/Line2.js';
+import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
+import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 import { drones, simState, pathPoints, MAX_PATH_POINTS, currentDroneId, simSettings } from './state.js';
 import { log } from './ui/logger.js';
 import { addObjectToScene, envGroup } from './environment.js';
@@ -12,7 +15,8 @@ import {
     initScene, scene, camera, renderer, controls, transformControl, 
     transformHelper, raycaster, mouse, selectionHelper, 
     droneMeshes, droneTrails, is3DActive, selectedObject, 
-    pointerDownPos, isHittingGizmo, setSelectedObject, setPointerDownPos, setIsHittingGizmo, onWindowResize 
+    pointerDownPos, isHittingGizmo, setSelectedObject, setPointerDownPos, setIsHittingGizmo,
+    onWindowResize, syncViewportDependentSceneVisuals
 } from './scene/scene-init.js';
 import { setupTransformControlListeners } from './scene/transform.js';
 import { onPointerDown, onPointerUp, handleSelection } from './scene/input.js';
@@ -54,6 +58,62 @@ export interface SceneObjectInfo {
     metaLines?: string[];
 }
 
+let scenePointerDownCaptureHandler: ((event: PointerEvent) => void) | null = null;
+let scenePointerUpCaptureHandler: ((event: PointerEvent) => void) | null = null;
+
+function isScenePointerEvent(event: PointerEvent) {
+    if (!renderer?.domElement) return false;
+    const path = typeof event.composedPath === 'function' ? event.composedPath() : [];
+    return path.includes(renderer.domElement) || event.target === renderer.domElement;
+}
+
+function registerScenePointerHandlers() {
+    if (!renderer?.domElement) return;
+
+    if (scenePointerDownCaptureHandler) {
+        document.removeEventListener('pointerdown', scenePointerDownCaptureHandler, true);
+    }
+    if (scenePointerUpCaptureHandler) {
+        document.removeEventListener('pointerup', scenePointerUpCaptureHandler, true);
+    }
+
+    scenePointerDownCaptureHandler = (event: PointerEvent) => {
+        if (!isScenePointerEvent(event)) return;
+        log(`[3D-CLICK] document capture pointerdown target=${(event.target as HTMLElement | null)?.tagName || 'unknown'}`, 'info');
+        onPointerDown(event);
+    };
+
+    scenePointerUpCaptureHandler = (event: PointerEvent) => {
+        if (!isScenePointerEvent(event)) return;
+        log(`[3D-CLICK] document capture pointerup target=${(event.target as HTMLElement | null)?.tagName || 'unknown'}`, 'info');
+        onPointerUp(event);
+    };
+
+    document.addEventListener('pointerdown', scenePointerDownCaptureHandler, true);
+    document.addEventListener('pointerup', scenePointerUpCaptureHandler, true);
+}
+
+function getTracerColorHex() {
+    const color = new THREE.Color(simSettings.tracerColor || '#38bdf8');
+    return color.getHex();
+}
+
+function getTracerWidthPx() {
+    return Math.max(1, Number(simSettings.tracerWidth) || 1);
+}
+
+function getTracerPointSize() {
+    return Math.max(0.08, getTracerWidthPx() * 0.08);
+}
+
+function shouldShowTracerLine() {
+    return simSettings.tracerShape === 'line' || simSettings.tracerShape === 'both';
+}
+
+function shouldShowTracerPoints() {
+    return simSettings.tracerShape === 'points' || simSettings.tracerShape === 'both';
+}
+
 export function init3D(container: HTMLElement) {
     try {
         initScene(container);
@@ -64,14 +124,15 @@ export function init3D(container: HTMLElement) {
 
         // Init Drones
         syncDrones();
+        syncViewportDependentSceneVisuals();
 
-        renderer.domElement.addEventListener('pointerdown', onPointerDown);
-        renderer.domElement.addEventListener('pointerup', onPointerUp);
         renderer.domElement.addEventListener('contextmenu', e => e.preventDefault());
+        registerScenePointerHandlers();
         window.addEventListener('resize', onWindowResize);
         document.addEventListener('keydown', onKeyDown);
 
         log('3D-сцена загружена.', 'success');
+        log('[3D-CLICK] Обработчики pointerdown/pointerup подключены через document capture', 'info');
         updateCamera(camera, droneMeshes[currentDroneId] || null, controls, (window as any).cameraMode || 'drone');
         
     } catch (e: any) {
@@ -98,6 +159,10 @@ export function syncDrones() {
             if (droneTrails[id]) {
                 scene.remove(droneTrails[id].path);
                 scene.remove(droneTrails[id].particles);
+                droneTrails[id].lineGeometry.dispose();
+                droneTrails[id].pointsGeometry.dispose();
+                (droneTrails[id].path.material as LineMaterial).dispose();
+                (droneTrails[id].particles.material as THREE.PointsMaterial).dispose();
                 delete droneTrails[id];
             }
             delete droneMeshes[id];
@@ -106,30 +171,48 @@ export function syncDrones() {
 }
 
 function initTrailForDrone(id: string) {
-    const geo = new THREE.BufferGeometry();
+    const lineGeometry = new LineGeometry();
+    log(`[3D-INIT] Инициализация трейла для ${id}`, 'info');
+
+    const pointsGeometry = new THREE.BufferGeometry();
     const positions = new Float32Array(MAX_PATH_POINTS * 3);
-    geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    geo.setDrawRange(0, 0);
+    pointsGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    pointsGeometry.setDrawRange(0, 0);
 
-    const colorHex = parseInt(simSettings.tracerColor.replace('#', ''), 16);
+    const colorHex = getTracerColorHex();
+    const tracerWidth = getTracerWidthPx();
 
-    const pathMat = new THREE.LineBasicMaterial({ 
-        color: colorHex, linewidth: simSettings.tracerWidth, transparent: true, opacity: 0.6 
+    const pathMat = new LineMaterial({
+        color: colorHex,
+        linewidth: tracerWidth,
+        transparent: true,
+        opacity: 0.9,
+        depthTest: false,
+        depthWrite: false
     });
-    // Используем THREE.Line, так как LineBasicMaterial работает с ним
-    const path = new THREE.Line(geo, pathMat);
+    const path = new Line2(lineGeometry, pathMat);
     path.frustumCulled = false;
+    path.renderOrder = 9000;
+    path.visible = false;
 
     const particleMat = new THREE.PointsMaterial({
-        color: colorHex, size: simSettings.tracerWidth * 0.025, sizeAttenuation: true, transparent: true, opacity: 0.8
+        color: colorHex,
+        size: getTracerPointSize(),
+        sizeAttenuation: true,
+        transparent: true,
+        opacity: 0.9,
+        depthWrite: false
     });
-    const particles = new THREE.Points(geo, particleMat);
+    const particles = new THREE.Points(pointsGeometry, particleMat);
     particles.frustumCulled = false;
+    particles.visible = false;
+    particles.renderOrder = 8999;
     
     scene.add(path);
     scene.add(particles);
     
-    droneTrails[id] = { path, particles, geo };
+    droneTrails[id] = { path, particles, lineGeometry, pointsGeometry };
+    log(`[3D-INIT] Трейл для ${id} готов`, 'info');
 }
 
 export function getObstacles() {
@@ -197,36 +280,43 @@ export function updateDrone3D(dt: number) {
 function updateTrailForDrone(id: string) {
     if (!is3DActive || !droneTrails[id]) return;
 
-    const drone = drones[id];
     const pts = pathPoints[id] || [];
     const trail = droneTrails[id];
 
     if (simSettings.showTracer && pts.length > 1) {
-        const pos = trail.geo.attributes.position.array as Float32Array;
+        const pointPositions = trail.pointsGeometry.attributes.position.array as Float32Array;
+        const linePositions = new Float32Array(pts.length * 3);
         for (let i = 0; i < pts.length; i++) {
-            pos[i * 3] = pts[i].x;
-            pos[i * 3 + 1] = pts[i].y;
-            pos[i * 3 + 2] = pts[i].z;
+            pointPositions[i * 3] = pts[i].x;
+            pointPositions[i * 3 + 1] = pts[i].y;
+            pointPositions[i * 3 + 2] = pts[i].z;
+
+            linePositions[i * 3] = pts[i].x;
+            linePositions[i * 3 + 1] = pts[i].y;
+            linePositions[i * 3 + 2] = pts[i].z;
         }
-        trail.geo.setDrawRange(0, pts.length);
-        trail.geo.attributes.position.needsUpdate = true;
+        trail.pointsGeometry.setDrawRange(0, pts.length);
+        trail.pointsGeometry.attributes.position.needsUpdate = true;
+        trail.lineGeometry.setPositions(linePositions);
+        trail.lineGeometry.computeBoundingSphere();
         
-        const pathMat = trail.path.material as THREE.LineBasicMaterial;
+        const pathMat = trail.path.material as LineMaterial;
         const particleMat = trail.particles.material as THREE.PointsMaterial;
         
-        const colorHex = parseInt(simSettings.tracerColor.replace('#', ''), 16);
+        const colorHex = getTracerColorHex();
+        const tracerWidth = getTracerWidthPx();
         pathMat.color.setHex(colorHex);
-        pathMat.linewidth = simSettings.tracerWidth;
+        pathMat.linewidth = tracerWidth;
         particleMat.color.setHex(colorHex);
-        particleMat.size = simSettings.tracerWidth * 0.025;
+        particleMat.size = getTracerPointSize();
 
-        // В Three.js WebGLRenderer иногда плохо работает с linewidth != 1
-        // Но видимость должна работать корректно
-        trail.path.visible = simSettings.tracerShape === 'line' || simSettings.tracerShape === 'both';
-        trail.particles.visible = simSettings.tracerShape === 'points' || simSettings.tracerShape === 'both';
+        trail.path.visible = shouldShowTracerLine();
+        trail.particles.visible = shouldShowTracerPoints();
         
-        // Форсируем обновление матрицы для пути
-        trail.path.updateMatrixWorld();
+        if (linePositions.length >= 6) {
+            trail.path.computeLineDistances();
+        }
+        trail.path.updateMatrixWorld(true);
     } else {
         trail.path.visible = trail.particles.visible = false;
     }
@@ -235,11 +325,16 @@ function updateTrailForDrone(id: string) {
 function onKeyDown(event: KeyboardEvent) {
     const target = event.target as HTMLElement;
     if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || (target.closest && target.closest('.monaco-editor'))) return;
+
+    if (event.key.toLowerCase() === 'escape') {
+        if (transformControl?.object || selectedObject) handleDeselection();
+        return;
+    }
+
     if (!selectedObject) return;
 
     switch (event.key.toLowerCase()) {
         case 'delete': case 'backspace': deleteSelectedObject(); break;
-        case 'escape': handleDeselection(); break;
         case 't': if (selectedObject) activateTransformMode('translate', selectedObject); break;
         case 'r': if (selectedObject) activateTransformMode('rotate', selectedObject); break;
         case 's': if (selectedObject) activateTransformMode('scale', selectedObject); break;

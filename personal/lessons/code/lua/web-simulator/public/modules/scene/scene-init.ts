@@ -1,6 +1,9 @@
 import * as THREE from 'three';
 import { DroneOrbitControls } from './DroneOrbitControls.js';
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls.js';
+import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
+import { Line2 } from 'three/examples/jsm/lines/Line2.js';
+import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
 import { log } from '../ui/logger.js';
 import { setupEnvironment, envGroup } from '../environment.js';
 
@@ -17,15 +20,26 @@ export let selectionHelper: THREE.BoxHelper;
 
 export let canvasContainer: HTMLElement;
 export let droneMeshes: Record<string, THREE.Object3D> = {};
-export let droneTrails: Record<string, { path: THREE.Line, particles: THREE.Points, geo: THREE.BufferGeometry }> = {};
+export interface DroneTrailVisuals {
+    path: Line2;
+    particles: THREE.Points;
+    lineGeometry: LineGeometry;
+    pointsGeometry: THREE.BufferGeometry;
+}
+export let droneTrails: Record<string, DroneTrailVisuals> = {};
 
 export let is3DActive = false;
 export let selectedObject: THREE.Object3D | null = null;
 export let pointerDownPos = new THREE.Vector2();
 export let isHittingGizmo = false;
 
+const orbitTargetBounds = new THREE.Box3();
+const orbitTargetCenter = new THREE.Vector3();
+
 export function setSelectedObject(obj: THREE.Object3D | null) {
     selectedObject = obj;
+    (window as any).selectedObject = obj;
+    (window as any).pendingOrbitRetargetObject = null;
 }
 
 export function setPointerDownPos(x: number, y: number) {
@@ -34,6 +48,45 @@ export function setPointerDownPos(x: number, y: number) {
 
 export function setIsHittingGizmo(val: boolean) {
     isHittingGizmo = val;
+}
+
+export function focusOrbitControlsOnObject(obj: THREE.Object3D | null, applyViewChange = true) {
+    if (!controls || !obj) return;
+
+    obj.updateWorldMatrix(true, true);
+    orbitTargetBounds.setFromObject(obj);
+
+    if (orbitTargetBounds.isEmpty()) {
+        obj.getWorldPosition(orbitTargetCenter);
+    } else {
+        orbitTargetBounds.getCenter(orbitTargetCenter);
+    }
+
+    controls.setTarget(orbitTargetCenter, true, applyViewChange);
+}
+
+function configureTransformHelperVisuals(helper: THREE.Object3D) {
+    helper.renderOrder = 10000;
+    helper.frustumCulled = false;
+    helper.traverse((node: any) => {
+        node.renderOrder = 10000;
+        node.frustumCulled = false;
+        const materials = Array.isArray(node.material) ? node.material : node.material ? [node.material] : [];
+        materials.forEach((material: THREE.Material & { depthTest?: boolean; depthWrite?: boolean; toneMapped?: boolean }) => {
+            material.depthTest = false;
+            material.depthWrite = false;
+            if ('toneMapped' in material) material.toneMapped = false;
+        });
+    });
+}
+
+export function syncViewportDependentSceneVisuals() {
+    if (!renderer) return;
+    const size = renderer.getSize(new THREE.Vector2());
+    for (const trail of Object.values(droneTrails)) {
+        const material = trail.path.material as LineMaterial;
+        material.resolution.set(size.x, size.y);
+    }
 }
 
 export function initScene(container: HTMLElement) {
@@ -77,10 +130,13 @@ export function initScene(container: HTMLElement) {
     });
 
     transformControl = new TransformControls(camera, renderer.domElement);
-    transformControl.size = 1.0;
+    transformControl.size = 1.15;
     transformControl.visible = false;
+    transformControl.enabled = true;
+    transformControl.setSpace('world');
     
     transformHelper = (transformControl as any).getHelper ? (transformControl as any).getHelper() : (transformControl as unknown as THREE.Object3D);
+    configureTransformHelperVisuals(transformHelper);
     scene.add(transformHelper);
     transformHelper.visible = false;
     (window as any).transformControl = transformControl;
@@ -113,4 +169,5 @@ export function onWindowResize() {
     camera.aspect = canvasContainer.clientWidth / canvasContainer.clientHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(canvasContainer.clientWidth, canvasContainer.clientHeight);
+    syncViewportDependentSceneVisuals();
 }

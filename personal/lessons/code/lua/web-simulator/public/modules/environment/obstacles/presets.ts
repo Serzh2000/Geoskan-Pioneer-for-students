@@ -46,15 +46,23 @@ export function createRaceTrackPreset() {
     });
     group.add(road);
 
-    const gateStart = createGateMesh();
-    gateStart.position.set(12, 0, 0);
-    gateStart.rotation.z = Math.PI / 2;
-    group.add(gateStart);
+    // Расставляем ворота по всем ключевым точкам трассы
+    const gateConfigs = [
+        { x: 14, y: 0, rot: Math.PI / 2 },
+        { x: 10, y: 10, rot: 2.35 },
+        { x: 0, y: 14, rot: Math.PI },
+        { x: -12, y: 8, rot: 3.8 },
+        { x: -14, y: -4, rot: 4.8 },
+        { x: -4, y: -14, rot: 6.0 },
+        { x: 8, y: -12, rot: 0.8 }
+    ];
 
-    const gateTurn = createGateMesh();
-    gateTurn.position.set(-10, 8, 0);
-    gateTurn.rotation.z = 0.35;
-    group.add(gateTurn);
+    gateConfigs.forEach(config => {
+        const gate = createGateMesh();
+        gate.position.set(config.x, config.y, 0);
+        gate.rotation.z = config.rot;
+        group.add(gate);
+    });
 
     for (let i = 0; i < 6; i++) {
         const pylon = createPylonMesh();
@@ -129,9 +137,9 @@ export function createResidentialPreset() {
 
     const buildingPositions = [
         [-12, -10, 8],
-        [-9, 8, 10],
-        [8, -9, 12],
-        [12, 8, 9]
+        [-16, 4, 10],  // Смещен левее и ниже, чтобы не мешать ЖД
+        [8, -10, 12],
+        [15, 16, 9]    // Смещен сильно выше, за пределы ЖД путей
     ];
     buildingPositions.forEach(([x, y, floors]) => {
         const building = createApartmentBuildingMesh({ floors: floors as number });
@@ -141,7 +149,7 @@ export function createResidentialPreset() {
     });
 
     const park = createParkPatch(10, 8);
-    park.position.set(0, 8, 0);
+    park.position.set(-8, 5, 0); // Смещен влево от вертикальной дороги (x=0)
     group.add(park);
 
     const settlement = createSettlementMesh();
@@ -152,12 +160,13 @@ export function createResidentialPreset() {
     forest.position.set(11, -11, 0);
     group.add(forest);
 
+    // Деревья перенесены вместе с парком влево
     [
-        [-3, 6, 0.9],
-        [0, 7.5, 1],
-        [2.8, 9, 0.85],
-        [-1, 10.5, 1.1],
-        [3.5, 5.6, 0.95]
+        [-11, 3, 0.9],
+        [-8, 4.5, 1],
+        [-5.2, 6, 0.85],
+        [-9, 7.5, 1.1],
+        [-4.5, 2.6, 0.95]
     ].forEach(([x, y, scale]) => {
         const tree = createTreeMesh(scale as number);
         tree.position.set(x as number, y as number, 0);
@@ -199,10 +208,10 @@ export function createGeoskanArenaPreset() {
     group.add(arena);
 
     const startPositions = [
-        [-6, -6, '1'],
-        [-2, -6, '2'],
-        [2, -6, '3'],
-        [6, -6, '4']
+        [-6, -7.5, '1'], // Смещены вниз, чтобы не наезжать на опоры сетки
+        [-2, -7.5, '2'],
+        [2, -7.5, '3'],
+        [6, -7.5, '4']
     ] as const;
     startPositions.forEach(([x, y, label]) => {
         const pad = createStartPositionMesh(label);
@@ -211,19 +220,19 @@ export function createGeoskanArenaPreset() {
     });
 
     const chargeLeft = createChargeStationMesh();
-    chargeLeft.position.set(-4, 4, 0.01);
+    chargeLeft.position.set(-4, 4.5, 0.01); // Немного смещено от сетки
     group.add(chargeLeft);
 
     const chargeRight = createChargeStationMesh();
-    chargeRight.position.set(4, 4, 0.01);
+    chargeRight.position.set(4, 4.5, 0.01);
     group.add(chargeRight);
 
     const heliLeft = createArenaHeliportMesh();
-    heliLeft.position.set(-6, 0, 0.01);
+    heliLeft.position.set(-6, 0.5, 0.01); // Немного смещено от сетки
     group.add(heliLeft);
 
     const heliRight = createArenaHeliportMesh();
-    heliRight.position.set(6, 0, 0.01);
+    heliRight.position.set(6, 0.5, 0.01);
     group.add(heliRight);
 
     const hillCluster = createArenaHillClusterMesh();
@@ -231,19 +240,19 @@ export function createGeoskanArenaPreset() {
     group.add(hillCluster);
 
     const settlement = createSettlementMesh();
-    settlement.position.set(0, 7.8, 0);
+    settlement.position.set(0, 8.5, 0); // Смещено выше, за пределы сетки
     group.add(settlement);
 
     const forestLeft = createForestPatchMesh();
-    forestLeft.position.set(-7.2, 6.2, 0);
+    forestLeft.position.set(-8.2, 7.2, 0); // Раздвинуто в стороны от сетки
     group.add(forestLeft);
 
     const forestRight = createForestPatchMesh();
-    forestRight.position.set(7.4, 6.1, 0);
+    forestRight.position.set(8.4, 7.1, 0);
     group.add(forestRight);
 
     const controlStation = createArenaControlStationMesh();
-    controlStation.position.set(0, -8.6, 0);
+    controlStation.position.set(0, -9.5, 0); // Смещено ниже от старта
     group.add(controlStation);
 
     const cameraTower = createVideoTowerMesh();
@@ -257,6 +266,11 @@ export function createGeoskanArenaPreset() {
     const lightTowerRight = createLightTowerMesh();
     lightTowerRight.position.set(8.2, 8.2, 0);
     group.add(lightTowerRight);
+
+    // Добавляем точечный источник света для освещения центра арены
+    const pointLight = new THREE.PointLight(0xffffff, 50, 20);
+    pointLight.position.set(0, 0, 5); // По центру на высоте 5 метров
+    group.add(pointLight);
 
     const locusA = createLocusBeaconMesh();
     locusA.position.set(-8.1, -0.2, 0);

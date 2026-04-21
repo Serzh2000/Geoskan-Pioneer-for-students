@@ -1,17 +1,29 @@
 import * as THREE from 'three';
 import { controls, transformControl, transformHelper, selectedObject, setSelectedObject, scene, selectionHelper } from './scene-init.js';
 import { log } from '../ui/logger.js';
+import { updateTransformModeDecorations } from './transform.js';
+import { clearSelectedObjectInitialTransform } from './object-manager.js';
+
+export function exitTransformMode() {
+    if (transformControl) {
+        transformControl.detach();
+        transformControl.visible = false;
+    }
+    if (transformHelper) transformHelper.visible = false;
+    updateTransformModeDecorations(null);
+    if ((window as any).hideGizmoToolbar) (window as any).hideGizmoToolbar();
+    if (controls) controls.enabled = (window as any).cameraMode === 'free' && !(window as any).isTransforming;
+}
 
 export function handleDeselection() {
     if (selectedObject) deselectObject();
-    if (transformControl) transformControl.detach();
-    if (transformHelper) transformHelper.visible = false;
+    exitTransformMode();
     if ((window as any).hideContextMenu) (window as any).hideContextMenu();
-    if (controls) controls.enabled = (window as any).cameraMode === 'free';
 }
 
 export function deselectObject() {
     if (!selectedObject) return;
+    const objectToClear = selectedObject;
     
     selectedObject.traverse((node: any) => {
         if (node.isMesh && node.material) {
@@ -31,4 +43,5 @@ export function deselectObject() {
         if (dummy) selectionHelper.setFromObject(dummy);
     }
     setSelectedObject(null);
+    clearSelectedObjectInitialTransform(objectToClear);
 }
