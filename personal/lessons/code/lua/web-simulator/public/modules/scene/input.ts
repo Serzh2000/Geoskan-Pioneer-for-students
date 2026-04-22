@@ -1,6 +1,20 @@
 import * as THREE from 'three';
 import { log } from '../ui/logger.js';
-import { pointerDownPos, isHittingGizmo, transformControl, controls, raycaster, mouse, camera, droneMeshes, selectedObject, renderer, focusOrbitControlsOnObject } from './scene-init.js';
+import {
+    pointerDownPos,
+    isHittingGizmo,
+    transformControl,
+    controls,
+    raycaster,
+    mouse,
+    camera,
+    droneMeshes,
+    selectedObject,
+    multiSelectedObjects,
+    renderer,
+    focusOrbitControlsOnObject,
+    toggleMultiSelectObject
+} from './scene-init.js';
 import { currentDroneId, simState } from '../state.js';
 import { envGroup } from '../environment.js';
 import { handleDeselection, deselectObject, exitTransformMode } from './selection.js';
@@ -211,7 +225,6 @@ export function onPointerUp(event: PointerEvent) {
     const rect = renderer.domElement.getBoundingClientRect();
     mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
     mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-    traceClick(`normalized pointer x=${mouse.x.toFixed(3)} y=${mouse.y.toFixed(3)} rect=${rect.width.toFixed(0)}x${rect.height.toFixed(0)}`);
 
     raycaster.setFromCamera(mouse, camera);
     
@@ -226,66 +239,84 @@ export function onPointerUp(event: PointerEvent) {
     }
     const ground = (window as any).scene ? (window as any).scene.getObjectByName('Ground') : null;
     if (ground) targets.push(ground);
-    traceClick(`raycast targets=${targets.length} envChildren=${envGroup ? envGroup.children.length : 0} ground=${String(!!ground)}`);
     
     try {
         const intersects = raycaster.intersectObjects(targets, true);
-        traceClick(`raycast intersects=${intersects.length}${intersects.length ? ` first=${intersects.slice(0, 4).map((hit) => `${hit.object.name || hit.object.type}:${hit.distance.toFixed(2)}`).join(', ')}` : ''}`);
-        let groundPoint: THREE.Vector3 | null = null;
-
+        const isCtrl = (event.ctrlKey || event.metaKey) && event.button === 0; // Ctrl + ЛКМ
+        const isRightClick = event.button === 2; // ПКМ
+        
         if (intersects.length > 0) {
-            for (const intersect of intersects) {
-                const rootObject = getRootSceneObject(intersect.object);
-
-                if (isGroundObject(intersect.object) || isGroundObject(rootObject)) {
-                    traceClick(`ground intersect object=${intersect.object.name || intersect.object.type} point=${intersect.point.x.toFixed(2)},${intersect.point.y.toFixed(2)},${intersect.point.z.toFixed(2)}`);
-                    if (!groundPoint) groundPoint = intersect.point.clone();
-                    continue;
+            const intersect = intersects[0];
+            const rootObject = getRootSceneObject(intersect.object);
+            
+            // Координаты через Ctrl + ЛКМ
+            if (isCtrl) {
+                showGroundPoint(intersect.point);
+                if ((window as any).updateSceneObjectClickCoords) {
+                    (window as any).updateSceneObjectClickCoords(intersect.point);
                 }
-
+                // Ctrl+ЛКМ также выполняет мультивыбор
                 if (isDroneObject(rootObject) || isTransformableObject(rootObject)) {
-                    traceClick(`selectable intersect object=${getObjectDisplayName(rootObject)} showMenu=true`);
-                    handleSelection(rootObject, event.clientX, event.clientY, true);
-                    return;
+                    toggleMultiSelectObject(rootObject);
+                    multiSelectedObjects.forEach(obj => updateObjectSelectionVisuals(obj, true));
+                    (window as any).updateSceneManager && (window as any).updateSceneManager();
                 }
+                return;
+            }
 
-                if (!groundPoint && Math.abs(intersect.point.z) <= 0.25) {
-                    traceClick(`fallback near-ground point from ${intersect.object.name || intersect.object.type}`);
-                    groundPoint = intersect.point.clone();
+            // ПКМ по любому объекту вызывает меню
+            if (isRightClick) {
+                // Если это земля - показываем только координаты
+                if (isGroundObject(intersect.object) || isGroundObject(rootObject)) {
+                    // Используем координаты пересечения луча с мешем земли
+                    handleSelection(null as any, event.clientX, event.clientY, true, false, intersect.point);
+                } else {
+                    handleSelection(rootObject, event.clientX, event.clientY, true, false, intersect.point);
                 }
+                return;
+            }
+
+            // Обычный ЛКМ по земле - сброс выбора
+            if (isGroundObject(intersect.object) || isGroundObject(rootObject)) {
+                traceClick('ground intersect, deselecting');
+                handleDeselection();
+                return;
+            }
+
+            // Обычный ЛКМ по объекту - выбор и редактирование
+            if (isDroneObject(rootObject) || isTransformableObject(rootObject)) {
+                traceClick(`selectable intersect object=${getObjectDisplayName(rootObject)} select=true`);
+                handleSelection(rootObject, event.clientX, event.clientY, false, false, intersect.point);
+                return;
             }
         }
 
-        if (!groundPoint) {
-            groundPoint = getGroundPointFromPointer();
-            traceClick(groundPoint
-                ? `plane intersection point=${groundPoint.x.toFixed(2)},${groundPoint.y.toFixed(2)},${groundPoint.z.toFixed(2)}`
-                : 'plane intersection not found',
-            groundPoint ? 'info' : 'warn');
-        }
+        // Клик в пустоту
+        const groundPoint = getGroundPointFromPointer();
         if (groundPoint) {
-            traceClick('show ground coordinates and deselect current object');
-            showGroundPoint(groundPoint);
-            handleDeselection();
+            if (isCtrl) {
+                showGroundPoint(groundPoint);
+                if ((window as any).updateSceneObjectClickCoords) {
+                    (window as any).updateSceneObjectClickCoords(groundPoint);
+                }
+            } else if (isRightClick) {
+                // ПКМ по пустому месту (земле) - тоже меню
+                const dummy = new THREE.Object3D();
+                dummy.position.copy(groundPoint);
+                handleSelection(dummy, event.clientX, event.clientY, true, false, groundPoint);
+            } else {
+                handleDeselection();
+            }
             return;
         }
     } catch (e) {
         console.warn('[3D] Raycasting failed:', e);
-        traceClick(`raycast failed: ${e instanceof Error ? e.message : String(e)}`, 'warn');
     }
 
-    traceClick('nothing selected and no ground point found, deselecting', 'warn');
     handleDeselection();
 }
 
-export function handleSelection(obj: THREE.Object3D, x: number, y: number, showMenu = false, focusCamera = true) {
-    const isSameObject = selectedObject === obj;
-    traceClick(`handleSelection object=${getObjectDisplayName(obj)} same=${String(isSameObject)} showMenu=${String(showMenu)}`);
-    if (selectedObject && !isSameObject) deselectObject();
-    if (!isSameObject) rememberSelectedObjectInitialTransform(obj);
-
-    (window as any).setSelectedObject(obj);
-    
+export function updateObjectSelectionVisuals(obj: THREE.Object3D, selected: boolean) {
     const emissiveColor = new THREE.Color(0x38bdf8);
     obj.traverse((node: any) => {
         if (node.isMesh && node.material) {
@@ -295,26 +326,42 @@ export function handleSelection(obj: THREE.Object3D, x: number, y: number, showM
                     if (mat.userData.originalEmissive === undefined) {
                         mat.userData.originalEmissive = mat.emissive.getHex();
                     }
-                    mat.emissive.copy(emissiveColor);
-                    mat.emissiveIntensity = 0.6;
+                    if (selected) {
+                        mat.emissive.copy(emissiveColor);
+                        mat.emissiveIntensity = 0.6;
+                    } else {
+                        mat.emissive.setHex(mat.userData.originalEmissive);
+                        mat.emissiveIntensity = 0;
+                    }
                 }
             });
         }
     });
 
-    if ((window as any).selectionHelper) {
+    if (selected && (window as any).selectionHelper) {
         (window as any).selectionHelper.setFromObject(obj);
         (window as any).selectionHelper.visible = true;
     }
+}
 
-    if (focusCamera) {
+export function handleSelection(obj: THREE.Object3D | null, x: number, y: number, showMenu = false, focusCamera = false, clickPoint?: THREE.Vector3) {
+    const isSameObject = selectedObject === obj;
+    traceClick(`handleSelection object=${obj ? getObjectDisplayName(obj) : 'null'} same=${String(isSameObject)} showMenu=${String(showMenu)}`);
+    
+    if (selectedObject && !isSameObject) deselectObject();
+    if (obj && !isSameObject) rememberSelectedObjectInitialTransform(obj);
+
+    (window as any).setSelectedObject(obj);
+    if (obj) updateObjectSelectionVisuals(obj, true);
+
+    if (focusCamera && obj) {
         focusOrbitControlsOnObject(obj);
     }
 
-    const transformable = isDroneObject(obj) || isTransformableObject(obj);
+    const transformable = obj ? (isDroneObject(obj) || isTransformableObject(obj)) : false;
     if (showMenu) {
         hideTransformUiPreserveSelection();
-    } else if (transformable && !simState.running) {
+    } else if (obj && transformable && !simState.running) {
         showTransformUi(obj);
     } else if ((window as any).hideGizmoToolbar) {
         traceClick(`gizmo toolbar hidden transformable=${String(transformable)} simRunning=${String(simState.running)}`);
@@ -322,8 +369,8 @@ export function handleSelection(obj: THREE.Object3D, x: number, y: number, showM
     }
 
     if (showMenu && (window as any).showContextMenu) {
-        const isDrone = isDroneObject(obj);
-        traceClick(`showContextMenu for ${getObjectDisplayName(obj)} at x=${x} y=${y} isDrone=${String(isDrone)}`);
+        const isDrone = obj ? isDroneObject(obj) : false;
+        traceClick(`showContextMenu for ${obj ? getObjectDisplayName(obj) : 'ground'} at x=${x} y=${y} isDrone=${String(isDrone)}`);
 
         (window as any).showContextMenu(x, y, 
             (mode: string) => {
@@ -333,6 +380,12 @@ export function handleSelection(obj: THREE.Object3D, x: number, y: number, showM
             },
             () => deleteSelectedObject(),
             () => duplicateObject(),
+            clickPoint ? () => {
+                showGroundPoint(clickPoint);
+                if ((window as any).updateSceneObjectClickCoords) {
+                    (window as any).updateSceneObjectClickCoords(clickPoint);
+                }
+            } : undefined,
             isDrone ? () => resetDroneToOrigin() : undefined
         );
     } else if (showMenu) {

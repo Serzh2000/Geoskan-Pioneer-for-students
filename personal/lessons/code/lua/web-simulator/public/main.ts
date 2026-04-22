@@ -33,6 +33,23 @@ import { simSettings } from './modules/state.js';
 let animationFrameId: number;
 let lastTime = 0;
 
+function scriptHasVisibleDelay(language: ScriptLanguage, code: string) {
+    const normalized = (code || '').toLowerCase();
+    if (language === 'python') {
+        return /\b(time|asyncio)\.sleep\s*\(/.test(normalized) || /\bawait\s+asyncio\.sleep\s*\(/.test(normalized);
+    }
+    return /\bsleep\s*\(/.test(normalized) || /\btimer\.(calllater|new)\s*\(/.test(normalized);
+}
+
+function warnAboutInstantExecution(language: ScriptLanguage) {
+    const sleepSyntax = language === 'python' ? '`time.sleep()`' : '`sleep()`';
+    const message = `В скрипте нет пауз ${sleepSyntax}: команды уйдут почти мгновенно, а анимация может выглядеть слишком быстрой. Добавьте задержки между arm/takeoff/goto/land.`;
+    log(message, 'warn');
+    if ((window as any).showSimulationNotice) {
+        (window as any).showSimulationNotice(message, 'warn');
+    }
+}
+
 // Global error handler for debugging
 window.onerror = function(message, source, lineno, colno, error) {
     const errorMsg = `[Global Error] ${message} at ${source}:${lineno}:${colno}`;
@@ -67,7 +84,7 @@ function init() {
                 type: string,
                 options?: { value?: string; markerDictionary?: string; pointsText?: string; floors?: number; markerMap?: MarkerMapOptions }
             ) => addObject(type, options),
-            updateSelected: (params: { value?: string; markerDictionary?: string; pointsText?: string }) => updateSelectedSceneObject(params),
+            updateSelected: (params: { value?: string; markerDictionary?: string; pointsText?: string; floors?: number }) => updateSelectedSceneObject(params),
             appendPoint: () => appendPointToSelectedLinearObject(),
             setMode: (mode: 'translate' | 'rotate' | 'scale', id?: string) => setSceneObjectTransformMode(mode, id),
             resetDroneOrigin: () => resetDroneToOrigin(),
@@ -143,6 +160,9 @@ function startSimulation() {
             log('Python: пустой скрипт. Нечего запускать.', 'warn');
             return;
         }
+        if (!scriptHasVisibleDelay('python', code)) {
+            warnAboutInstantExecution('python');
+        }
 
         // Остановим любые активные Lua/py run для этого дрона.
         stopLuaScript(id);
@@ -178,6 +198,9 @@ function startSimulation() {
         const code = drone.script;
         log(`[DEBUG] Drone ${id} script length: ${code ? code.length : 0}`, 'info');
         if (!code || !code.trim()) continue;
+        if (!scriptHasVisibleDelay('lua', code)) {
+            warnAboutInstantExecution('lua');
+        }
 
         stopLuaScript(id);
         resetRuntimeStatePreservePose(id);

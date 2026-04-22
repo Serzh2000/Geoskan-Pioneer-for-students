@@ -36,6 +36,7 @@ import {
     createStartPositionMesh,
     createStyledLandingPad,
     createTransportMesh,
+    updateApartmentBuildingMetadata,
     createVideoTowerMesh,
     SceneObjectOptions,
     ScenePathPoint,
@@ -112,7 +113,16 @@ export function addObjectToScene(type: string, camera?: THREE.Camera | null, opt
     return null;
 }
 
-export function updateSceneObjectValue(object: THREE.Object3D, params: { value?: string; markerDictionary?: string }) {
+export function updateSceneObjectValue(
+    object: THREE.Object3D,
+    params: { value?: string; markerDictionary?: string; floors?: number }
+) {
+    if (object.userData?.type === 'Многоэтажка') {
+        return updateApartmentBuildingMetadata(object, {
+            value: params.value,
+            floors: params.floors
+        });
+    }
     return updateMarkerValue(object, { value: params.value, dictionaryId: params.markerDictionary });
 }
 

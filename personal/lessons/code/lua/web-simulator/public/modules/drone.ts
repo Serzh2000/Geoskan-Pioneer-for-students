@@ -219,6 +219,148 @@ export function getObstacles() {
     return envGroup ? envGroup.children : [];
 }
 
+const explodedDrones = new Set<string>();
+
+function explodeDrone(id: string, mesh: THREE.Object3D) {
+    if (explodedDrones.has(id)) return;
+    explodedDrones.add(id);
+
+    // Собираем все меши, которые должны разлетаться
+    const partsToExplode: THREE.Object3D[] = [];
+    
+    // Рекурсивно находим все меши и превращаем их в плоский список
+    // Но для Pioneer мы знаем ключевые группы
+    const mainComponents = [
+        mesh.getObjectByName('frame'),
+        mesh.getObjectByName('leds'),
+        mesh.getObjectByName('camera_antenna'),
+        mesh.getObjectByName('motors_group')
+    ].filter(Boolean) as THREE.Object3D[];
+
+    if (mainComponents.length > 0) {
+        mainComponents.forEach(comp => {
+            // Если это группа моторов, вытаскиваем из нее пропеллеры и моторы
+            if (comp.name === 'motors_group') {
+                const subParts = [...comp.children];
+                subParts.forEach(part => partsToExplode.push(part));
+            } else {
+                partsToExplode.push(comp);
+            }
+        });
+    } else {
+        partsToExplode.push(...mesh.children);
+    }
+
+    // Переносим все части в корень mesh, чтобы они были независимы
+    partsToExplode.forEach((part) => {
+        // Получаем мировое положение детали относительно mesh
+        const worldPos = new THREE.Vector3();
+        const worldQuat = new THREE.Quaternion();
+        const worldScale = new THREE.Vector3();
+        
+        part.getWorldPosition(worldPos);
+        part.getWorldQuaternion(worldQuat);
+        part.getWorldScale(worldScale);
+
+        // Сохраняем иерархию для восстановления
+        part.userData.originalParent = part.parent;
+        part.userData.originalPos = part.position.clone();
+        part.userData.originalRot = part.rotation.clone();
+        part.userData.originalScale = part.scale.clone();
+
+        // Прикрепляем к корню mesh
+        mesh.add(part);
+        
+        // Устанавливаем положение в локальных координатах mesh
+        mesh.worldToLocal(worldPos);
+        part.position.copy(worldPos);
+        // Для вращения используем упрощенный подход, так как mesh.rotation зафиксирован
+        part.quaternion.copy(worldQuat); 
+
+        // Задаем импульс разлета
+        part.userData.vel = new THREE.Vector3(
+            (Math.random() - 0.5) * 10,
+            (Math.random() - 0.5) * 10,
+            Math.random() * 5 + 3
+        );
+        
+        part.userData.rotVel = new THREE.Vector3(
+            (Math.random() - 0.5) * 15,
+            (Math.random() - 0.5) * 15,
+            (Math.random() - 0.5) * 15
+        );
+    });
+}
+
+function resetDroneVisuals(id: string, mesh: THREE.Object3D) {
+    if (!explodedDrones.has(id)) return;
+    explodedDrones.delete(id);
+
+    // Восстанавливаем иерархию
+    const parts = [...mesh.children];
+    parts.forEach((part) => {
+        if (part.userData.originalParent) {
+            part.userData.originalParent.add(part);
+            part.position.copy(part.userData.originalPos);
+            part.rotation.copy(part.userData.originalRot);
+            part.scale.copy(part.userData.originalScale);
+            
+            delete part.userData.originalParent;
+            delete part.userData.originalPos;
+            delete part.userData.originalRot;
+            delete part.userData.originalScale;
+            delete part.userData.vel;
+            delete part.userData.rotVel;
+        }
+    });
+}
+
+function updateDebrisVisuals(mesh: THREE.Object3D, dt: number) {
+    mesh.children.forEach((part) => {
+        if (part.userData.vel) {
+            const vel = part.userData.vel as THREE.Vector3;
+            const rotVel = part.userData.rotVel as THREE.Vector3;
+
+            // Применяем скорость и вращение
+            part.position.addScaledVector(vel, dt);
+            part.rotation.x += rotVel.x * dt;
+            part.rotation.y += rotVel.y * dt;
+            part.rotation.z += rotVel.z * dt;
+
+            // Гравитация
+            vel.z -= 15.0 * dt; 
+            
+            // Сопротивление воздуха (затухание скорости)
+            const friction = 1.0 - 0.9 * dt;
+            vel.x *= friction;
+            vel.y *= friction;
+            rotVel.multiplyScalar(1.0 - 1.5 * dt);
+
+            // Ограничение по уровню земли (world Z = mesh.pos.z + part.pos.z)
+            const worldZ = mesh.position.z + part.position.z;
+            if (worldZ < 0.02) {
+                // Если деталь коснулась земли
+                part.position.z = -mesh.position.z + 0.02;
+                
+                // Если вертикальная скорость еще есть — слабый отскок
+                if (Math.abs(vel.z) > 1.2) {
+                    vel.z *= -0.25;
+                    vel.x *= 0.6;
+                    vel.y *= 0.6;
+                } else {
+                    // Окончательная остановка
+                    vel.set(0, 0, 0);
+                    rotVel.set(0, 0, 0);
+                    
+                    // Укладываем плашмя (горизонтально)
+                    part.rotation.x = Math.PI / 2 * (Math.random() > 0.5 ? 1 : -1);
+                    part.rotation.y = 0;
+                }
+            }
+        }
+    });
+}
+
 export function updateDrone3D(dt: number) {
     if (!is3DActive || !renderer || !camera) return;
 
@@ -252,17 +394,30 @@ export function updateDrone3D(dt: number) {
         const mesh = droneMeshes[id];
         if (!mesh) continue;
 
-        mesh.position.set(drone.pos.x, drone.pos.y, drone.pos.z);
-        mesh.rotation.set(drone.orientation.roll, drone.orientation.pitch, drone.orientation.yaw, 'ZYX');
+        if (drone.status === 'CRASHED') {
+            explodeDrone(id, mesh);
+            updateDebrisVisuals(mesh, dt);
+            
+            // Для разбитого дрона обновляем только позицию центра взрыва,
+            // но НЕ обновляем вращение всей группы (чтобы не было "облака")
+            mesh.position.set(drone.pos.x, drone.pos.y, drone.pos.z);
+            // mesh.rotation ОСТАЕТСЯ ПРЕЖНИМ (или фиксируется)
+        } else {
+            resetDroneVisuals(id, mesh);
+            updateLEDs(mesh, drone);
+            animateRotors(mesh, dt, drone);
+            
+            mesh.position.set(drone.pos.x, drone.pos.y, drone.pos.z);
+            mesh.rotation.set(drone.orientation.roll, drone.orientation.pitch, drone.orientation.yaw, 'ZYX');
+        }
 
-        updateLEDs(mesh, drone);
         updateTrailForDrone(id);
-        animateRotors(mesh, dt, drone);
 
         const arrow = mesh.getObjectByName('orientation_arrow');
         if (arrow) {
             const scale = Math.max(1, camera.position.distanceTo(mesh.position) * 0.15);
             arrow.scale.set(scale, scale, scale);
+            arrow.visible = (drone.status !== 'CRASHED');
         }
     }
 

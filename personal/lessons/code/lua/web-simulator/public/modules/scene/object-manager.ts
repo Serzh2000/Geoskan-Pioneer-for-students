@@ -1,13 +1,88 @@
 import * as THREE from 'three';
 import { log } from '../ui/logger.js';
-import { transformControl, transformHelper, controls, droneMeshes, selectedObject } from './scene-init.js';
+import { transformControl, transformHelper, controls, droneMeshes, selectedObject, multiSelectedObjects, setSelectedObject } from './scene-init.js';
 import { drones, currentDroneId, simState, simSettings } from '../state.js';
 import { envGroup, addObjectToScene, updateSceneObjectPoints, updateSceneObjectValue } from '../environment.js';
 import { MarkerMapOptions, SceneObjectOptions, ScenePathPoint } from '../environment/obstacles.js';
-import { handleDeselection } from './selection.js';
-import { handleSelection } from './input.js';
-import { updateTransformModeDecorations } from './transform.js';
+import { handleDeselection, deselectObject } from './selection.js';
+import { handleSelection, updateObjectSelectionVisuals } from './input.js';
 
+export function groupObjects() {
+    if (multiSelectedObjects.length < 2) {
+        log('Для группировки нужно выбрать хотя бы два объекта (Ctrl+Click)', 'warn');
+        return false;
+    }
+
+    const group = new THREE.Group();
+    group.name = `Группа (${multiSelectedObjects.length})`;
+    group.userData.type = 'group';
+    group.userData.draggable = true;
+
+    // Вычисляем центр группы
+    const center = new THREE.Vector3();
+    multiSelectedObjects.forEach(obj => center.add(obj.position));
+    center.divideScalar(multiSelectedObjects.length);
+    group.position.copy(center);
+
+    // Добавляем объекты в группу
+    multiSelectedObjects.forEach(obj => {
+        updateObjectSelectionVisuals(obj, false);
+        // Сохраняем мировое положение при переносе в группу
+        const worldPos = new THREE.Vector3();
+        const worldQuat = new THREE.Quaternion();
+        const worldScale = new THREE.Vector3();
+        obj.getWorldPosition(worldPos);
+        obj.getWorldQuaternion(worldQuat);
+        obj.getWorldScale(worldScale);
+
+        group.add(obj);
+        
+        // Устанавливаем локальное положение относительно новой группы
+        obj.position.copy(worldPos).sub(center);
+        // Ориентация и масштаб остаются мировыми, так как у группы они дефолтные (пока)
+        obj.quaternion.copy(worldQuat);
+        obj.scale.copy(worldScale);
+    });
+
+    if (envGroup) envGroup.add(group);
+    
+    handleDeselection();
+    handleSelection(group, window.innerWidth / 2, window.innerHeight / 2, false);
+    log(`Объекты объединены в группу`, 'success');
+    return true;
+}
+
+export function ungroupObject(targetGroup?: THREE.Object3D) {
+    const group = targetGroup || selectedObject;
+    if (!group || group.userData.type !== 'group') {
+        log('Выбранный объект не является группой', 'warn');
+        return false;
+    }
+
+    const children = [...group.children];
+    children.forEach(obj => {
+        const worldPos = new THREE.Vector3();
+        const worldQuat = new THREE.Quaternion();
+        const worldScale = new THREE.Vector3();
+        obj.getWorldPosition(worldPos);
+        obj.getWorldQuaternion(worldQuat);
+        obj.getWorldScale(worldScale);
+
+        if (envGroup) envGroup.add(obj);
+        
+        obj.position.copy(worldPos);
+        obj.quaternion.copy(worldQuat);
+        obj.scale.copy(worldScale);
+    });
+
+    group.removeFromParent();
+    handleDeselection();
+    log(`Группа расформирована`, 'info');
+    return true;
+}
+
+(window as any).groupObjects = groupObjects;
+(window as any).ungroupObject = ungroupObject;
 export type TransformMode = 'translate' | 'rotate' | 'scale';
 export type RotationAxis = 'x' | 'y' | 'z';
 
@@ -72,9 +147,16 @@ export function findSceneObjectById(id: string) {
 
 export function isTransformableObject(target: THREE.Object3D | null | undefined) {
     if (!target || !target.parent) return false;
+    // Землю нельзя трансформировать ни при каких условиях
+    if (target.name === 'Ground' || target.userData?.type === 'ground') return false;
+    
     for (const id in droneMeshes) {
         if (target === droneMeshes[id]) return true;
     }
+    
+    // Сетка маркеров (карта) должна быть выделяемой и трансформируемой
+    if (target.userData?.isMarkerMap) return true;
+    
     return !!target.userData?.draggable;
 }
 
@@ -185,6 +267,7 @@ export function listSceneObjects(): any[] {
         if (obj.userData?.featureKind === 'road') metaLines.push('Редактируемый маршрут: дорога');
         if (obj.userData?.featureKind === 'rail') metaLines.push('Редактируемый маршрут: железная дорога');
         if (obj.userData?.presetName) metaLines.push(`Пресет: ${obj.userData.presetName}`);
+        if (Array.isArray(obj.userData?.windowIncidentsSummaryLines)) metaLines.push(...obj.userData.windowIncidentsSummaryLines);
         if (Array.isArray(obj.userData?.markerMapSummaryLines)) metaLines.push(...obj.userData.markerMapSummaryLines);
 
         const points = normalizePoints(obj.userData?.points);
@@ -202,6 +285,7 @@ export function listSceneObjects(): any[] {
             supportsValue: !!obj.userData?.supportsValue,
             supportsMarkerDictionary: !!obj.userData?.supportsMarkerDictionary,
             supportsPoints: !!obj.userData?.supportsPoints,
+            floors: obj.userData?.floors !== undefined ? Number(obj.userData.floors) : undefined,
             markerKind: obj.userData?.markerKind ? String(obj.userData.markerKind) : '',
             markerDictionary: obj.userData?.markerDictionary ? String(obj.userData.markerDictionary) : '',
             value: obj.userData?.value !== undefined ? String(obj.userData.value) : '',
@@ -334,14 +418,19 @@ export function addObject(
     }
 }
 
-export function updateSelectedSceneObject(params: { value?: string; markerDictionary?: string; pointsText?: string }) {
+export function updateSelectedSceneObject(params: { value?: string; markerDictionary?: string; pointsText?: string; floors?: number }) {
     if (!selectedObject || selectedObject.userData?.draggable === false) return false;
 
     let updated = false;
     if ((params.value !== undefined || params.markerDictionary !== undefined) && selectedObject.userData?.supportsValue) {
         updated = updateSceneObjectValue(selectedObject, {
             value: params.value,
-            markerDictionary: params.markerDictionary
+            markerDictionary: params.markerDictionary,
+            floors: params.floors
+        }) || updated;
+    } else if (params.floors !== undefined && selectedObject.userData?.type === 'Многоэтажка') {
+        updated = updateSceneObjectValue(selectedObject, {
+            floors: params.floors
         }) || updated;
     }
 

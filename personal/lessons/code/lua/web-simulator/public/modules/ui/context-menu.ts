@@ -4,6 +4,7 @@ type MenuCallbacks = {
     onTransform: (mode: string) => void;
     onDelete: () => void;
     onDuplicate: () => void;
+    onShowCoords?: () => void;
     onResetOrigin?: () => void;
 };
 
@@ -277,6 +278,9 @@ export function initContextMenu() {
         addButton('Наклонить', '🔄', () => callbacks.onTransform('rotate'));
         addButton('Масштаб', '📏', () => callbacks.onTransform('scale'));
         addButton('Дублировать', '📋', () => callbacks.onDuplicate());
+        if (callbacks.onShowCoords) {
+            addButton('Координаты', '🎯', () => callbacks.onShowCoords && callbacks.onShowCoords());
+        }
         if (callbacks.onResetOrigin) {
             addButton('Вернуть в начало', '🏠', () => callbacks.onResetOrigin && callbacks.onResetOrigin());
         }
@@ -435,8 +439,8 @@ export function initContextMenu() {
     document.body.appendChild(menu);
     document.body.appendChild(toolbar);
 
-    window.showContextMenu = (x: number, y: number, onTransform: (mode: string) => void, onDelete: () => void, onDuplicate: () => void, onResetOrigin?: () => void) => {
-        callbacks = { onTransform, onDelete, onDuplicate, onResetOrigin };
+    window.showContextMenu = (x: number, y: number, onTransform: (mode: string) => void, onDelete: () => void, onDuplicate: () => void, onShowCoords?: () => void, onResetOrigin?: () => void) => {
+        callbacks = { onTransform, onDelete, onDuplicate, onShowCoords, onResetOrigin };
         show(x, y);
     };
 

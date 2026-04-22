@@ -41,6 +41,13 @@ function buildOrientedCylinder(radius: number, length: number, material: THREE.M
     return mesh;
 }
 
+function buildHorizontalPatch(radius: number, thickness: number, material: THREE.Material, point: THREE.Vector3) {
+    const mesh = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, thickness, 24), material);
+    mesh.rotation.x = Math.PI / 2;
+    mesh.position.set(point.x, point.y, point.z + thickness * 0.5);
+    return mesh;
+}
+
 export function rebuildLinearFeature(group: THREE.Group) {
     clearGeneratedChildren(group);
 
@@ -76,6 +83,17 @@ export function rebuildLinearFeature(group: THREE.Group) {
                 marking.position.z = 0.055;
                 group.add(marking);
             }
+        }
+
+        for (let i = 0; i <= segmentCount; i++) {
+            const patchPoint = curve.getPoint(i / segmentCount);
+            const shoulderPatch = buildHorizontalPatch(1.95, 0.04, shoulderMaterial, patchPoint);
+            shoulderPatch.position.z = 0.02;
+            group.add(shoulderPatch);
+
+            const asphaltPatch = buildHorizontalPatch(1.62, 0.05, asphaltMaterial, patchPoint);
+            asphaltPatch.position.z = 0.03;
+            group.add(asphaltPatch);
         }
     } else {
         const ballastMaterial = new THREE.MeshStandardMaterial({ color: 0x8b7355, roughness: 0.95, metalness: 0.01 });
@@ -115,6 +133,13 @@ export function rebuildLinearFeature(group: THREE.Group) {
                 sleeper.scale.x = 0.45;
                 group.add(sleeper);
             }
+        }
+
+        for (let i = 0; i <= segmentCount; i++) {
+            const patchPoint = curve.getPoint(i / segmentCount);
+            const ballastPatch = buildHorizontalPatch(1.18, 0.08, ballastMaterial, patchPoint);
+            ballastPatch.position.z = 0.03;
+            group.add(ballastPatch);
         }
     }
 

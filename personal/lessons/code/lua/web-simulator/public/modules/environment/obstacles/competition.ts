@@ -7,19 +7,28 @@ export function createGateMesh() {
     const mat = new THREE.MeshStandardMaterial({ color: 0xff8800, roughness: 0.7, emissive: 0xff4400, emissiveIntensity: 0.1 });
     const ringMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.1, metalness: 0.5 });
 
-    const legGeom = new THREE.CylinderGeometry(0.04, 0.04, 1.5);
+    const legGeom = new THREE.CylinderGeometry(0.04, 0.04, 0.92);
     const leg1 = new THREE.Mesh(legGeom, mat);
-    leg1.position.set(0, -0.6, 0.75);
+    leg1.position.set(0, -0.67, 0.46);
     leg1.rotation.x = Math.PI / 2;
     const leg2 = new THREE.Mesh(legGeom, mat);
-    leg2.position.set(0, 0.6, 0.75);
+    leg2.position.set(0, 0.67, 0.46);
     leg2.rotation.x = Math.PI / 2;
     group.add(leg1, leg2);
 
-    const torus = new THREE.Mesh(new THREE.TorusGeometry(0.6, 0.08, 16, 32), ringMat);
-    torus.position.z = 1.2;
+    const torus = new THREE.Mesh(new THREE.TorusGeometry(0.64, 0.07, 18, 40), ringMat);
+    torus.position.z = 1.18;
     torus.rotation.y = Math.PI / 2;
     group.add(torus);
+
+    const baseGeom = new THREE.CylinderGeometry(0.11, 0.14, 0.05, 16);
+    const base1 = new THREE.Mesh(baseGeom, mat);
+    base1.rotation.x = Math.PI / 2;
+    base1.position.set(0, -0.67, 0.025);
+    const base2 = new THREE.Mesh(baseGeom, mat);
+    base2.rotation.x = Math.PI / 2;
+    base2.position.set(0, 0.67, 0.025);
+    group.add(base1, base2);
 
     applyShadows(group);
     return group;

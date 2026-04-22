@@ -30,8 +30,10 @@ export let droneTrails: Record<string, DroneTrailVisuals> = {};
 
 export let is3DActive = false;
 export let selectedObject: THREE.Object3D | null = null;
+export let multiSelectedObjects: THREE.Object3D[] = [];
 export let pointerDownPos = new THREE.Vector2();
 export let isHittingGizmo = false;
+let canvasResizeObserver: ResizeObserver | null = null;
 
 const orbitTargetBounds = new THREE.Box3();
 const orbitTargetCenter = new THREE.Vector3();
@@ -40,6 +42,36 @@ export function setSelectedObject(obj: THREE.Object3D | null) {
     selectedObject = obj;
     (window as any).selectedObject = obj;
     (window as any).pendingOrbitRetargetObject = null;
+    
+    if (obj) {
+        if (!multiSelectedObjects.includes(obj)) {
+            multiSelectedObjects = [obj];
+        }
+    } else {
+        multiSelectedObjects = [];
+    }
+    (window as any).multiSelectedObjects = multiSelectedObjects;
+}
+
+export function toggleMultiSelectObject(obj: THREE.Object3D) {
+    const index = multiSelectedObjects.indexOf(obj);
+    if (index === -1) {
+        multiSelectedObjects.push(obj);
+    } else {
+        multiSelectedObjects.splice(index, 1);
+    }
+    
+    if (multiSelectedObjects.length === 1) {
+        selectedObject = multiSelectedObjects[0];
+    } else if (multiSelectedObjects.length === 0) {
+        selectedObject = null;
+    } else {
+        // Если выбрано много, основным считается последний выбранный (для инфопанели)
+        selectedObject = multiSelectedObjects[multiSelectedObjects.length - 1];
+    }
+    
+    (window as any).selectedObject = selectedObject;
+    (window as any).multiSelectedObjects = multiSelectedObjects;
 }
 
 export function setPointerDownPos(x: number, y: number) {
@@ -91,6 +123,7 @@ export function syncViewportDependentSceneVisuals() {
 
 export function initScene(container: HTMLElement) {
     canvasContainer = container;
+    canvasResizeObserver?.disconnect();
     
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x0f172a);
@@ -162,12 +195,21 @@ export function initScene(container: HTMLElement) {
     mouse = new THREE.Vector2();
 
     is3DActive = true;
+
+    if (typeof ResizeObserver !== 'undefined') {
+        canvasResizeObserver = new ResizeObserver(() => {
+            onWindowResize();
+        });
+        canvasResizeObserver.observe(canvasContainer);
+    }
 }
 
 export function onWindowResize() {
     if (!canvasContainer || !camera || !renderer) return;
-    camera.aspect = canvasContainer.clientWidth / canvasContainer.clientHeight;
+    const width = Math.max(1, canvasContainer.clientWidth);
+    const height = Math.max(1, canvasContainer.clientHeight);
+    camera.aspect = width / height;
     camera.updateProjectionMatrix();
-    renderer.setSize(canvasContainer.clientWidth, canvasContainer.clientHeight);
+    renderer.setSize(width, height);
     syncViewportDependentSceneVisuals();
 }

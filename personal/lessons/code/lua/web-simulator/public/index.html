@@ -74,6 +74,7 @@
                 </div>
                 <div class="panel-content">
                     <div class="scene-manager">
+                        <div id="scene-click-coords" style="display: none; font-family: var(--font-mono); font-size: 10px; color: var(--accent-color); margin-bottom: 8px; padding: 4px 8px; background: rgba(56, 189, 248, 0.1); border-radius: 4px; border: 1px solid rgba(56, 189, 248, 0.2);"></div>
                         <div id="scene-object-list" class="scene-manager-list"></div>
                         <div id="scene-object-details" class="scene-manager-details">Выберите объект в списке</div>
                         
@@ -113,6 +114,53 @@
                                     <option value="">Выберите словарь</option>
                                 </select>
                                 <input id="scene-add-value" type="text" placeholder="Значение маркера">
+                                <label id="scene-add-floors-wrap" class="scene-field" style="display: none;">
+                                    <span>Этажей</span>
+                                    <input id="scene-add-floors" type="number" min="5" max="20" step="1" value="9">
+                                </label>
+                                <div id="scene-add-building-settings" class="scene-building-settings">
+                                    <div class="scene-building-settings-header">
+                                        <div class="scene-building-settings-title">Сценарии по окнам</div>
+                                    </div>
+                                    <div class="scene-building-controls-row">
+                                        <div class="scene-building-settings-grid">
+                                            <label class="scene-field">
+                                                <span>Этаж</span>
+                                                <input id="scene-add-building-floor" type="number" min="1" max="20" step="1" value="3">
+                                            </label>
+                                            <label class="scene-field">
+                                                <span>Сторона</span>
+                                                <select id="scene-add-building-face">
+                                                    <option value="front">Перед</option>
+                                                    <option value="back">Зад</option>
+                                                </select>
+                                            </label>
+                                            <label class="scene-field">
+                                                <span>Окно</span>
+                                                <select id="scene-add-building-window">
+                                                    <option value="1">1</option>
+                                                    <option value="2">2</option>
+                                                    <option value="3">3</option>
+                                                </select>
+                                            </label>
+                                            <label class="scene-field">
+                                                <span>Событие</span>
+                                                <select id="scene-add-building-kind">
+                                                    <option value="smoke">Дым</option>
+                                                    <option value="fire">Пожар</option>
+                                                    <option value="thief">Вор</option>
+                                                </select>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="scene-building-settings-note">Подберите этажность и добавляйте события по окнам.</div>
+                                    <div class="action-row" style="margin-top: 4px;">
+                                        <button id="scene-add-building-append-btn" type="button" class="btn-secondary">+ Сценарий</button>
+                                        <button id="scene-add-building-clear-btn" type="button" class="btn-secondary">Очистить</button>
+                                    </div>
+                                    <div class="scene-building-list-label">Активные сценарии</div>
+                                    <textarea id="scene-add-building-incidents" rows="4" placeholder="Список сценариев для окон"></textarea>
+                                </div>
                                 <div id="scene-add-map-settings" class="scene-map-settings">
                                     <div class="scene-map-settings-title">Настройки карты маркеров</div>
                                     <div id="scene-add-map-summary" class="scene-map-summary">5 x 5, старт ID 0, по строкам</div>
@@ -202,6 +250,53 @@
                                     <option value="">Словарь маркера</option>
                                 </select>
                                 <input id="scene-selected-value" type="text" placeholder="Значение объекта">
+                                <label id="scene-selected-floors-wrap" class="scene-field" style="display: none;">
+                                    <span>Этажей</span>
+                                    <input id="scene-selected-floors" type="number" min="5" max="20" step="1" value="9">
+                                </label>
+                                <div id="scene-selected-building-settings" class="scene-building-settings">
+                                    <div class="scene-building-settings-header">
+                                        <div class="scene-building-settings-title">Сценарии по окнам</div>
+                                    </div>
+                                    <div class="scene-building-controls-row">
+                                        <div class="scene-building-settings-grid">
+                                            <label class="scene-field">
+                                                <span>Этаж</span>
+                                                <input id="scene-selected-building-floor" type="number" min="1" max="20" step="1" value="3">
+                                            </label>
+                                            <label class="scene-field">
+                                                <span>Сторона</span>
+                                                <select id="scene-selected-building-face">
+                                                    <option value="front">Перед</option>
+                                                    <option value="back">Зад</option>
+                                                </select>
+                                            </label>
+                                            <label class="scene-field">
+                                                <span>Окно</span>
+                                                <select id="scene-selected-building-window">
+                                                    <option value="1">1</option>
+                                                    <option value="2">2</option>
+                                                    <option value="3">3</option>
+                                                </select>
+                                            </label>
+                                            <label class="scene-field">
+                                                <span>Событие</span>
+                                                <select id="scene-selected-building-kind">
+                                                    <option value="smoke">Дым</option>
+                                                    <option value="fire">Пожар</option>
+                                                    <option value="thief">Вор</option>
+                                                </select>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="scene-building-settings-note">Редактируйте этажность и события у выбранной многоэтажки.</div>
+                                    <div class="action-row" style="margin-top: 4px;">
+                                        <button id="scene-selected-building-append-btn" type="button" class="btn-secondary">+ Сценарий</button>
+                                        <button id="scene-selected-building-clear-btn" type="button" class="btn-secondary">Очистить</button>
+                                    </div>
+                                    <div class="scene-building-list-label">Активные сценарии</div>
+                                    <textarea id="scene-selected-building-incidents" rows="4" placeholder="Список сценариев для окон"></textarea>
+                                </div>
                                 <textarea id="scene-selected-points" rows="2" placeholder="Точки маршрута (для дорог)"></textarea>
                                 <div class="action-row">
                                     <button id="scene-apply-meta-btn" class="btn-secondary">Применить</button>
@@ -220,8 +315,13 @@
                                     <button id="scene-drone-origin-btn" class="btn-secondary">Дрон в (0,0)</button>
                                 </div>
                             </div>
+
+                            <div class="action-row" style="margin-bottom: 8px; gap: 8px;">
+                                <button id="scene-group-btn" class="btn-secondary" title="Сгруппировать выбранные объекты (Ctrl+Click)" style="flex: 1;">ГРУППА</button>
+                                <button id="scene-ungroup-btn" class="btn-secondary" title="Разгруппировать выбранную группу" style="flex: 1;">РАЗГРУППИРОВАТЬ</button>
+                            </div>
                             
-                            <button id="scene-delete-btn" class="btn-secondary" style="color: var(--danger); border-color: rgba(239,68,68,0.3); width: 100%;">Удалить выбранное</button>
+                            <button id="scene-delete-btn" class="btn-secondary" style="color: var(--danger); border-color: rgba(239,68,68,0.3); width: 100%;">УДАЛИТЬ</button>
                         </div>
                     </div>
                 </div>
@@ -255,15 +355,45 @@
                     <button class="panel-close-btn" onclick="closePanel()">✕</button>
                 </div>
                 <div class="panel-content" style="padding: 20px;">
-                    <div style="display: flex; flex-direction: column; gap: 20px;">
+                    <div class="settings-stack">
                         <div class="settings-group">
-                            <div class="settings-label">Визуализация</div>
+                            <div class="settings-label">Трассер полета</div>
                             <label class="checkbox-container">
                                 <input type="checkbox" id="setting-show-tracer" checked>
                                 <span class="checkmark"></span>
-                                Трассер полета
+                                Показывать траекторию
                             </label>
-                            <!-- ... rest of settings ... -->
+                            <label class="scene-field">
+                                <span>Цвет линии</span>
+                                <input type="color" id="setting-tracer-color" value="#38bdf8">
+                            </label>
+                            <label class="scene-field">
+                                <span>Толщина</span>
+                                <input type="range" id="setting-tracer-width" min="1" max="12" step="1" value="2">
+                            </label>
+                            <label class="scene-field">
+                                <span>Форма</span>
+                                <select id="setting-tracer-shape">
+                                    <option value="line">Линия</option>
+                                    <option value="points">Точки</option>
+                                    <option value="both">Линия и точки</option>
+                                </select>
+                            </label>
+                        </div>
+                        <div class="settings-group">
+                            <div class="settings-label">Редактирование сцены</div>
+                            <label class="checkbox-container">
+                                <input type="checkbox" id="setting-show-gizmo" checked>
+                                <span class="checkmark"></span>
+                                Показывать гизмо трансформации
+                            </label>
+                        </div>
+                        <div class="settings-group">
+                            <div class="settings-label">Скорость симуляции</div>
+                            <label class="scene-field">
+                                <span>Множитель времени: <strong id="sim-speed-val">1.0x</strong></span>
+                                <input type="range" id="setting-sim-speed" min="0.25" max="3" step="0.25" value="1">
+                            </label>
                         </div>
                     </div>
                 </div>
@@ -280,17 +410,15 @@
                 <div class="header-brand">
                     <div class="header-brand-mark">P</div>
                     <div class="header-brand-copy">
-                        <div class="header-eyebrow">Pioneer Control Deck</div>
-                        <div class="header-logo">Симулятор <span>Pioneer</span></div>
+                        <div class="header-logo">Pioneer <span>Simulator</span></div>
                     </div>
                 </div>
                 <div class="header-actions">
                     <div class="header-controls-group">
-                        <div class="header-group-label">Сценарий</div>
                         <select id="file-selector" class="btn-secondary header-select">
                             <option value="">Выберите файл...</option>
                         </select>
-                        <button onclick="document.getElementById('file-input').click()" class="btn-secondary">Открыть файл</button>
+                        <button onclick="document.getElementById('file-input').click()" class="btn-secondary" title="Открыть файл">ОТКРЫТЬ ФАЙЛ</button>
                         <input type="file" id="file-input" style="display:none" accept=".lua,.py">
                         <select id="script-language-select" class="btn-secondary header-select header-lang-select">
                             <option value="lua">Lua</option>
@@ -298,10 +426,9 @@
                         </select>
                     </div>
                     <div class="header-controls-group">
-                        <div class="header-group-label">Управление</div>
-                        <button id="run-btn" class="btn-primary">Запустить</button>
-                        <button id="stop-btn" class="btn-secondary header-danger-btn">Стоп</button>
-                        <button id="restart-btn" class="btn-secondary">Сброс</button>
+                        <button id="run-btn" class="btn-primary">ЗАПУСТИТЬ</button>
+                        <button id="stop-btn" class="btn-secondary header-danger-btn">СТОП</button>
+                        <button id="restart-btn" class="btn-secondary">СБРОС</button>
                     </div>
                 </div>
             </header>
@@ -316,6 +443,11 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="hud-visibility-controls">
+                    <button id="toggle-telemetry-btn" type="button" class="hud-visibility-btn active" aria-pressed="true">Телеметрия</button>
+                    <button id="toggle-matrix-btn" type="button" class="hud-visibility-btn active" aria-pressed="true">Матрица</button>
+                </div>
                 
                 <div class="camera-controls">
                     <button onclick="setCameraMode('ground')">ЗЕМЛЯ</button>
@@ -325,52 +457,54 @@
                 </div>
 
                 <!-- Overlays -->
-                <div class="telemetry-overlay">
-                    <div class="card">
-                        <div class="hud-title">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-                            ТЕЛЕМЕТРИЯ
-                        </div>
-                        <div class="stats-grid">
-                            <div class="stat-item">
-                                <div class="stat-label">Высота</div>
-                                <div class="stat-value"><span id="state-alt">0.00</span><span>м</span></div>
+                <div class="hud-side-column">
+                    <div id="telemetry-overlay" class="telemetry-overlay">
+                        <div class="card">
+                            <div class="hud-title">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                                ТЕЛЕМЕТРИЯ
                             </div>
-                            <div class="stat-item">
-                                <div class="stat-label">Скорость</div>
-                                <div class="stat-value"><span id="state-spd">0.0</span><span>м/с</span></div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-label">Батарея</div>
-                                <div class="stat-value"><span id="state-bat">100</span><span>%</span></div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-label">Время</div>
-                                <div class="stat-value"><span id="state-time">0.0</span><span>с</span></div>
-                            </div>
-                            <div class="stat-item" style="grid-column: span 2; background: rgba(56, 189, 248, 0.05); border-color: rgba(56, 189, 248, 0.2);">
-                                <div class="stat-label" style="color: var(--accent-color);">Статус</div>
-                                <div class="stat-value" style="font-size: 14px; color: #fff;"><span id="state-status">ОЖИДАНИЕ</span></div>
+                            <div class="stats-grid">
+                                <div class="stat-item">
+                                    <div class="stat-label">Высота</div>
+                                    <div class="stat-value"><span id="state-alt">0.00</span><span>м</span></div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-label">Скорость</div>
+                                    <div class="stat-value"><span id="state-spd">0.0</span><span>м/с</span></div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-label">Батарея</div>
+                                    <div class="stat-value"><span id="state-bat">100</span><span>%</span></div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-label">Время</div>
+                                    <div class="stat-value"><span id="state-time">0.0</span><span>с</span></div>
+                                </div>
+                                <div class="stat-item" style="grid-column: span 2; background: rgba(56, 189, 248, 0.05); border-color: rgba(56, 189, 248, 0.2);">
+                                    <div class="stat-label" style="color: var(--accent-color);">Статус</div>
+                                    <div class="stat-value" style="font-size: 14px; color: #fff;"><span id="state-status">ОЖИДАНИЕ</span></div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="matrix-overlay">
-                    <div class="card led-matrix-card">
-                        <div class="hud-title">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><circle cx="15.5" cy="8.5" r="1.5"></circle><circle cx="8.5" cy="15.5" r="1.5"></circle><circle cx="15.5" cy="15.5" r="1.5"></circle></svg>
-                            LED МАТРИЦА
+                    <div id="matrix-overlay" class="matrix-overlay">
+                        <div class="card led-matrix-card">
+                            <div class="hud-title">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><circle cx="15.5" cy="8.5" r="1.5"></circle><circle cx="8.5" cy="15.5" r="1.5"></circle><circle cx="15.5" cy="15.5" r="1.5"></circle></svg>
+                                LED МАТРИЦА
+                            </div>
+                            <div class="led-section-label">Бортовые индикаторы</div>
+                            <div class="led-base-grid">
+                                <div id="led-base-0" class="led-pixel-base" title="Base LED 0"></div>
+                                <div id="led-base-1" class="led-pixel-base" title="Base LED 1"></div>
+                                <div id="led-base-2" class="led-pixel-base" title="Base LED 2"></div>
+                                <div id="led-base-3" class="led-pixel-base" title="Base LED 3"></div>
+                            </div>
+                            <div class="led-section-label">Матрица 5x5</div>
+                            <div class="led-matrix-grid" id="led-matrix-grid"></div>
                         </div>
-                        <div class="led-section-label">Бортовые индикаторы</div>
-                        <div class="led-base-grid">
-                            <div id="led-base-0" class="led-pixel-base" title="Base LED 0"></div>
-                            <div id="led-base-1" class="led-pixel-base" title="Base LED 1"></div>
-                            <div id="led-base-2" class="led-pixel-base" title="Base LED 2"></div>
-                            <div id="led-base-3" class="led-pixel-base" title="Base LED 3"></div>
-                        </div>
-                        <div class="led-section-label">Матрица 5x5</div>
-                        <div class="led-matrix-grid" id="led-matrix-grid"></div>
                     </div>
                 </div>
             </div>

@@ -14,6 +14,16 @@ export function initSceneManager(callbacks: UICallbacks) {
     const addTypeEl = document.getElementById('scene-add-type') as HTMLSelectElement | null;
     const addDictionaryEl = document.getElementById('scene-add-dictionary') as HTMLSelectElement | null;
     const addValueEl = document.getElementById('scene-add-value') as HTMLInputElement | null;
+    const addFloorsWrapEl = document.getElementById('scene-add-floors-wrap') as HTMLLabelElement | null;
+    const addFloorsEl = document.getElementById('scene-add-floors') as HTMLInputElement | null;
+    const addBuildingSettingsEl = document.getElementById('scene-add-building-settings') as HTMLDivElement | null;
+    const addBuildingFloorEl = document.getElementById('scene-add-building-floor') as HTMLInputElement | null;
+    const addBuildingFaceEl = document.getElementById('scene-add-building-face') as HTMLSelectElement | null;
+    const addBuildingWindowEl = document.getElementById('scene-add-building-window') as HTMLSelectElement | null;
+    const addBuildingKindEl = document.getElementById('scene-add-building-kind') as HTMLSelectElement | null;
+    const addBuildingIncidentsEl = document.getElementById('scene-add-building-incidents') as HTMLTextAreaElement | null;
+    const addBuildingAppendBtn = document.getElementById('scene-add-building-append-btn');
+    const addBuildingClearBtn = document.getElementById('scene-add-building-clear-btn');
     const addMapSettingsEl = document.getElementById('scene-add-map-settings') as HTMLDivElement | null;
     const addMapSummaryEl = document.getElementById('scene-add-map-summary') as HTMLDivElement | null;
     const addMapRowsEl = document.getElementById('scene-add-map-rows') as HTMLInputElement | null;
@@ -34,10 +44,22 @@ export function initSceneManager(callbacks: UICallbacks) {
     const presetBtn = document.getElementById('scene-preset-btn');
     const selectedDictionaryEl = document.getElementById('scene-selected-dictionary') as HTMLSelectElement | null;
     const selectedValueEl = document.getElementById('scene-selected-value') as HTMLInputElement | null;
+    const selectedFloorsWrapEl = document.getElementById('scene-selected-floors-wrap') as HTMLLabelElement | null;
+    const selectedFloorsEl = document.getElementById('scene-selected-floors') as HTMLInputElement | null;
+    const selectedBuildingSettingsEl = document.getElementById('scene-selected-building-settings') as HTMLDivElement | null;
+    const selectedBuildingFloorEl = document.getElementById('scene-selected-building-floor') as HTMLInputElement | null;
+    const selectedBuildingFaceEl = document.getElementById('scene-selected-building-face') as HTMLSelectElement | null;
+    const selectedBuildingWindowEl = document.getElementById('scene-selected-building-window') as HTMLSelectElement | null;
+    const selectedBuildingKindEl = document.getElementById('scene-selected-building-kind') as HTMLSelectElement | null;
+    const selectedBuildingIncidentsEl = document.getElementById('scene-selected-building-incidents') as HTMLTextAreaElement | null;
+    const selectedBuildingAppendBtn = document.getElementById('scene-selected-building-append-btn');
+    const selectedBuildingClearBtn = document.getElementById('scene-selected-building-clear-btn');
     const selectedPointsEl = document.getElementById('scene-selected-points') as HTMLTextAreaElement | null;
     const applyMetaBtn = document.getElementById('scene-apply-meta-btn');
     const appendPointBtn = document.getElementById('scene-append-point-btn');
     const deleteBtn = document.getElementById('scene-delete-btn');
+    const groupBtn = document.getElementById('scene-group-btn');
+    const ungroupBtn = document.getElementById('scene-ungroup-btn');
     const resetDroneBtn = document.getElementById('scene-drone-origin-btn');
     const modeTranslateBtn = document.getElementById('scene-mode-translate');
     const modeRotateBtn = document.getElementById('scene-mode-rotate');
@@ -72,6 +94,8 @@ export function initSceneManager(callbacks: UICallbacks) {
         if (!Number.isFinite(parsed)) return fallback;
         return Math.min(Math.max(parsed, min), max);
     };
+    const clampFloors = (value: string | undefined, fallback = 9) => clampInt(value, fallback, 5, 20);
+    const clampWindowFloor = (value: string | undefined, maxFloor: number) => clampInt(value, 1, 1, maxFloor);
 
     const fillDictionarySelect = (selectEl: HTMLSelectElement | null, mode: 'aruco' | 'apriltag', value?: string) => {
         if (!selectEl) return;
@@ -90,17 +114,90 @@ export function initSceneManager(callbacks: UICallbacks) {
     const isEditorFocused = () => {
         const active = document.activeElement;
         return active === addValueEl
+            || active === addFloorsEl
+            || active === addBuildingFloorEl
+            || active === addBuildingFaceEl
+            || active === addBuildingWindowEl
+            || active === addBuildingKindEl
+            || active === addBuildingIncidentsEl
             || active === addPointsEl
             || active === addDictionaryEl
             || mapInputs.includes(active as HTMLInputElement | HTMLSelectElement)
             || active === selectedValueEl
+            || active === selectedFloorsEl
+            || active === selectedBuildingFloorEl
+            || active === selectedBuildingFaceEl
+            || active === selectedBuildingWindowEl
+            || active === selectedBuildingKindEl
+            || active === selectedBuildingIncidentsEl
             || active === selectedDictionaryEl
             || active === selectedPointsEl;
     };
 
     const isMarkerMapType = (type: string) => type === 'aruco-map' || type === 'apriltag-map';
     const isSingleMarkerType = (type: string) => type === 'aruco' || type === 'apriltag';
-    const isValueInputType = (type: string) => isSingleMarkerType(type) || type === 'start-position';
+    const isBuildingType = (type: string) => type === 'building';
+    const isValueInputType = (type: string) => isSingleMarkerType(type) || type === 'start-position' || type === 'building';
+    const normalizeIncidentEntries = (value: string | undefined) => (value || '')
+        .split(/\r?\n|;/)
+        .map((entry) => entry.trim())
+        .filter(Boolean);
+    const serializeIncidentEntries = (entries: string[]) => entries.join('\n');
+    const getIncidentKey = (entry: string) => {
+        const match = entry.match(/^(\d+)\s*:\s*(front|back|перед|зад)\s*:\s*(\d+)/i);
+        if (!match) return entry.trim().toLowerCase();
+        const faceRaw = match[2].toLowerCase();
+        const face = faceRaw === 'перед' ? 'front' : faceRaw === 'зад' ? 'back' : faceRaw;
+        return `${match[1]}:${face}:${match[3]}`;
+    };
+    const syncIncidentValue = (targetEl: HTMLInputElement | null, sourceEl: HTMLTextAreaElement | null) => {
+        if (!targetEl || !sourceEl) return;
+        targetEl.value = serializeIncidentEntries(normalizeIncidentEntries(sourceEl.value));
+    };
+    const syncFloorLimit = (floorsEl: HTMLInputElement | null, floorEl: HTMLInputElement | null) => {
+        if (!floorsEl || !floorEl) return;
+        const maxFloor = clampFloors(floorsEl.value, 9);
+        floorsEl.value = String(maxFloor);
+        floorEl.max = String(maxFloor);
+        floorEl.value = String(clampWindowFloor(floorEl.value, maxFloor));
+    };
+    const appendIncidentEntry = (
+        incidentsEl: HTMLTextAreaElement | null,
+        floorsEl: HTMLInputElement | null,
+        floorEl: HTMLInputElement | null,
+        faceEl: HTMLSelectElement | null,
+        windowEl: HTMLSelectElement | null,
+        kindEl: HTMLSelectElement | null,
+        valueEl: HTMLInputElement | null
+    ) => {
+        if (!incidentsEl || !floorEl || !faceEl || !windowEl || !kindEl) return;
+        const maxFloor = clampFloors(floorsEl?.value, 9);
+        const floor = clampWindowFloor(floorEl.value, maxFloor);
+        const face = faceEl.value === 'back' ? 'back' : 'front';
+        const windowIndex = clampInt(windowEl.value, 1, 1, 3);
+        const kind = kindEl.value === 'fire' || kindEl.value === 'thief' ? kindEl.value : 'smoke';
+        floorEl.value = String(floor);
+        const entry = `${floor}:${face}:${windowIndex}=${kind}`;
+        const entries = normalizeIncidentEntries(incidentsEl.value).filter((item) => getIncidentKey(item) !== getIncidentKey(entry));
+        entries.push(entry);
+        incidentsEl.value = serializeIncidentEntries(entries);
+        syncIncidentValue(valueEl, incidentsEl);
+    };
+    const clearIncidentEntries = (incidentsEl: HTMLTextAreaElement | null, valueEl: HTMLInputElement | null) => {
+        if (!incidentsEl) return;
+        incidentsEl.value = '';
+        syncIncidentValue(valueEl, incidentsEl);
+    };
+    const setBuildingControlsVisible = (
+        visible: boolean,
+        floorsWrapEl: HTMLLabelElement | null,
+        floorsEl: HTMLInputElement | null,
+        settingsEl: HTMLDivElement | null
+    ) => {
+        if (floorsWrapEl) floorsWrapEl.style.display = visible ? 'flex' : 'none';
+        if (floorsEl) floorsEl.disabled = !visible;
+        if (settingsEl) settingsEl.classList.toggle('visible', visible);
+    };
     const readAddMarkerMapOptions = (): MarkerMapOptions => ({
         rows: clampInt(addMapRowsEl?.value, 5, 1, 20),
         columns: clampInt(addMapColumnsEl?.value, 5, 1, 20),
@@ -151,26 +248,32 @@ export function initSceneManager(callbacks: UICallbacks) {
         const isSingleMarker = isSingleMarkerType(type);
         const needsValueInput = isValueInputType(type);
         const isMarkerMap = isMarkerMapType(type);
+        const isBuilding = isBuildingType(type);
         const isMarker = isSingleMarker || isMarkerMap;
         const isPath = type === 'road' || type === 'rail';
         if (isMarker) fillDictionarySelect(addDictionaryEl, getMarkerMode(type), addDictionaryEl.value);
         addDictionaryEl.disabled = !isMarker;
         addDictionaryEl.style.display = isMarker ? 'block' : 'none';
-        addValueEl.disabled = !needsValueInput;
-        addValueEl.style.display = needsValueInput ? 'block' : 'none';
+        addValueEl.disabled = !(needsValueInput && !isBuilding);
+        addValueEl.style.display = needsValueInput && !isBuilding ? 'block' : 'none';
         addPointsEl.disabled = !isPath;
         addValueEl.placeholder = isSingleMarker
             ? 'ID маркера'
+            : type === 'building'
+                ? 'Окна: 3:front:2=smoke; 5:back:1=fire; 7:front:3=thief'
             : type === 'start-position'
                 ? 'Номер стартовой позиции'
                 : 'Только для объектов с номером';
         addPointsEl.placeholder = isPath
             ? 'Каждая строка: X, Y, Z\n0, 0, 0\n6, 0, 0\n10, 4, 0'
             : 'Только для дорог и путей';
+        setBuildingControlsVisible(isBuilding, addFloorsWrapEl, addFloorsEl, addBuildingSettingsEl);
         if (addMapSettingsEl) addMapSettingsEl.classList.toggle('visible', isMarkerMap);
         mapInputs.forEach((input) => {
             input.disabled = !isMarkerMap;
         });
+        syncFloorLimit(addFloorsEl, addBuildingFloorEl);
+        syncIncidentValue(addValueEl, addBuildingIncidentsEl);
         updateMapSummary();
     };
 
@@ -197,6 +300,8 @@ export function initSceneManager(callbacks: UICallbacks) {
             detailsEl.textContent = 'Объекты сцены не найдены';
             if (selectedDictionaryEl) selectedDictionaryEl.value = '';
             if (selectedValueEl) selectedValueEl.value = '';
+            if (selectedFloorsEl) selectedFloorsEl.value = '9';
+            if (selectedBuildingIncidentsEl) selectedBuildingIncidentsEl.value = '';
             if (selectedPointsEl) selectedPointsEl.value = '';
             return;
         }
@@ -225,20 +330,30 @@ export function initSceneManager(callbacks: UICallbacks) {
                 selectedDictionaryEl.value = '';
             }
             if (selectedValueEl) selectedValueEl.value = selected.value || '';
+            if (selectedFloorsEl) selectedFloorsEl.value = String(clampFloors(String(selected.floors ?? 9), selected.floors ?? 9));
+            if (selectedBuildingIncidentsEl) selectedBuildingIncidentsEl.value = selected.value || '';
             if (selectedPointsEl) selectedPointsEl.value = selected.pointsText || '';
         }
         lastSelectedId = selected.id;
 
+        const isBuildingSelected = selected.sceneType === 'Многоэтажка';
         if (selectedDictionaryEl) {
             const isMarkerDictionaryEditable = !!selected.supportsMarkerDictionary;
             selectedDictionaryEl.disabled = !isMarkerDictionaryEditable;
             selectedDictionaryEl.style.display = isMarkerDictionaryEditable ? 'block' : 'none';
         }
         if (selectedValueEl) {
-            selectedValueEl.disabled = !selected.supportsValue;
-            selectedValueEl.placeholder = selected.supportsValue ? 'Значение маркера' : 'У выбранного объекта нет значения';
-            selectedValueEl.style.display = selected.supportsValue ? 'block' : 'none';
+            selectedValueEl.disabled = !selected.supportsValue || isBuildingSelected;
+            selectedValueEl.placeholder = !selected.supportsValue
+                ? 'У выбранного объекта нет значения'
+                : selected.sceneType === 'Многоэтажка'
+                    ? 'Окна: 3:front:2=smoke; 5:back:1=fire'
+                    : 'Значение маркера';
+            selectedValueEl.style.display = selected.supportsValue && !isBuildingSelected ? 'block' : 'none';
         }
+        setBuildingControlsVisible(isBuildingSelected, selectedFloorsWrapEl, selectedFloorsEl, selectedBuildingSettingsEl);
+        syncFloorLimit(selectedFloorsEl, selectedBuildingFloorEl);
+        syncIncidentValue(selectedValueEl, selectedBuildingIncidentsEl);
         if (selectedPointsEl) {
             selectedPointsEl.disabled = !selected.supportsPoints;
             selectedPointsEl.placeholder = selected.supportsPoints
@@ -257,14 +372,63 @@ export function initSceneManager(callbacks: UICallbacks) {
         input.addEventListener('input', updateMapSummary);
         input.addEventListener('change', updateMapSummary);
     });
+    addFloorsEl?.addEventListener('input', () => syncFloorLimit(addFloorsEl, addBuildingFloorEl));
+    selectedFloorsEl?.addEventListener('input', () => syncFloorLimit(selectedFloorsEl, selectedBuildingFloorEl));
+    addBuildingIncidentsEl?.addEventListener('input', () => syncIncidentValue(addValueEl, addBuildingIncidentsEl));
+    selectedBuildingIncidentsEl?.addEventListener('input', () => syncIncidentValue(selectedValueEl, selectedBuildingIncidentsEl));
+
+    if (addBuildingAppendBtn) {
+        addBuildingAppendBtn.addEventListener('click', () => {
+            appendIncidentEntry(
+                addBuildingIncidentsEl,
+                addFloorsEl,
+                addBuildingFloorEl,
+                addBuildingFaceEl,
+                addBuildingWindowEl,
+                addBuildingKindEl,
+                addValueEl
+            );
+        });
+    }
+
+    if (addBuildingClearBtn) {
+        addBuildingClearBtn.addEventListener('click', () => {
+            clearIncidentEntries(addBuildingIncidentsEl, addValueEl);
+        });
+    }
+
+    if (selectedBuildingAppendBtn) {
+        selectedBuildingAppendBtn.addEventListener('click', () => {
+            appendIncidentEntry(
+                selectedBuildingIncidentsEl,
+                selectedFloorsEl,
+                selectedBuildingFloorEl,
+                selectedBuildingFaceEl,
+                selectedBuildingWindowEl,
+                selectedBuildingKindEl,
+                selectedValueEl
+            );
+        });
+    }
+
+    if (selectedBuildingClearBtn) {
+        selectedBuildingClearBtn.addEventListener('click', () => {
+            clearIncidentEntries(selectedBuildingIncidentsEl, selectedValueEl);
+        });
+    }
 
     if (addBtn && addTypeEl) {
         addBtn.addEventListener('click', () => {
             const type = addTypeEl.value;
             callbacks.sceneManager && callbacks.sceneManager.add(addTypeEl.value, {
                 markerDictionary: (isSingleMarkerType(type) || isMarkerMapType(type)) ? addDictionaryEl?.value || undefined : undefined,
-                value: isValueInputType(type) ? addValueEl?.value.trim() || undefined : undefined,
+                value: isBuildingType(type)
+                    ? addBuildingIncidentsEl?.value.trim() || undefined
+                    : isValueInputType(type)
+                        ? addValueEl?.value.trim() || undefined
+                        : undefined,
                 pointsText: addPointsEl?.value.trim() || undefined,
+                floors: isBuildingType(type) ? clampFloors(addFloorsEl?.value, 9) : undefined,
                 markerMap: isMarkerMapType(type) ? readAddMarkerMapOptions() : undefined
             });
             render();
@@ -280,10 +444,14 @@ export function initSceneManager(callbacks: UICallbacks) {
 
     if (applyMetaBtn) {
         applyMetaBtn.addEventListener('click', () => {
+            const selectedId = callbacks.sceneManager?.getSelectedId();
+            const selectedObject = callbacks.sceneManager?.list().find((item) => item.id === selectedId);
+            const isBuildingSelected = selectedObject?.sceneType === 'Многоэтажка';
             callbacks.sceneManager && callbacks.sceneManager.updateSelected({
                 markerDictionary: selectedDictionaryEl?.value || undefined,
-                value: selectedValueEl?.value.trim(),
-                pointsText: selectedPointsEl?.value.trim()
+                value: isBuildingSelected ? selectedBuildingIncidentsEl?.value.trim() : selectedValueEl?.value.trim(),
+                pointsText: selectedPointsEl?.value.trim(),
+                floors: isBuildingSelected ? clampFloors(selectedFloorsEl?.value, selectedObject?.floors ?? 9) : undefined
             });
             render();
         });
@@ -303,6 +471,32 @@ export function initSceneManager(callbacks: UICallbacks) {
             render();
         });
     }
+
+    if (groupBtn) {
+        groupBtn.addEventListener('click', () => {
+            if ((window as any).groupObjects) {
+                (window as any).groupObjects();
+                render();
+            }
+        });
+    }
+
+    if (ungroupBtn) {
+        ungroupBtn.addEventListener('click', () => {
+            if ((window as any).ungroupObject) {
+                (window as any).ungroupObject();
+                render();
+            }
+        });
+    }
+
+    (window as any).updateSceneObjectClickCoords = (point: { x: number, y: number, z: number }) => {
+        const coordsEl = document.getElementById('scene-click-coords');
+        if (coordsEl) {
+            coordsEl.textContent = `Клик: ${point.x.toFixed(2)}, ${point.y.toFixed(2)}, ${point.z.toFixed(2)}`;
+            coordsEl.style.display = 'block';
+        }
+    };
     if (resetDroneBtn) {
         resetDroneBtn.addEventListener('click', () => {
             callbacks.sceneManager && callbacks.sceneManager.resetDroneOrigin();
@@ -331,6 +525,7 @@ export function initSceneManager(callbacks: UICallbacks) {
         });
     }
 
+    (window as any).updateSceneManager = render;
     window.setInterval(render, 250);
     render();
 }

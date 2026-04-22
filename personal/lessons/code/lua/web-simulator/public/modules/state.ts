@@ -37,6 +37,7 @@ export interface DroneState {
     pendingLocalPoint?: boolean;
     // Python-совместимый latched flag: true один раз после прибытия.
     pointReachedFlag?: boolean;
+    traceSampleAccumulator: number;
     command_queue: number[];
     timers: TimerTask[];
     leds: LedColor[];
@@ -81,6 +82,7 @@ export function createDroneState(id: string, name: string, x: number = 0, y: num
         target_yaw: 0,
         pendingLocalPoint: false,
         pointReachedFlag: false,
+        traceSampleAccumulator: 0,
         command_queue: [],
         timers: [],
         leds: Array.from({ length: 29 }, () => ({ r: 0, g: 0, b: 0, w: 0 })),
@@ -171,5 +173,6 @@ export function resetState(id: string = currentDroneId) {
     drone.leds = Array.from({ length: 29 }, () => ({ r: 0, g: 0, b: 0, w: 0 }));
     drone.pendingLocalPoint = false;
     drone.pointReachedFlag = false;
+    drone.traceSampleAccumulator = 0;
     pathPoints[id] = [];
 }

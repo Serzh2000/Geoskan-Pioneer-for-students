@@ -83,8 +83,13 @@ export function updateLEDs(droneMesh: THREE.Object3D, droneState: any) {
 }
 
 export function animateRotors(droneMesh: THREE.Object3D, dt: number, droneState: any) {
-    if (!droneState.running) return;
-    const isArmed = droneState.status !== 'ГОТОВ' && droneState.status !== 'IDLE' && droneState.status !== 'ПРИЗЕМЛЕН' && droneState.status !== 'ОСТАНОВЛЕН' && droneState.status !== 'ЗАПУСК';
+    const isArmed = droneState.status !== 'ГОТОВ'
+        && droneState.status !== 'IDLE'
+        && droneState.status !== 'ПРИЗЕМЛЕН'
+        && droneState.status !== 'ОСТАНОВЛЕН'
+        && droneState.status !== 'ЗАПУСК'
+        && droneState.status !== 'ОШИБКА'
+        && droneState.status !== 'CRASHED';
     if (isArmed) {
         for (let i = 0; i < 4; i++) {
             const rotor = droneMesh.getObjectByName(`rotor_${i}`);
