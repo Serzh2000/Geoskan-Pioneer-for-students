@@ -3,29 +3,26 @@
  * Экспортирует функции для инициализации и обновления сцены.
  */
 import * as THREE from 'three';
-import { Line2 } from 'three/examples/jsm/lines/Line2.js';
-import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
-import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
-import { drones, simState, pathPoints, MAX_PATH_POINTS, currentDroneId, simSettings } from './state.js';
+import { drones, simState, currentDroneId, simSettings } from './state.js';
 import { log } from './ui/logger.js';
-import { addObjectToScene, envGroup } from './environment.js';
+import { envGroup } from './environment.js';
 import { createDroneModel, updateLEDs, animateRotors } from './drone-model.js';
 import { updateCamera } from './camera.js';
 import { 
     initScene, scene, camera, renderer, controls, transformControl, 
-    transformHelper, raycaster, mouse, selectionHelper, 
-    droneMeshes, droneTrails, is3DActive, selectedObject, 
-    pointerDownPos, isHittingGizmo, setSelectedObject, setPointerDownPos, setIsHittingGizmo,
+    transformHelper, selectionHelper, 
+    droneMeshes, is3DActive, selectedObject,
+    setSelectedObject, setIsHittingGizmo,
     onWindowResize, syncViewportDependentSceneVisuals
 } from './scene/scene-init.js';
 import { setupTransformControlListeners } from './scene/transform.js';
-import { onPointerDown, onPointerUp, handleSelection } from './scene/input.js';
-import { handleDeselection, deselectObject } from './scene/selection.js';
 import { 
-    getSceneTopLevelObjects, findSceneObjectById, activateTransformMode, 
     getSelectedSceneObjectId, resetDroneToOrigin, deleteSelectedObject, 
-    duplicateObject, addObject, appendPointToSelectedLinearObject, updateSelectedSceneObject, TransformMode
+    duplicateObject, addObject, appendPointToSelectedLinearObject, updateSelectedSceneObject
 } from './scene/object-manager.js';
+import { explodeDrone, resetDroneVisuals, updateDebrisVisuals } from './drone/crash-visuals.js';
+import { registerScenePointerHandlers, handleSceneKeyDown } from './drone/scene-events.js';
+import { initTrailForDrone, disposeTrailForDrone, updateTrailForDrone } from './drone/trails.js';
 
 (window as any).scene = scene;
 (window as any).camera = camera;
@@ -58,62 +55,6 @@ export interface SceneObjectInfo {
     metaLines?: string[];
 }
 
-let scenePointerDownCaptureHandler: ((event: PointerEvent) => void) | null = null;
-let scenePointerUpCaptureHandler: ((event: PointerEvent) => void) | null = null;
-
-function isScenePointerEvent(event: PointerEvent) {
-    if (!renderer?.domElement) return false;
-    const path = typeof event.composedPath === 'function' ? event.composedPath() : [];
-    return path.includes(renderer.domElement) || event.target === renderer.domElement;
-}
-
-function registerScenePointerHandlers() {
-    if (!renderer?.domElement) return;
-
-    if (scenePointerDownCaptureHandler) {
-        document.removeEventListener('pointerdown', scenePointerDownCaptureHandler, true);
-    }
-    if (scenePointerUpCaptureHandler) {
-        document.removeEventListener('pointerup', scenePointerUpCaptureHandler, true);
-    }
-
-    scenePointerDownCaptureHandler = (event: PointerEvent) => {
-        if (!isScenePointerEvent(event)) return;
-        log(`[3D-CLICK] document capture pointerdown target=${(event.target as HTMLElement | null)?.tagName || 'unknown'}`, 'info');
-        onPointerDown(event);
-    };
-
-    scenePointerUpCaptureHandler = (event: PointerEvent) => {
-        if (!isScenePointerEvent(event)) return;
-        log(`[3D-CLICK] document capture pointerup target=${(event.target as HTMLElement | null)?.tagName || 'unknown'}`, 'info');
-        onPointerUp(event);
-    };
-
-    document.addEventListener('pointerdown', scenePointerDownCaptureHandler, true);
-    document.addEventListener('pointerup', scenePointerUpCaptureHandler, true);
-}
-
-function getTracerColorHex() {
-    const color = new THREE.Color(simSettings.tracerColor || '#38bdf8');
-    return color.getHex();
-}
-
-function getTracerWidthPx() {
-    return Math.max(1, Number(simSettings.tracerWidth) || 1);
-}
-
-function getTracerPointSize() {
-    return Math.max(0.08, getTracerWidthPx() * 0.08);
-}
-
-function shouldShowTracerLine() {
-    return simSettings.tracerShape === 'line' || simSettings.tracerShape === 'both';
-}
-
-function shouldShowTracerPoints() {
-    return simSettings.tracerShape === 'points' || simSettings.tracerShape === 'both';
-}
-
 export function init3D(container: HTMLElement) {
     try {
         initScene(container);
@@ -129,7 +70,7 @@ export function init3D(container: HTMLElement) {
         renderer.domElement.addEventListener('contextmenu', e => e.preventDefault());
         registerScenePointerHandlers();
         window.addEventListener('resize', onWindowResize);
-        document.addEventListener('keydown', onKeyDown);
+        document.addEventListener('keydown', handleSceneKeyDown);
 
         log('3D-сцена загружена.', 'success');
         log('[3D-CLICK] Обработчики pointerdown/pointerup подключены через document capture', 'info');
@@ -142,7 +83,6 @@ export function init3D(container: HTMLElement) {
 }
 
 export function syncDrones() {
-    // Add missing drones
     for (const id in drones) {
         if (!droneMeshes[id]) {
             const mesh = createDroneModel();
@@ -152,213 +92,17 @@ export function syncDrones() {
             initTrailForDrone(id);
         }
     }
-    // Remove deleted drones
     for (const id in droneMeshes) {
         if (!drones[id]) {
             scene.remove(droneMeshes[id]);
-            if (droneTrails[id]) {
-                scene.remove(droneTrails[id].path);
-                scene.remove(droneTrails[id].particles);
-                droneTrails[id].lineGeometry.dispose();
-                droneTrails[id].pointsGeometry.dispose();
-                (droneTrails[id].path.material as LineMaterial).dispose();
-                (droneTrails[id].particles.material as THREE.PointsMaterial).dispose();
-                delete droneTrails[id];
-            }
+            disposeTrailForDrone(id);
             delete droneMeshes[id];
         }
     }
 }
 
-function initTrailForDrone(id: string) {
-    const lineGeometry = new LineGeometry();
-    log(`[3D-INIT] Инициализация трейла для ${id}`, 'info');
-
-    const pointsGeometry = new THREE.BufferGeometry();
-    const positions = new Float32Array(MAX_PATH_POINTS * 3);
-    pointsGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    pointsGeometry.setDrawRange(0, 0);
-
-    const colorHex = getTracerColorHex();
-    const tracerWidth = getTracerWidthPx();
-
-    const pathMat = new LineMaterial({
-        color: colorHex,
-        linewidth: tracerWidth,
-        transparent: true,
-        opacity: 0.9,
-        depthTest: false,
-        depthWrite: false
-    });
-    const path = new Line2(lineGeometry, pathMat);
-    path.frustumCulled = false;
-    path.renderOrder = 9000;
-    path.visible = false;
-
-    const particleMat = new THREE.PointsMaterial({
-        color: colorHex,
-        size: getTracerPointSize(),
-        sizeAttenuation: true,
-        transparent: true,
-        opacity: 0.9,
-        depthWrite: false
-    });
-    const particles = new THREE.Points(pointsGeometry, particleMat);
-    particles.frustumCulled = false;
-    particles.visible = false;
-    particles.renderOrder = 8999;
-    
-    scene.add(path);
-    scene.add(particles);
-    
-    droneTrails[id] = { path, particles, lineGeometry, pointsGeometry };
-    log(`[3D-INIT] Трейл для ${id} готов`, 'info');
-}
-
 export function getObstacles() {
     return envGroup ? envGroup.children : [];
-}
-
-const explodedDrones = new Set<string>();
-
-function explodeDrone(id: string, mesh: THREE.Object3D) {
-    if (explodedDrones.has(id)) return;
-    explodedDrones.add(id);
-
-    // Собираем все меши, которые должны разлетаться
-    const partsToExplode: THREE.Object3D[] = [];
-    
-    // Рекурсивно находим все меши и превращаем их в плоский список
-    // Но для Pioneer мы знаем ключевые группы
-    const mainComponents = [
-        mesh.getObjectByName('frame'),
-        mesh.getObjectByName('leds'),
-        mesh.getObjectByName('camera_antenna'),
-        mesh.getObjectByName('motors_group')
-    ].filter(Boolean) as THREE.Object3D[];
-
-    if (mainComponents.length > 0) {
-        mainComponents.forEach(comp => {
-            // Если это группа моторов, вытаскиваем из нее пропеллеры и моторы
-            if (comp.name === 'motors_group') {
-                const subParts = [...comp.children];
-                subParts.forEach(part => partsToExplode.push(part));
-            } else {
-                partsToExplode.push(comp);
-            }
-        });
-    } else {
-        partsToExplode.push(...mesh.children);
-    }
-
-    // Переносим все части в корень mesh, чтобы они были независимы
-    partsToExplode.forEach((part) => {
-        // Получаем мировое положение детали относительно mesh
-        const worldPos = new THREE.Vector3();
-        const worldQuat = new THREE.Quaternion();
-        const worldScale = new THREE.Vector3();
-        
-        part.getWorldPosition(worldPos);
-        part.getWorldQuaternion(worldQuat);
-        part.getWorldScale(worldScale);
-
-        // Сохраняем иерархию для восстановления
-        part.userData.originalParent = part.parent;
-        part.userData.originalPos = part.position.clone();
-        part.userData.originalRot = part.rotation.clone();
-        part.userData.originalScale = part.scale.clone();
-
-        // Прикрепляем к корню mesh
-        mesh.add(part);
-        
-        // Устанавливаем положение в локальных координатах mesh
-        mesh.worldToLocal(worldPos);
-        part.position.copy(worldPos);
-        // Для вращения используем упрощенный подход, так как mesh.rotation зафиксирован
-        part.quaternion.copy(worldQuat); 
-
-        // Задаем импульс разлета
-        part.userData.vel = new THREE.Vector3(
-            (Math.random() - 0.5) * 10,
-            (Math.random() - 0.5) * 10,
-            Math.random() * 5 + 3
-        );
-        
-        part.userData.rotVel = new THREE.Vector3(
-            (Math.random() - 0.5) * 15,
-            (Math.random() - 0.5) * 15,
-            (Math.random() - 0.5) * 15
-        );
-    });
-}
-
-function resetDroneVisuals(id: string, mesh: THREE.Object3D) {
-    if (!explodedDrones.has(id)) return;
-    explodedDrones.delete(id);
-
-    // Восстанавливаем иерархию
-    const parts = [...mesh.children];
-    parts.forEach((part) => {
-        if (part.userData.originalParent) {
-            part.userData.originalParent.add(part);
-            part.position.copy(part.userData.originalPos);
-            part.rotation.copy(part.userData.originalRot);
-            part.scale.copy(part.userData.originalScale);
-            
-            delete part.userData.originalParent;
-            delete part.userData.originalPos;
-            delete part.userData.originalRot;
-            delete part.userData.originalScale;
-            delete part.userData.vel;
-            delete part.userData.rotVel;
-        }
-    });
-}
-
-function updateDebrisVisuals(mesh: THREE.Object3D, dt: number) {
-    mesh.children.forEach((part) => {
-        if (part.userData.vel) {
-            const vel = part.userData.vel as THREE.Vector3;
-            const rotVel = part.userData.rotVel as THREE.Vector3;
-
-            // Применяем скорость и вращение
-            part.position.addScaledVector(vel, dt);
-            part.rotation.x += rotVel.x * dt;
-            part.rotation.y += rotVel.y * dt;
-            part.rotation.z += rotVel.z * dt;
-
-            // Гравитация
-            vel.z -= 15.0 * dt; 
-            
-            // Сопротивление воздуха (затухание скорости)
-            const friction = 1.0 - 0.9 * dt;
-            vel.x *= friction;
-            vel.y *= friction;
-            rotVel.multiplyScalar(1.0 - 1.5 * dt);
-
-            // Ограничение по уровню земли (world Z = mesh.pos.z + part.pos.z)
-            const worldZ = mesh.position.z + part.position.z;
-            if (worldZ < 0.02) {
-                // Если деталь коснулась земли
-                part.position.z = -mesh.position.z + 0.02;
-                
-                // Если вертикальная скорость еще есть — слабый отскок
-                if (Math.abs(vel.z) > 1.2) {
-                    vel.z *= -0.25;
-                    vel.x *= 0.6;
-                    vel.y *= 0.6;
-                } else {
-                    // Окончательная остановка
-                    vel.set(0, 0, 0);
-                    rotVel.set(0, 0, 0);
-                    
-                    // Укладываем плашмя (горизонтально)
-                    part.rotation.x = Math.PI / 2 * (Math.random() > 0.5 ? 1 : -1);
-                    part.rotation.y = 0;
-                }
-            }
-        }
-    });
 }
 
 export function updateDrone3D(dt: number) {
@@ -398,10 +142,7 @@ export function updateDrone3D(dt: number) {
             explodeDrone(id, mesh);
             updateDebrisVisuals(mesh, dt);
             
-            // Для разбитого дрона обновляем только позицию центра взрыва,
-            // но НЕ обновляем вращение всей группы (чтобы не было "облака")
             mesh.position.set(drone.pos.x, drone.pos.y, drone.pos.z);
-            // mesh.rotation ОСТАЕТСЯ ПРЕЖНИМ (или фиксируется)
         } else {
             resetDroneVisuals(id, mesh);
             updateLEDs(mesh, drone);
@@ -429,69 +170,5 @@ export function updateDrone3D(dt: number) {
         renderer.render(scene, camera);
     } catch (e) {
         console.error('[3D] Render error:', e);
-    }
-}
-
-function updateTrailForDrone(id: string) {
-    if (!is3DActive || !droneTrails[id]) return;
-
-    const pts = pathPoints[id] || [];
-    const trail = droneTrails[id];
-
-    if (simSettings.showTracer && pts.length > 1) {
-        const pointPositions = trail.pointsGeometry.attributes.position.array as Float32Array;
-        const linePositions = new Float32Array(pts.length * 3);
-        for (let i = 0; i < pts.length; i++) {
-            pointPositions[i * 3] = pts[i].x;
-            pointPositions[i * 3 + 1] = pts[i].y;
-            pointPositions[i * 3 + 2] = pts[i].z;
-
-            linePositions[i * 3] = pts[i].x;
-            linePositions[i * 3 + 1] = pts[i].y;
-            linePositions[i * 3 + 2] = pts[i].z;
-        }
-        trail.pointsGeometry.setDrawRange(0, pts.length);
-        trail.pointsGeometry.attributes.position.needsUpdate = true;
-        trail.lineGeometry.setPositions(linePositions);
-        trail.lineGeometry.computeBoundingSphere();
-        
-        const pathMat = trail.path.material as LineMaterial;
-        const particleMat = trail.particles.material as THREE.PointsMaterial;
-        
-        const colorHex = getTracerColorHex();
-        const tracerWidth = getTracerWidthPx();
-        pathMat.color.setHex(colorHex);
-        pathMat.linewidth = tracerWidth;
-        particleMat.color.setHex(colorHex);
-        particleMat.size = getTracerPointSize();
-
-        trail.path.visible = shouldShowTracerLine();
-        trail.particles.visible = shouldShowTracerPoints();
-        
-        if (linePositions.length >= 6) {
-            trail.path.computeLineDistances();
-        }
-        trail.path.updateMatrixWorld(true);
-    } else {
-        trail.path.visible = trail.particles.visible = false;
-    }
-}
-
-function onKeyDown(event: KeyboardEvent) {
-    const target = event.target as HTMLElement;
-    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || (target.closest && target.closest('.monaco-editor'))) return;
-
-    if (event.key.toLowerCase() === 'escape') {
-        if (transformControl?.object || selectedObject) handleDeselection();
-        return;
-    }
-
-    if (!selectedObject) return;
-
-    switch (event.key.toLowerCase()) {
-        case 'delete': case 'backspace': deleteSelectedObject(); break;
-        case 't': if (selectedObject) activateTransformMode('translate', selectedObject); break;
-        case 'r': if (selectedObject) activateTransformMode('rotate', selectedObject); break;
-        case 's': if (selectedObject) activateTransformMode('scale', selectedObject); break;
     }
 }

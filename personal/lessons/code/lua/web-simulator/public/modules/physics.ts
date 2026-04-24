@@ -5,128 +5,17 @@
  * расчет скоростей, координат, ориентации (кватернионов),
  * а также обработку столкновений с объектами сцены (препятствиями).
  */
-import { drones, pathPoints, DroneState, MAX_PATH_POINTS } from './state.js';
+import { drones, pathPoints, MAX_PATH_POINTS, simSettings, matchesAuxRange } from './state.js';
 import { triggerLuaCallback, updateTimers } from './lua/index.js';
 import { getObstacles } from './drone.js';
 import { log } from './ui/logger.js';
-import * as THREE from 'three';
-
-const TRACE_SAMPLE_INTERVAL = 0.05;
-const DRONE_COLLISION_RADIUS = 0.18;
-const COLLISION_SAMPLE_STEP = 0.08;
-const NON_COLLIDABLE_TYPES = new Set([
-    'Ground',
-    'ground',
-    'Дорога',
-    'Железнодорожные пути',
-    'Площадка H',
-    'Площадка ⚡',
-    'Стартовая позиция',
-    'Хелипорт',
-    'Станция заряда'
-]);
-
-function shouldSkipCollisionForObject(obj: THREE.Object3D) {
-    const type = String(obj.userData?.type || obj.name || '');
-    return NON_COLLIDABLE_TYPES.has(type);
-}
-
-function sampleSegmentPoints(start: THREE.Vector3, end: THREE.Vector3) {
-    const distance = start.distanceTo(end);
-    const steps = Math.max(1, Math.ceil(distance / COLLISION_SAMPLE_STEP));
-    const samples: THREE.Vector3[] = [];
-    for (let i = 0; i <= steps; i++) {
-        samples.push(start.clone().lerp(end, i / steps));
-    }
-    return samples;
-}
-
-function intersectsExpandedBox(box: THREE.Box3, samples: THREE.Vector3[]) {
-    const expanded = box.clone().expandByScalar(DRONE_COLLISION_RADIUS);
-    return samples.some((sample) => expanded.containsPoint(sample));
-}
-
-function capsuleDistanceToPoint(point: THREE.Vector3, start: THREE.Vector3, end: THREE.Vector3) {
-    const segment = end.clone().sub(start);
-    const lengthSq = segment.lengthSq();
-    if (lengthSq < 1e-6) return point.distanceTo(start);
-    const t = THREE.MathUtils.clamp(point.clone().sub(start).dot(segment) / lengthSq, 0, 1);
-    return point.distanceTo(start.clone().add(segment.multiplyScalar(t)));
-}
-
-function gateHasCollision(gate: THREE.Object3D, samples: THREE.Vector3[]) {
-    const localSamples = samples.map((sample) => gate.worldToLocal(sample.clone()));
-    for (const local of localSamples) {
-        const leftLegDistance = capsuleDistanceToPoint(
-            local,
-            new THREE.Vector3(0, -1.13, 0.46),
-            new THREE.Vector3(0, -0.21, 0.46)
-        );
-        const rightLegDistance = capsuleDistanceToPoint(
-            local,
-            new THREE.Vector3(0, 0.21, 0.46),
-            new THREE.Vector3(0, 1.13, 0.46)
-        );
-        if (leftLegDistance <= 0.04 + DRONE_COLLISION_RADIUS || rightLegDistance <= 0.04 + DRONE_COLLISION_RADIUS) {
-            return true;
-        }
-
-        const radial = Math.hypot(local.y, local.z - 1.18);
-        const torusTubeDistance = Math.hypot(radial - 0.64, local.x) - 0.07;
-        if (torusTubeDistance <= DRONE_COLLISION_RADIUS) {
-            return true;
-        }
-    }
-    return false;
-}
-
-function obstacleHasCollision(obj: THREE.Object3D, samples: THREE.Vector3[]) {
-    if (shouldSkipCollisionForObject(obj)) return false;
-    if (obj.userData?.type === 'Ворота') {
-        return gateHasCollision(obj, samples);
-    }
-
-    let hit = false;
-    obj.updateWorldMatrix(true, true);
-    obj.traverse((node: any) => {
-        if (hit || !node.isMesh || !node.visible) return;
-        const material = Array.isArray(node.material) ? node.material[0] : node.material;
-        if (material && 'opacity' in material && material.opacity !== undefined && material.opacity < 0.2) return;
-        const box = new THREE.Box3().setFromObject(node);
-        if (!box.isEmpty() && intersectsExpandedBox(box, samples)) {
-            hit = true;
-        }
-    });
-    return hit;
-}
-
-function applyCrashState(simState: DroneState, id: string, reason: string) {
-    if (simState.status === 'CRASHED') return;
-
-    // Рассчитываем рикошет (отскок от препятствия)
-    // Инвертируем скорость с коэффициентом отскока
-    const bounceX = -0.7;
-    const bounceY = -0.7;
-    
-    // Если скорость была очень маленькой, добавляем минимальный импульс отскока
-    const minBounce = 1.5;
-    
-    simState.vel.x = (Math.abs(simState.vel.x) < 0.5) ? (Math.random() - 0.5) * minBounce : simState.vel.x * bounceX;
-    simState.vel.y = (Math.abs(simState.vel.y) < 0.5) ? (Math.random() - 0.5) * minBounce : simState.vel.y * bounceY;
-    
-    // Вертикальный импульс подлета при ударе
-    simState.vel.z = Math.abs(simState.vel.z) * 0.5 + 2.5;
-
-    simState.status = 'CRASHED';
-    simState.running = false;
-    simState.pendingLocalPoint = false;
-    simState.pointReachedFlag = false;
-    simState.command_queue = [];
-    simState.target_pos = { ...simState.pos };
-    simState.target_alt = simState.pos.z;
-    triggerLuaCallback(id, 16); // Ev.SHOCK
-    log(`[Physics] Дрон ${id} разбился: ${reason}`, 'warn');
-}
+import { checkPhysicsEvents } from './physics/events.js';
+import { updateMagnetGripper } from './physics/magnet-gripper.js';
+import {
+    MANUAL_TAKEOFF_ALTITUDE,
+    MANUAL_TAKEOFF_THROTTLE,
+    TRACE_SAMPLE_INTERVAL
+} from './physics/constants.js';
 
 export function updatePhysics(dt: number) {
     updateTimers();
@@ -134,6 +23,8 @@ export function updatePhysics(dt: number) {
     for (const id in drones) {
         const simState = drones[id];
         const prevPos = { ...simState.pos };
+        let ax = 0;
+        let ay = 0;
         
         // Process Command Queue
         if (simState.command_queue.length > 0) {
@@ -198,6 +89,35 @@ export function updatePhysics(dt: number) {
             simState.current_time += dt;
         }
 
+        // Обновление режима полета на основе RC каналов (CH5)
+        if (simSettings.gamepadConnected) {
+            const ch5 = simState.rcChannels[4];
+            if (matchesAuxRange(ch5, simSettings.gamepadModeRanges.loiter)) simState.flightMode = 'LOITER';
+            else if (matchesAuxRange(ch5, simSettings.gamepadModeRanges.althold)) simState.flightMode = 'ALTHOLD';
+            else if (matchesAuxRange(ch5, simSettings.gamepadModeRanges.stabilize)) simState.flightMode = 'STABILIZE';
+
+            // Логика Arming через RC канал (CH6)
+            const ch6 = simState.rcChannels[5];
+            const armActive = matchesAuxRange(ch6, simSettings.gamepadAuxRanges.arm);
+            if (armActive && (simState.status === 'ГОТОВ' || simState.status === 'ПРИЗЕМЛЕН')) {
+                simState.status = 'ВЗВЕДЕН';
+                triggerLuaCallback(id, 11); // Ev.ENGINES_STARTED
+            } else if (!armActive && simState.status === 'ВЗВЕДЕН') {
+                simState.status = 'ГОТОВ';
+            }
+
+            const throttle = simState.rcChannels[2];
+            if (armActive && simState.status === 'ВЗВЕДЕН' && throttle >= MANUAL_TAKEOFF_THROTTLE) {
+                simState.target_pos.x = simState.pos.x;
+                simState.target_pos.y = simState.pos.y;
+                simState.target_pos.z = Math.max(simState.pos.z + MANUAL_TAKEOFF_ALTITUDE, MANUAL_TAKEOFF_ALTITUDE);
+                simState.status = 'ВЗЛЕТ';
+            }
+        }
+
+        // Магнитный захват
+        updateMagnetGripper(simState, getObstacles);
+
         // Track path (tracer) должен работать и при посадке в Python,
         // даже если скрипт уже завершился и `running=false`.
         // Поэтому привязываем запись траектории к факту полёта/движения, а не к runtime-флагу.
@@ -214,37 +134,129 @@ export function updatePhysics(dt: number) {
         }
 
         if (isFlying) {
-            // PID-like smooth control with proper acceleration
-            const kp = 4.0; // Proportional gain for position
-            const kd = 2.5; // Damping (derivative) gain
-            const kp_yaw = 5.0;
-            const kd_yaw = 2.0;
-            
-            // Altitude (Z)
-            const errZ = simState.target_pos.z - simState.pos.z;
-            const az = errZ * kp - simState.vel.z * kd;
-            simState.vel.z += az * dt;
-            simState.pos.z += simState.vel.z * dt;
+            if (simSettings.gamepadConnected && simState.flightMode !== 'AUTO') {
+                // Управление с пульта
+                const roll = (simState.rcChannels[0] - 1500) / 500;    // -1..1
+                const pitch = (simState.rcChannels[1] - 1500) / 500;   // -1..1
+                const throttle = (simState.rcChannels[2] - 1000) / 1000; // 0..1
+                const yaw = (simState.rcChannels[3] - 1500) / 500;     // -1..1
 
-            // Position (X, Y)
-            const errX = simState.target_pos.x - simState.pos.x;
-            const errY = simState.target_pos.y - simState.pos.y;
-            
-            const ax = errX * kp - simState.vel.x * kd;
-            const ay = errY * kp - simState.vel.y * kd;
-            
-            simState.vel.x += ax * dt;
-            simState.vel.y += ay * dt;
-            simState.pos.x += simState.vel.x * dt;
-            simState.pos.y += simState.vel.y * dt;
-            
-            // Yaw
-            let errYaw = simState.target_yaw - simState.orientation.yaw;
-            while (errYaw > Math.PI) errYaw -= 2 * Math.PI;
-            while (errYaw < -Math.PI) errYaw += 2 * Math.PI;
-            
-            const yaw_vel = errYaw * kp_yaw;
-            simState.orientation.yaw += yaw_vel * dt;
+                if (simState.flightMode === 'STABILIZE') {
+                    // Ручной режим: газ напрямую влияет на вертикальную скорость, ролл/питч на углы
+                    simState.vel.z += (throttle * 15.0 - 9.81) * dt; 
+                    simState.pos.z += simState.vel.z * dt;
+                    
+                    simState.orientation.pitch = -pitch * 0.5;
+                    simState.orientation.roll = roll * 0.5;
+                    simState.orientation.yaw += yaw * 3.0 * dt;
+
+                    // Горизонтальное движение зависит от наклона
+                    const drag = 0.5;
+                    simState.vel.x += (Math.sin(simState.orientation.pitch) * 15.0 - simState.vel.x * drag) * dt;
+                    simState.vel.y += (Math.sin(simState.orientation.roll) * 15.0 - simState.vel.y * drag) * dt;
+                    simState.pos.x += simState.vel.x * dt;
+                    simState.pos.y += simState.vel.y * dt;
+
+                } else if (simState.flightMode === 'ALTHOLD') {
+                    // Удержание высоты: стик газа меняет целевую высоту
+                    const targetClimbRate = (throttle - 0.5) * 4.0; // -2..2 м/с
+                    simState.target_pos.z += targetClimbRate * dt;
+                    if (simState.target_pos.z < 0) simState.target_pos.z = 0;
+
+                    // PID для высоты
+                    const errZ = simState.target_pos.z - simState.pos.z;
+                    simState.vel.z += (errZ * 4.0 - simState.vel.z * 2.5) * dt;
+                    simState.pos.z += simState.vel.z * dt;
+
+                    // Горизонтально как в stabilize
+                    simState.orientation.pitch = -pitch * 0.4;
+                    simState.orientation.roll = roll * 0.4;
+                    simState.orientation.yaw += yaw * 3.0 * dt;
+
+                    const drag = 0.8;
+                    simState.vel.x += (Math.sin(simState.orientation.pitch) * 12.0 - simState.vel.x * drag) * dt;
+                    simState.vel.y += (Math.sin(simState.orientation.roll) * 12.0 - simState.vel.y * drag) * dt;
+                    simState.pos.x += simState.vel.x * dt;
+                    simState.pos.y += simState.vel.y * dt;
+
+                } else if (simState.flightMode === 'LOITER') {
+                    // Удержание позиции (Navigation)
+                    // Стики задают целевую скорость
+                    const targetVx = -pitch * 3.0;
+                    const targetVy = roll * 3.0;
+                    const targetVz = (throttle - 0.5) * 2.0;
+
+                    // Оптический поток: если под нами что-то есть, поднимаемся
+                    let terrainAlt = 0;
+                    const obstacles = getObstacles();
+                    for (const obj of obstacles) {
+                        if (obj.position.z < simState.pos.z && Math.abs(obj.position.x - simState.pos.x) < 0.5 && Math.abs(obj.position.y - simState.pos.y) < 0.5) {
+                            terrainAlt = Math.max(terrainAlt, obj.position.z + 0.5);
+                        }
+                    }
+                    
+                    const effectiveTargetZ = Math.max(simState.target_pos.z, terrainAlt);
+                    simState.target_pos.z += targetVz * dt;
+                    
+                    // Позиция X, Y обновляется на основе скорости от стиков
+                    simState.target_pos.x += targetVx * dt;
+                    simState.target_pos.y += targetVy * dt;
+
+                    // PID контроль для следования за target_pos
+                    const kp = 5.0;
+                    const kd = 3.0;
+                    
+                    const errX = simState.target_pos.x - simState.pos.x;
+                    const errY = simState.target_pos.y - simState.pos.y;
+                    const errZ = effectiveTargetZ - simState.pos.z;
+
+                    simState.vel.x += (errX * kp - simState.vel.x * kd) * dt;
+                    simState.vel.y += (errY * kp - simState.vel.y * kd) * dt;
+                    simState.vel.z += (errZ * kp - simState.vel.z * kd) * dt;
+
+                    simState.pos.x += simState.vel.x * dt;
+                    simState.pos.y += simState.vel.y * dt;
+                    simState.pos.z += simState.vel.z * dt;
+
+                    simState.orientation.yaw += yaw * 3.0 * dt;
+                    
+                    // Наклоны для визуализации скорости
+                    simState.orientation.pitch = -simState.vel.x * 0.1;
+                    simState.orientation.roll = simState.vel.y * 0.1;
+                }
+            } else {
+                // AUTO Mode (PID-like smooth control from scripts)
+                const kp = 4.0; 
+                const kd = 2.5; 
+                const kp_yaw = 5.0;
+                const kd_yaw = 2.0;
+                
+                // Altitude (Z)
+                const errZ = simState.target_pos.z - simState.pos.z;
+                const az = errZ * kp - simState.vel.z * kd;
+                simState.vel.z += az * dt;
+                simState.pos.z += simState.vel.z * dt;
+
+                // Position (X, Y)
+                const errX = simState.target_pos.x - simState.pos.x;
+                const errY = simState.target_pos.y - simState.pos.y;
+                
+                ax = errX * kp - simState.vel.x * kd;
+                ay = errY * kp - simState.vel.y * kd;
+                
+                simState.vel.x += ax * dt;
+                simState.vel.y += ay * dt;
+                simState.pos.x += simState.vel.x * dt;
+                simState.pos.y += simState.vel.y * dt;
+                
+                // Yaw
+                let errYaw = simState.target_yaw - simState.orientation.yaw;
+                while (errYaw > Math.PI) errYaw -= 2 * Math.PI;
+                while (errYaw < -Math.PI) errYaw += 2 * Math.PI;
+                
+                const yaw_vel = errYaw * kp_yaw;
+                simState.orientation.yaw += yaw_vel * dt;
+            }
             
             const cosY = Math.cos(simState.orientation.yaw);
             const sinY = Math.sin(simState.orientation.yaw);
@@ -291,60 +303,6 @@ export function updatePhysics(dt: number) {
         }
 
         // Event Triggers
-        checkEvents(simState, prevPos);
-    }
-}
-
-function checkEvents(simState: DroneState, prevPos: { x: number; y: number; z: number }) {
-    if (simState.status === 'CRASHED' || simState.status === 'IDLE' || simState.status === 'ГОТОВ' || simState.status === 'ВЗВЕДЕН' || simState.status === 'ПРИЗЕМЛЕН') return;
-
-    const id = simState.id;
-
-    // Collision Check (SHOCK)
-    const obstacles = getObstacles();
-    const start = new THREE.Vector3(prevPos.x, prevPos.y, prevPos.z);
-    const end = new THREE.Vector3(simState.pos.x, simState.pos.y, simState.pos.z);
-    const samples = sampleSegmentPoints(start, end);
-    for (const obj of obstacles) {
-        if (!obj.userData || !obj.userData.type) continue;
-
-        const isNotJustTakingOff = simState.pos.z > 0.1 || prevPos.z > 0.1;
-        if (isNotJustTakingOff && obstacleHasCollision(obj, samples)) {
-            simState.pos = { ...prevPos };
-            applyCrashState(simState, id, `столкновение с объектом "${obj.userData.type}"`);
-            return;
-        }
-    }
-
-    // Takeoff Complete
-    if (simState.status === 'ВЗЛЕТ' && Math.abs(simState.pos.z - simState.target_pos.z) < 0.1) {
-        simState.status = 'ПОЛЕТ';
-        triggerLuaCallback(id, 6); // Ev.TAKEOFF_COMPLETE
-
-        // Если во время взлёта был задан gotoLocalPoint — переводим в режим полёта к точке.
-        if (simState.pendingLocalPoint) {
-            simState.pendingLocalPoint = false;
-            simState.status = 'ПОЛЕТ_К_ТОЧКЕ';
-        }
-    }
-    
-    // Landing Complete
-    if (simState.status === 'ПОСАДКА' && simState.pos.z < 0.05) {
-        simState.status = 'ПРИЗЕМЛЕН';
-        triggerLuaCallback(id, 7); // Ev.COPTER_LANDED
-    }
-    
-    // Point Reached
-    if (simState.status === 'ПОЛЕТ_К_ТОЧКЕ') {
-        const dist = Math.sqrt(
-            (simState.target_pos.x - simState.pos.x)**2 + 
-            (simState.target_pos.y - simState.pos.y)**2 + 
-            (simState.target_pos.z - simState.pos.z)**2
-        );
-        if (dist < 0.15) {
-            simState.status = 'ПОЛЕТ';
-            triggerLuaCallback(id, 10); // Ev.POINT_REACHED
-            simState.pointReachedFlag = true;
-        }
+        checkPhysicsEvents(simState, prevPos);
     }
 }

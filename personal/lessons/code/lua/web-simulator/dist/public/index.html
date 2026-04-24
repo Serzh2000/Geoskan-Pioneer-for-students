@@ -8,8 +8,8 @@
     <script src="https://cdn.jsdelivr.net/npm/fengari-web@0.1.4/dist/fengari-web.js"></script>
     <!-- Monaco Editor from CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs/loader.js"></script>
-  <script type="module" crossorigin src="/assets/index-C_G_YXeq.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-DsBTzxtp.css">
+  <script type="module" crossorigin src="/assets/index-kP6Wrtr6.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-Ckty5SK1.css">
 </head>
 <body>
     <div class="container">
@@ -75,6 +75,7 @@
                 </div>
                 <div class="panel-content">
                     <div class="scene-manager">
+                        <div id="scene-click-coords" style="display: none; font-family: var(--font-mono); font-size: 10px; color: var(--accent-color); margin-bottom: 8px; padding: 4px 8px; background: rgba(56, 189, 248, 0.1); border-radius: 4px; border: 1px solid rgba(56, 189, 248, 0.2);"></div>
                         <div id="scene-object-list" class="scene-manager-list"></div>
                         <div id="scene-object-details" class="scene-manager-details">Выберите объект в списке</div>
                         
@@ -119,38 +120,42 @@
                                     <input id="scene-add-floors" type="number" min="5" max="20" step="1" value="9">
                                 </label>
                                 <div id="scene-add-building-settings" class="scene-building-settings">
-                                    <div class="scene-building-settings-title">Сценарии по окнам</div>
-                                    <div class="scene-building-settings-note">Подберите этажность и добавляйте события по окнам.</div>
-                                    <div class="scene-building-settings-grid">
-                                        <label class="scene-field">
-                                            <span>Этаж</span>
-                                            <input id="scene-add-building-floor" type="number" min="1" max="20" step="1" value="3">
-                                        </label>
-                                        <label class="scene-field">
-                                            <span>Сторона</span>
-                                            <select id="scene-add-building-face">
-                                                <option value="front">Перед</option>
-                                                <option value="back">Зад</option>
-                                            </select>
-                                        </label>
-                                        <label class="scene-field">
-                                            <span>Окно</span>
-                                            <select id="scene-add-building-window">
-                                                <option value="1">1</option>
-                                                <option value="2">2</option>
-                                                <option value="3">3</option>
-                                            </select>
-                                        </label>
-                                        <label class="scene-field">
-                                            <span>Событие</span>
-                                            <select id="scene-add-building-kind">
-                                                <option value="smoke">Дым</option>
-                                                <option value="fire">Пожар</option>
-                                                <option value="thief">Вор</option>
-                                            </select>
-                                        </label>
+                                    <div class="scene-building-settings-header">
+                                        <div class="scene-building-settings-title">Сценарии по окнам</div>
                                     </div>
-                                    <div class="action-row">
+                                    <div class="scene-building-controls-row">
+                                        <div class="scene-building-settings-grid">
+                                            <label class="scene-field">
+                                                <span>Этаж</span>
+                                                <input id="scene-add-building-floor" type="number" min="1" max="20" step="1" value="3">
+                                            </label>
+                                            <label class="scene-field">
+                                                <span>Сторона</span>
+                                                <select id="scene-add-building-face">
+                                                    <option value="front">Перед</option>
+                                                    <option value="back">Зад</option>
+                                                </select>
+                                            </label>
+                                            <label class="scene-field">
+                                                <span>Окно</span>
+                                                <select id="scene-add-building-window">
+                                                    <option value="1">1</option>
+                                                    <option value="2">2</option>
+                                                    <option value="3">3</option>
+                                                </select>
+                                            </label>
+                                            <label class="scene-field">
+                                                <span>Событие</span>
+                                                <select id="scene-add-building-kind">
+                                                    <option value="smoke">Дым</option>
+                                                    <option value="fire">Пожар</option>
+                                                    <option value="thief">Вор</option>
+                                                </select>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="scene-building-settings-note">Подберите этажность и добавляйте события по окнам.</div>
+                                    <div class="action-row" style="margin-top: 4px;">
                                         <button id="scene-add-building-append-btn" type="button" class="btn-secondary">+ Сценарий</button>
                                         <button id="scene-add-building-clear-btn" type="button" class="btn-secondary">Очистить</button>
                                     </div>
@@ -251,38 +256,42 @@
                                     <input id="scene-selected-floors" type="number" min="5" max="20" step="1" value="9">
                                 </label>
                                 <div id="scene-selected-building-settings" class="scene-building-settings">
-                                    <div class="scene-building-settings-title">Сценарии по окнам</div>
-                                    <div class="scene-building-settings-note">Редактируйте этажность и события у выбранной многоэтажки.</div>
-                                    <div class="scene-building-settings-grid">
-                                        <label class="scene-field">
-                                            <span>Этаж</span>
-                                            <input id="scene-selected-building-floor" type="number" min="1" max="20" step="1" value="3">
-                                        </label>
-                                        <label class="scene-field">
-                                            <span>Сторона</span>
-                                            <select id="scene-selected-building-face">
-                                                <option value="front">Перед</option>
-                                                <option value="back">Зад</option>
-                                            </select>
-                                        </label>
-                                        <label class="scene-field">
-                                            <span>Окно</span>
-                                            <select id="scene-selected-building-window">
-                                                <option value="1">1</option>
-                                                <option value="2">2</option>
-                                                <option value="3">3</option>
-                                            </select>
-                                        </label>
-                                        <label class="scene-field">
-                                            <span>Событие</span>
-                                            <select id="scene-selected-building-kind">
-                                                <option value="smoke">Дым</option>
-                                                <option value="fire">Пожар</option>
-                                                <option value="thief">Вор</option>
-                                            </select>
-                                        </label>
+                                    <div class="scene-building-settings-header">
+                                        <div class="scene-building-settings-title">Сценарии по окнам</div>
                                     </div>
-                                    <div class="action-row">
+                                    <div class="scene-building-controls-row">
+                                        <div class="scene-building-settings-grid">
+                                            <label class="scene-field">
+                                                <span>Этаж</span>
+                                                <input id="scene-selected-building-floor" type="number" min="1" max="20" step="1" value="3">
+                                            </label>
+                                            <label class="scene-field">
+                                                <span>Сторона</span>
+                                                <select id="scene-selected-building-face">
+                                                    <option value="front">Перед</option>
+                                                    <option value="back">Зад</option>
+                                                </select>
+                                            </label>
+                                            <label class="scene-field">
+                                                <span>Окно</span>
+                                                <select id="scene-selected-building-window">
+                                                    <option value="1">1</option>
+                                                    <option value="2">2</option>
+                                                    <option value="3">3</option>
+                                                </select>
+                                            </label>
+                                            <label class="scene-field">
+                                                <span>Событие</span>
+                                                <select id="scene-selected-building-kind">
+                                                    <option value="smoke">Дым</option>
+                                                    <option value="fire">Пожар</option>
+                                                    <option value="thief">Вор</option>
+                                                </select>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="scene-building-settings-note">Редактируйте этажность и события у выбранной многоэтажки.</div>
+                                    <div class="action-row" style="margin-top: 4px;">
                                         <button id="scene-selected-building-append-btn" type="button" class="btn-secondary">+ Сценарий</button>
                                         <button id="scene-selected-building-clear-btn" type="button" class="btn-secondary">Очистить</button>
                                     </div>
@@ -307,8 +316,13 @@
                                     <button id="scene-drone-origin-btn" class="btn-secondary">Дрон в (0,0)</button>
                                 </div>
                             </div>
+
+                            <div class="action-row" style="margin-bottom: 8px; gap: 8px;">
+                                <button id="scene-group-btn" class="btn-secondary" title="Сгруппировать выбранные объекты (Ctrl+Click)" style="flex: 1;">ГРУППА</button>
+                                <button id="scene-ungroup-btn" class="btn-secondary" title="Разгруппировать выбранную группу" style="flex: 1;">РАЗГРУППИРОВАТЬ</button>
+                            </div>
                             
-                            <button id="scene-delete-btn" class="btn-secondary" style="color: var(--danger); border-color: rgba(239,68,68,0.3); width: 100%;">Удалить выбранное</button>
+                            <button id="scene-delete-btn" class="btn-secondary" style="color: var(--danger); border-color: rgba(239,68,68,0.3); width: 100%;">УДАЛИТЬ</button>
                         </div>
                     </div>
                 </div>
@@ -341,7 +355,7 @@
                     <span class="panel-title">Настройки</span>
                     <button class="panel-close-btn" onclick="closePanel()">✕</button>
                 </div>
-                <div class="panel-content" style="padding: 20px;">
+                <div class="panel-content settings-panel-content">
                     <div class="settings-stack">
                         <div class="settings-group">
                             <div class="settings-label">Трассер полета</div>
@@ -382,6 +396,174 @@
                                 <input type="range" id="setting-sim-speed" min="0.25" max="3" step="0.25" value="1">
                             </label>
                         </div>
+                        <div class="settings-group">
+                            <div class="settings-label">Внешнее управление (USB Пульт)</div>
+                            <div id="gamepad-status" class="status-indicator">Пульт не подключен</div>
+                            <div id="gamepad-info" class="gamepad-panel" style="display: none;">
+                                <div class="gamepad-panel-header">
+                                    <div class="gamepad-panel-copy">
+                                        <div class="gamepad-panel-title">Настройка каналов пульта</div>
+                                        <div class="gamepad-panel-subtitle">Назначения и диапазоны становятся доступны только после получения живых значений от текущего пульта.</div>
+                                    </div>
+                                </div>
+                                <div class="gamepad-actions">
+                                    <button id="gp-btn-calibrate" class="btn-secondary gamepad-action-btn">КАЛИБРОВКА</button>
+                                    <button id="gp-btn-reset-cal" class="btn-secondary gamepad-action-btn">СБРОС</button>
+                                </div>
+                                <div id="gp-auto-status" class="gamepad-auto-status">Нажмите AUTO и подвигайте нужный стик или тумблер.</div>
+                                <div id="gp-channel-data-status" class="gamepad-channel-status">Ожидание данных каналов текущего пульта.</div>
+                                <div class="gamepad-mapping-grid">
+                                    <!-- Roll -->
+                                    <div class="gp-channel-row">
+                                        <label class="scene-field gp-channel-field">
+                                            <span>Roll (CH1)</span>
+                                            <select id="gp-map-roll" class="gp-axis-select"></select>
+                                        </label>
+                                        <div class="gp-channel-meter">
+                                            <div class="gp-bar-bg">
+                                                <div id="gp-bar-roll" class="gp-bar gp-bar-centered"></div>
+                                            </div>
+                                        </div>
+                                        <button id="gp-auto-roll" class="btn-secondary gp-auto-btn" type="button">AUTO</button>
+                                        <label class="checkbox-container gp-invert-checkbox">
+                                            <input type="checkbox" id="gp-inv-roll">
+                                            <span class="checkmark gp-checkmark"></span>
+                                            Inv
+                                        </label>
+                                        <div id="gp-val-roll" class="gp-channel-value">1500</div>
+                                    </div>
+                                    <!-- Pitch -->
+                                    <div class="gp-channel-row">
+                                        <label class="scene-field gp-channel-field">
+                                            <span>Pitch (CH2)</span>
+                                            <select id="gp-map-pitch" class="gp-axis-select"></select>
+                                        </label>
+                                        <div class="gp-channel-meter">
+                                            <div class="gp-bar-bg">
+                                                <div id="gp-bar-pitch" class="gp-bar gp-bar-centered"></div>
+                                            </div>
+                                        </div>
+                                        <button id="gp-auto-pitch" class="btn-secondary gp-auto-btn" type="button">AUTO</button>
+                                        <label class="checkbox-container gp-invert-checkbox">
+                                            <input type="checkbox" id="gp-inv-pitch">
+                                            <span class="checkmark gp-checkmark"></span>
+                                            Inv
+                                        </label>
+                                        <div id="gp-val-pitch" class="gp-channel-value">1500</div>
+                                    </div>
+                                    <!-- Throttle -->
+                                    <div class="gp-channel-row">
+                                        <label class="scene-field gp-channel-field">
+                                            <span>Thr (CH3)</span>
+                                            <select id="gp-map-throttle" class="gp-axis-select"></select>
+                                        </label>
+                                        <div class="gp-channel-meter">
+                                            <div class="gp-bar-bg">
+                                                <div id="gp-bar-throttle" class="gp-bar gp-bar-throttle"></div>
+                                            </div>
+                                        </div>
+                                        <button id="gp-auto-throttle" class="btn-secondary gp-auto-btn" type="button">AUTO</button>
+                                        <label class="checkbox-container gp-invert-checkbox">
+                                            <input type="checkbox" id="gp-inv-throttle">
+                                            <span class="checkmark gp-checkmark"></span>
+                                            Inv
+                                        </label>
+                                        <div id="gp-val-throttle" class="gp-channel-value">1000</div>
+                                    </div>
+                                    <!-- Yaw -->
+                                    <div class="gp-channel-row">
+                                        <label class="scene-field gp-channel-field">
+                                            <span>Yaw (CH4)</span>
+                                            <select id="gp-map-yaw" class="gp-axis-select"></select>
+                                        </label>
+                                        <div class="gp-channel-meter">
+                                            <div class="gp-bar-bg">
+                                                <div id="gp-bar-yaw" class="gp-bar gp-bar-centered"></div>
+                                            </div>
+                                        </div>
+                                        <button id="gp-auto-yaw" class="btn-secondary gp-auto-btn" type="button">AUTO</button>
+                                        <label class="checkbox-container gp-invert-checkbox">
+                                            <input type="checkbox" id="gp-inv-yaw">
+                                            <span class="checkmark gp-checkmark"></span>
+                                            Inv
+                                        </label>
+                                        <div id="gp-val-yaw" class="gp-channel-value">1500</div>
+                                    </div>
+                                    <!-- Switches -->
+                                    <div class="gp-aux-grid">
+                                        <div class="gp-aux-card">
+                                            <label class="scene-field gp-aux-field">
+                                                <span>Mode</span>
+                                                <select id="gp-map-mode" class="gp-axis-select"></select>
+                                            </label>
+                                            <div class="gp-aux-hint">LOW: Loiter, MID: AltHold, HIGH: Stabilize</div>
+                                            <button id="gp-auto-mode" class="btn-secondary gp-auto-btn gp-auto-btn-wide" type="button">AUTO</button>
+                                            <div id="gp-val-mode" class="gp-aux-value">1000</div>
+                                        </div>
+                                        <div class="gp-aux-card">
+                                            <label class="scene-field gp-aux-field">
+                                                <span>Arm</span>
+                                                <select id="gp-map-arm" class="gp-axis-select"></select>
+                                            </label>
+                                            <div id="gp-range-arm-card" class="gp-range-editor">
+                                                <div class="gp-range-track">
+                                                    <div id="gp-range-fill-arm" class="gp-range-fill"></div>
+                                                    <div id="gp-range-marker-arm" class="gp-range-marker"></div>
+                                                </div>
+                                                <div class="gp-range-sliders">
+                                                    <label class="scene-field gp-aux-subfield">
+                                                        <span>Min</span>
+                                                        <input id="gp-range-arm-min" type="range" min="1000" max="2000" step="1" value="1700">
+                                                    </label>
+                                                    <label class="scene-field gp-aux-subfield">
+                                                        <span>Max</span>
+                                                        <input id="gp-range-arm-max" type="range" min="1000" max="2000" step="1" value="2000">
+                                                    </label>
+                                                </div>
+                                                <div class="gp-range-values">
+                                                    <span id="gp-range-arm-min-val">1700</span>
+                                                    <span id="gp-range-arm-live">LIVE 1000</span>
+                                                    <span id="gp-range-arm-max-val">2000</span>
+                                                </div>
+                                                <div id="gp-range-arm-meta" class="gp-range-meta">Нет данных назначенного канала.</div>
+                                            </div>
+                                            <button id="gp-auto-arm" class="btn-secondary gp-auto-btn gp-auto-btn-wide" type="button">AUTO</button>
+                                            <div id="gp-val-arm" class="gp-aux-value">1000</div>
+                                        </div>
+                                        <div class="gp-aux-card">
+                                            <label class="scene-field gp-aux-field">
+                                                <span>Magnet</span>
+                                                <select id="gp-map-magnet" class="gp-axis-select"></select>
+                                            </label>
+                                            <div id="gp-range-magnet-card" class="gp-range-editor">
+                                                <div class="gp-range-track">
+                                                    <div id="gp-range-fill-magnet" class="gp-range-fill"></div>
+                                                    <div id="gp-range-marker-magnet" class="gp-range-marker"></div>
+                                                </div>
+                                                <div class="gp-range-sliders">
+                                                    <label class="scene-field gp-aux-subfield">
+                                                        <span>Min</span>
+                                                        <input id="gp-range-magnet-min" type="range" min="1000" max="2000" step="1" value="1700">
+                                                    </label>
+                                                    <label class="scene-field gp-aux-subfield">
+                                                        <span>Max</span>
+                                                        <input id="gp-range-magnet-max" type="range" min="1000" max="2000" step="1" value="2000">
+                                                    </label>
+                                                </div>
+                                                <div class="gp-range-values">
+                                                    <span id="gp-range-magnet-min-val">1700</span>
+                                                    <span id="gp-range-magnet-live">LIVE 1000</span>
+                                                    <span id="gp-range-magnet-max-val">2000</span>
+                                                </div>
+                                                <div id="gp-range-magnet-meta" class="gp-range-meta">Нет данных назначенного канала.</div>
+                                            </div>
+                                            <button id="gp-auto-magnet" class="btn-secondary gp-auto-btn gp-auto-btn-wide" type="button">AUTO</button>
+                                            <div id="gp-val-magnet" class="gp-aux-value">1000</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -397,17 +579,15 @@
                 <div class="header-brand">
                     <div class="header-brand-mark">P</div>
                     <div class="header-brand-copy">
-                        <div class="header-eyebrow">Pioneer Control Deck</div>
-                        <div class="header-logo">Симулятор <span>Pioneer</span></div>
+                        <div class="header-logo">Pioneer <span>Simulator</span></div>
                     </div>
                 </div>
                 <div class="header-actions">
                     <div class="header-controls-group">
-                        <div class="header-group-label">Сценарий</div>
                         <select id="file-selector" class="btn-secondary header-select">
                             <option value="">Выберите файл...</option>
                         </select>
-                        <button onclick="document.getElementById('file-input').click()" class="btn-secondary">Открыть файл</button>
+                        <button onclick="document.getElementById('file-input').click()" class="btn-secondary" title="Открыть файл">ОТКРЫТЬ ФАЙЛ</button>
                         <input type="file" id="file-input" style="display:none" accept=".lua,.py">
                         <select id="script-language-select" class="btn-secondary header-select header-lang-select">
                             <option value="lua">Lua</option>
@@ -415,10 +595,9 @@
                         </select>
                     </div>
                     <div class="header-controls-group">
-                        <div class="header-group-label">Управление</div>
-                        <button id="run-btn" class="btn-primary">Запустить</button>
-                        <button id="stop-btn" class="btn-secondary header-danger-btn">Стоп</button>
-                        <button id="restart-btn" class="btn-secondary">Сброс</button>
+                        <button id="run-btn" class="btn-primary">ЗАПУСТИТЬ</button>
+                        <button id="stop-btn" class="btn-secondary header-danger-btn">СТОП</button>
+                        <button id="restart-btn" class="btn-secondary">СБРОС</button>
                     </div>
                 </div>
             </header>

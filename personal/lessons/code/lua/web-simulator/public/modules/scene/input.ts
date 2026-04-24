@@ -22,15 +22,19 @@ import { updateTransformModeDecorations } from './transform.js';
 import {
     deleteSelectedObject,
     duplicateObject,
-    resetDroneToOrigin,
+    resetDroneToOrigin
+} from './object-manager.js';
+import {
     activateTransformMode,
-    isTransformableObject,
     rememberSelectedObjectInitialTransform,
     getRotationStepDegrees,
     resetSelectedObjectToInitialTransform,
     rotateSelectedObjectByDegrees,
     setRotationStepDegrees
-} from './object-manager.js';
+} from './object-transform.js';
+import {
+    isTransformableObject,
+} from './object-catalog.js';
 
 const groundPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
 const CLICK_TRACE_PREFIX = '[3D-CLICK]';

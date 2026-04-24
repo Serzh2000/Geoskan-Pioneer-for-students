@@ -11,12 +11,27 @@ export interface TimerTask {
     next_trigger?: number;
 }
 
+export type GamepadInputRef = `a${number}` | `b${number}`;
+export interface AuxChannelRange {
+    min: number;
+    max: number;
+    center?: number;
+}
+
+export interface GamepadModeRanges {
+    loiter: AuxChannelRange;
+    althold: AuxChannelRange;
+    stabilize: AuxChannelRange;
+}
+
 /**
  * Модуль глобального состояния симулятора.
  * Хранит данные обо всех дронах (позиции, скорости, логика автопилота),
  * настройках симуляции (скорость, трассеры), общем состоянии среды (работает/остановлено),
  * а также точки траектории для отрисовки шлейфа (pathPoints).
  */
+export type FlightMode = 'AUTO' | 'LOITER' | 'ALTHOLD' | 'STABILIZE';
+
 export interface DroneState {
     id: string;
     name: string;
@@ -29,6 +44,12 @@ export interface DroneState {
     orientation: Orientation;
     battery: number;
     status: string;
+    flightMode: FlightMode;
+    rcChannels: number[]; // 0: Roll, 1: Pitch, 2: Throttle, 3: Yaw, 4..7: Switches
+    magnetGripper: {
+        active: boolean;
+        attachedObjectId: string | null;
+    };
     target_alt: number;
     target_pos: Vector3;
     target_yaw: number;
@@ -62,8 +83,40 @@ export const simSettings = {
     tracerWidth: 2,
     tracerShape: 'line', // 'line', 'points', 'both'
     showGizmo: true,
-    simSpeed: 1.0
+    simSpeed: 1.0,
+    gamepadConnected: false,
+    gamepadMapping: {
+        roll: 'a0' as GamepadInputRef,
+        pitch: 'a1' as GamepadInputRef,
+        throttle: 'a2' as GamepadInputRef,
+        yaw: 'a3' as GamepadInputRef,
+        modeSwitch: 'b4' as GamepadInputRef,
+        armSwitch: 'b5' as GamepadInputRef,
+        magnetBtn: 'b6' as GamepadInputRef
+    },
+    gamepadCalibration: {
+        min: Array.from({ length: 16 }, () => -1),
+        max: Array.from({ length: 16 }, () => 1),
+        center: Array.from({ length: 16 }, () => 0),
+        isCalibrated: false
+    },
+    gamepadInversion: [false, false, false, false, false, false, false, false], // R, P, T, Y, Mode, Arm, Magnet
+    gamepadAuxRanges: {
+        arm: { min: 1700, max: 2000 } as AuxChannelRange,
+        magnet: { min: 1700, max: 2000 } as AuxChannelRange
+    },
+    gamepadModeRanges: {
+        loiter: { min: 1000, max: 1299, center: 1150 } as AuxChannelRange,
+        althold: { min: 1300, max: 1699, center: 1500 } as AuxChannelRange,
+        stabilize: { min: 1700, max: 2000, center: 1850 } as AuxChannelRange
+    }
 };
+
+export function matchesAuxRange(value: number, range: AuxChannelRange): boolean {
+    const min = Math.max(1000, Math.min(range.min, range.max));
+    const max = Math.min(2000, Math.max(range.min, range.max));
+    return value >= min && value <= max;
+}
 
 export function createDroneState(id: string, name: string, x: number = 0, y: number = 0, z: number = 0): DroneState {
     const drone: DroneState = {
@@ -77,6 +130,12 @@ export function createDroneState(id: string, name: string, x: number = 0, y: num
         orientation: { roll: 0, pitch: 0, yaw: 0 },
         battery: 100,
         status: 'ГОТОВ',
+        flightMode: 'AUTO',
+        rcChannels: [1500, 1500, 1000, 1500, 1000, 1000, 1000, 1000],
+        magnetGripper: {
+            active: false,
+            attachedObjectId: null
+        },
         target_alt: z,
         target_pos: { x, y, z },
         target_yaw: 0,

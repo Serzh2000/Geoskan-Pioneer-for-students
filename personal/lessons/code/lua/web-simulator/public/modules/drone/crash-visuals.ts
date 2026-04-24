@@ -1,0 +1,119 @@
+import * as THREE from 'three';
+
+const explodedDrones = new Set<string>();
+
+export function explodeDrone(id: string, mesh: THREE.Object3D) {
+    if (explodedDrones.has(id)) return;
+    explodedDrones.add(id);
+
+    const partsToExplode: THREE.Object3D[] = [];
+    const mainComponents = [
+        mesh.getObjectByName('frame'),
+        mesh.getObjectByName('leds'),
+        mesh.getObjectByName('camera_antenna'),
+        mesh.getObjectByName('motors_group')
+    ].filter(Boolean) as THREE.Object3D[];
+
+    if (mainComponents.length > 0) {
+        mainComponents.forEach((comp) => {
+            if (comp.name === 'motors_group') {
+                const subParts = [...comp.children];
+                subParts.forEach((part) => partsToExplode.push(part));
+            } else {
+                partsToExplode.push(comp);
+            }
+        });
+    } else {
+        partsToExplode.push(...mesh.children);
+    }
+
+    partsToExplode.forEach((part) => {
+        const worldPos = new THREE.Vector3();
+        const worldQuat = new THREE.Quaternion();
+        const worldScale = new THREE.Vector3();
+
+        part.getWorldPosition(worldPos);
+        part.getWorldQuaternion(worldQuat);
+        part.getWorldScale(worldScale);
+
+        part.userData.originalParent = part.parent;
+        part.userData.originalPos = part.position.clone();
+        part.userData.originalRot = part.rotation.clone();
+        part.userData.originalScale = part.scale.clone();
+
+        mesh.add(part);
+
+        mesh.worldToLocal(worldPos);
+        part.position.copy(worldPos);
+        part.quaternion.copy(worldQuat);
+
+        part.userData.vel = new THREE.Vector3(
+            (Math.random() - 0.5) * 10,
+            (Math.random() - 0.5) * 10,
+            Math.random() * 5 + 3
+        );
+
+        part.userData.rotVel = new THREE.Vector3(
+            (Math.random() - 0.5) * 15,
+            (Math.random() - 0.5) * 15,
+            (Math.random() - 0.5) * 15
+        );
+    });
+}
+
+export function resetDroneVisuals(id: string, mesh: THREE.Object3D) {
+    if (!explodedDrones.has(id)) return;
+    explodedDrones.delete(id);
+
+    const parts = [...mesh.children];
+    parts.forEach((part) => {
+        if (!part.userData.originalParent) return;
+        part.userData.originalParent.add(part);
+        part.position.copy(part.userData.originalPos);
+        part.rotation.copy(part.userData.originalRot);
+        part.scale.copy(part.userData.originalScale);
+
+        delete part.userData.originalParent;
+        delete part.userData.originalPos;
+        delete part.userData.originalRot;
+        delete part.userData.originalScale;
+        delete part.userData.vel;
+        delete part.userData.rotVel;
+    });
+}
+
+export function updateDebrisVisuals(mesh: THREE.Object3D, dt: number) {
+    mesh.children.forEach((part) => {
+        if (!part.userData.vel) return;
+        const vel = part.userData.vel as THREE.Vector3;
+        const rotVel = part.userData.rotVel as THREE.Vector3;
+
+        part.position.addScaledVector(vel, dt);
+        part.rotation.x += rotVel.x * dt;
+        part.rotation.y += rotVel.y * dt;
+        part.rotation.z += rotVel.z * dt;
+
+        vel.z -= 15.0 * dt;
+
+        const friction = 1.0 - 0.9 * dt;
+        vel.x *= friction;
+        vel.y *= friction;
+        rotVel.multiplyScalar(1.0 - 1.5 * dt);
+
+        const worldZ = mesh.position.z + part.position.z;
+        if (worldZ >= 0.02) return;
+
+        part.position.z = -mesh.position.z + 0.02;
+        if (Math.abs(vel.z) > 1.2) {
+            vel.z *= -0.25;
+            vel.x *= 0.6;
+            vel.y *= 0.6;
+            return;
+        }
+
+        vel.set(0, 0, 0);
+        rotVel.set(0, 0, 0);
+        part.rotation.x = Math.PI / 2 * (Math.random() > 0.5 ? 1 : -1);
+        part.rotation.y = 0;
+    });
+}

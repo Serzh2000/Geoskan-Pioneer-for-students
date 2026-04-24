@@ -6,6 +6,9 @@ import { envGroup, addObjectToScene, updateSceneObjectPoints, updateSceneObjectV
 import { MarkerMapOptions, SceneObjectOptions, ScenePathPoint } from '../environment/obstacles.js';
 import { handleDeselection, deselectObject } from './selection.js';
 import { handleSelection, updateObjectSelectionVisuals } from './input.js';
+import { findSceneObjectById, getSceneTopLevelObjects, isTransformableObject, listSceneObjects, normalizePoints, parsePointsText } from './object-catalog.js';
+import type { TransformMode } from './object-transform.js';
+import { activateTransformMode, clearSelectedObjectInitialTransform, getRotationStepDegrees, getRotationStepOptions, rememberSelectedObjectInitialTransform, resetSelectedObjectToInitialTransform, rotateSelectedObjectByDegrees, setRotationStepDegrees } from './object-transform.js';
 
 export function groupObjects() {
     if (multiSelectedObjects.length < 2) {
@@ -83,216 +86,28 @@ export function ungroupObject(targetGroup?: THREE.Object3D) {
 
 (window as any).groupObjects = groupObjects;
 (window as any).ungroupObject = ungroupObject;
-export type TransformMode = 'translate' | 'rotate' | 'scale';
-export type RotationAxis = 'x' | 'y' | 'z';
-
-const ROTATION_STEP_OPTIONS = [5, 15, 45] as const;
-let rotationStepDegrees = 15;
-let initialTransformTarget: THREE.Object3D | null = null;
-let initialTransformSnapshot: {
-    position: THREE.Vector3;
-    quaternion: THREE.Quaternion;
-    scale: THREE.Vector3;
-} | null = null;
-
-function formatPoints(points: ScenePathPoint[]) {
-    return points.map((point) => `${point.x.toFixed(2)}, ${point.y.toFixed(2)}, ${point.z.toFixed(2)}`).join('\n');
-}
-
-function normalizePoints(points: unknown): ScenePathPoint[] {
-    if (!Array.isArray(points)) return [];
-    return points
-        .map((point: any) => ({
-            x: Number(point?.x),
-            y: Number(point?.y),
-            z: Number(point?.z ?? 0)
-        }))
-        .filter((point) => Number.isFinite(point.x) && Number.isFinite(point.y) && Number.isFinite(point.z));
-}
-
-function parsePointsText(pointsText: string) {
-    const points = pointsText
-        .split(/\r?\n/)
-        .map((line) => line.trim())
-        .filter(Boolean)
-        .map((line) => {
-            const values = line
-                .split(/[;, ]+/)
-                .map((value) => value.trim())
-                .filter(Boolean)
-                .map(Number);
-            return {
-                x: values[0],
-                y: values[1],
-                z: Number.isFinite(values[2]) ? values[2] : 0
-            };
-        })
-        .filter((point) => Number.isFinite(point.x) && Number.isFinite(point.y));
-
-    return points;
-}
-
-export function getSceneTopLevelObjects() {
-    const objects: THREE.Object3D[] = [];
-    for (const id in droneMeshes) {
-        if (droneMeshes[id]) objects.push(droneMeshes[id]);
-    }
-    if (envGroup) objects.push(...envGroup.children);
-    return objects;
-}
-
-export function findSceneObjectById(id: string) {
-    return getSceneTopLevelObjects().find((obj) => obj.uuid === id) || null;
-}
-
-export function isTransformableObject(target: THREE.Object3D | null | undefined) {
-    if (!target || !target.parent) return false;
-    // Землю нельзя трансформировать ни при каких условиях
-    if (target.name === 'Ground' || target.userData?.type === 'ground') return false;
-    
-    for (const id in droneMeshes) {
-        if (target === droneMeshes[id]) return true;
-    }
-    
-    // Сетка маркеров (карта) должна быть выделяемой и трансформируемой
-    if (target.userData?.isMarkerMap) return true;
-    
-    return !!target.userData?.draggable;
-}
-
-export function getRotationStepOptions() {
-    return [...ROTATION_STEP_OPTIONS];
-}
-
-export function getRotationStepDegrees() {
-    return rotationStepDegrees;
-}
-
-export function setRotationStepDegrees(step: number) {
-    const normalized = ROTATION_STEP_OPTIONS.includes(step as typeof ROTATION_STEP_OPTIONS[number]) ? step : 15;
-    rotationStepDegrees = normalized;
-    if (transformControl?.getMode() === 'rotate') {
-        transformControl.setRotationSnap(THREE.MathUtils.degToRad(rotationStepDegrees));
-    }
-    if ((window as any).setTransformToolbarRotationStep) {
-        (window as any).setTransformToolbarRotationStep(rotationStepDegrees);
-    }
-    return rotationStepDegrees;
-}
-
-export function rememberSelectedObjectInitialTransform(target: THREE.Object3D) {
-    initialTransformTarget = target;
-    initialTransformSnapshot = {
-        position: target.position.clone(),
-        quaternion: target.quaternion.clone(),
-        scale: target.scale.clone()
-    };
-}
-
-export function clearSelectedObjectInitialTransform(target?: THREE.Object3D | null) {
-    if (target && initialTransformTarget && target !== initialTransformTarget) return;
-    initialTransformTarget = null;
-    initialTransformSnapshot = null;
-}
-
-export function rotateSelectedObjectByDegrees(axis: RotationAxis, deltaDegrees: number) {
-    if (!selectedObject || !transformControl || !isTransformableObject(selectedObject) || simState.running) return false;
-    const radians = THREE.MathUtils.degToRad(deltaDegrees);
-    selectedObject.rotation[axis] += radians;
-    selectedObject.updateMatrixWorld(true);
-    transformControl.dispatchEvent({ type: 'change', target: transformControl });
-    updateTransformModeDecorations(transformControl.getMode(), selectedObject);
-    return true;
-}
-
-export function resetSelectedObjectToInitialTransform() {
-    if (!selectedObject || !transformControl || !isTransformableObject(selectedObject) || simState.running) return false;
-    if (!initialTransformTarget || !initialTransformSnapshot || selectedObject !== initialTransformTarget) return false;
-
-    selectedObject.position.copy(initialTransformSnapshot.position);
-    selectedObject.quaternion.copy(initialTransformSnapshot.quaternion);
-    selectedObject.scale.copy(initialTransformSnapshot.scale);
-    selectedObject.updateMatrixWorld(true);
-    transformControl.dispatchEvent({ type: 'change', target: transformControl });
-    updateTransformModeDecorations(transformControl.getMode(), selectedObject);
-    return true;
-}
-
-export function activateTransformMode(mode: TransformMode, target: THREE.Object3D) {
-    if (!transformControl || !target || !target.parent || simState.running) return false;
-    if (!isTransformableObject(target)) return false;
-
-    transformControl.attach(target);
-    transformControl.setMode(mode);
-    transformControl.enabled = true;
-    transformControl.size = mode === 'rotate' ? 1.3 : 1.15;
-    transformControl.showX = true;
-    transformControl.showY = true;
-    transformControl.showZ = true;
-    transformControl.setSpace(mode === 'scale' ? 'local' : 'world');
-    transformControl.setTranslationSnap(null);
-    transformControl.setScaleSnap(null);
-    transformControl.setRotationSnap(mode === 'rotate' ? THREE.MathUtils.degToRad(rotationStepDegrees) : null);
-    transformControl.visible = simSettings.showGizmo;
-    if (transformHelper) {
-        transformHelper.visible = simSettings.showGizmo;
-        transformHelper.updateMatrixWorld(true);
-    }
-    if ((window as any).setGizmoToolbarMode) (window as any).setGizmoToolbarMode(mode);
-    if ((window as any).setTransformToolbarRotationStep) {
-        (window as any).setTransformToolbarRotationStep(rotationStepDegrees);
-    }
-    updateTransformModeDecorations(mode, target);
-    if (controls) controls.enabled = (window as any).cameraMode === 'free' && !(window as any).isTransforming;
-    return true;
-}
+export type { TransformMode, RotationAxis } from './object-transform.js';
+export {
+    getSceneTopLevelObjects,
+    findSceneObjectById,
+    isTransformableObject,
+    listSceneObjects,
+    normalizePoints,
+    parsePointsText
+} from './object-catalog.js';
+export {
+    getRotationStepOptions,
+    getRotationStepDegrees,
+    setRotationStepDegrees,
+    rememberSelectedObjectInitialTransform,
+    clearSelectedObjectInitialTransform,
+    rotateSelectedObjectByDegrees,
+    resetSelectedObjectToInitialTransform,
+    activateTransformMode
+} from './object-transform.js';
 
 export function getSelectedSceneObjectId() {
     return selectedObject ? selectedObject.uuid : null;
-}
-
-export function listSceneObjects(): any[] {
-    const selectedId = selectedObject ? selectedObject.uuid : '';
-    return getSceneTopLevelObjects().map((obj) => {
-        let isDrone = false;
-        for (const id in droneMeshes) {
-            if (obj === droneMeshes[id]) isDrone = true;
-        }
-        const metaLines: string[] = [];
-        if (obj.userData?.value !== undefined) metaLines.push(`Значение: ${obj.userData.value}`);
-        if (obj.userData?.markerDictionaryLabel && !obj.userData?.isMarkerMap) {
-            metaLines.push(`Словарь: ${obj.userData.markerDictionaryLabel}`);
-        }
-        if (obj.userData?.floors !== undefined) metaLines.push(`Этажей: ${obj.userData.floors}`);
-        if (obj.userData?.featureKind === 'road') metaLines.push('Редактируемый маршрут: дорога');
-        if (obj.userData?.featureKind === 'rail') metaLines.push('Редактируемый маршрут: железная дорога');
-        if (obj.userData?.presetName) metaLines.push(`Пресет: ${obj.userData.presetName}`);
-        if (Array.isArray(obj.userData?.windowIncidentsSummaryLines)) metaLines.push(...obj.userData.windowIncidentsSummaryLines);
-        if (Array.isArray(obj.userData?.markerMapSummaryLines)) metaLines.push(...obj.userData.markerMapSummaryLines);
-
-        const points = normalizePoints(obj.userData?.points);
-        return {
-            id: obj.uuid,
-            name: obj.name || (obj.userData?.type || obj.type),
-            sceneType: obj.userData?.type || obj.type,
-            objectType: obj.type,
-            draggable: !!obj.userData?.draggable,
-            isDrone: isDrone,
-            selected: obj.uuid === selectedId,
-            position: { x: obj.position.x, y: obj.position.y, z: obj.position.z },
-            rotation: { x: obj.rotation.x, y: obj.rotation.y, z: obj.rotation.z },
-            scale: { x: obj.scale.x, y: obj.scale.y, z: obj.scale.z },
-            supportsValue: !!obj.userData?.supportsValue,
-            supportsMarkerDictionary: !!obj.userData?.supportsMarkerDictionary,
-            supportsPoints: !!obj.userData?.supportsPoints,
-            floors: obj.userData?.floors !== undefined ? Number(obj.userData.floors) : undefined,
-            markerKind: obj.userData?.markerKind ? String(obj.userData.markerKind) : '',
-            markerDictionary: obj.userData?.markerDictionary ? String(obj.userData.markerDictionary) : '',
-            value: obj.userData?.value !== undefined ? String(obj.userData.value) : '',
-            pointsText: points.length ? formatPoints(points) : '',
-            metaLines
-        };
-    });
 }
 
 export function selectSceneObjectById(id: string) {

@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { controls, transformControl, transformHelper, selectedObject, setSelectedObject, scene, selectionHelper } from './scene-init.js';
 import { log } from '../ui/logger.js';
 import { updateTransformModeDecorations } from './transform.js';
-import { clearSelectedObjectInitialTransform } from './object-manager.js';
+import { clearSelectedObjectInitialTransform } from './object-transform.js';
 
 export function exitTransformMode() {
     if (transformControl) {
