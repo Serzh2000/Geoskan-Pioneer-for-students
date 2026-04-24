@@ -1,6 +1,22 @@
 import { simSettings, type GamepadInputRef } from '../../state.js';
 import { AUXILIARY_CHANNELS, PRIMARY_CHANNELS, axisRef, buttonRef, clampRc, clamp } from './constants.js';
-import type { ChannelKey, PrimaryChannelKey } from './types.js';
+import type { ChannelKey, PrimaryChannelKey, StickMode } from './types.js';
+
+const RC_TRANSMITTER_KEYWORDS = [
+    'radiomaster',
+    'jumper',
+    'frsky',
+    'futaba',
+    'spektrum',
+    'flysky',
+    'taranis',
+    'transmitter',
+    'edgetx',
+    'opentx',
+    'elrs',
+    'crossfire',
+    'radio'
+];
 
 export function getDefaultChannelValue(key: ChannelKey): number {
     return key === 'throttle' || AUXILIARY_CHANNELS.includes(key as any) ? 1000 : 1500;
@@ -61,35 +77,115 @@ export function isAllowedForChannel(key: ChannelKey, ref: GamepadInputRef): bool
     return true;
 }
 
+function isLikelyRcTransmitter(gp: Gamepad): boolean {
+    const id = gp.id.toLowerCase();
+    return RC_TRANSMITTER_KEYWORDS.some((keyword) => id.includes(keyword));
+}
+
+function hasLegacyPrimaryMapping(): boolean {
+    return simSettings.gamepadMapping.roll === 'a0'
+        && simSettings.gamepadMapping.pitch === 'a1'
+        && simSettings.gamepadMapping.throttle === 'a2'
+        && simSettings.gamepadMapping.yaw === 'a3';
+}
+
+function getModePrimaryAxisIndexes(mode: StickMode): Record<PrimaryChannelKey, number> {
+    switch (mode) {
+        case 1:
+            return { roll: 2, pitch: 1, throttle: 3, yaw: 0 };
+        case 2:
+            return { roll: 2, pitch: 3, throttle: 1, yaw: 0 };
+        case 3:
+            return { roll: 0, pitch: 1, throttle: 3, yaw: 2 };
+        case 4:
+            return { roll: 0, pitch: 3, throttle: 1, yaw: 2 };
+    }
+}
+
+function getRcPrimaryAxisMapping(gp: Gamepad): Record<PrimaryChannelKey, GamepadInputRef> | null {
+    if (gp.axes.length === 0) return null;
+
+    const hasFourAxes = gp.axes.length >= 4;
+    if (hasFourAxes) {
+        const indexes = getModePrimaryAxisIndexes(simSettings.gamepadStickMode);
+        return {
+            roll: axisRef(indexes.roll),
+            pitch: axisRef(indexes.pitch),
+            throttle: axisRef(indexes.throttle),
+            yaw: axisRef(indexes.yaw)
+        };
+    }
+
+    return {
+        roll: gp.axes.length > 0 ? axisRef(0) : axisRef(0),
+        pitch: gp.axes.length > 1 ? axisRef(1) : axisRef(0),
+        throttle: gp.axes.length > 2 ? axisRef(2) : gp.axes.length > 0 ? axisRef(gp.axes.length - 1) : axisRef(0),
+        yaw: gp.axes.length > 3 ? axisRef(3) : gp.axes.length > 0 ? axisRef(Math.min(1, gp.axes.length - 1)) : axisRef(0)
+    };
+}
+
+function getPreferredAuxRefs(gp: Gamepad): GamepadInputRef[] {
+    const primaryMapping = getRcPrimaryAxisMapping(gp);
+    const usedPrimaryRefs = new Set<GamepadInputRef>(primaryMapping ? Object.values(primaryMapping) : []);
+    const refs: GamepadInputRef[] = [];
+
+    const pushIfUnused = (ref: GamepadInputRef) => {
+        if (usedPrimaryRefs.has(ref) || refs.includes(ref) || !hasInputRef(gp, ref)) return;
+        refs.push(ref);
+    };
+
+    if (isLikelyRcTransmitter(gp)) {
+        for (let axisIndex = 4; axisIndex < gp.axes.length; axisIndex += 1) {
+            pushIfUnused(axisRef(axisIndex));
+        }
+    }
+
+    for (let buttonIndex = 0; buttonIndex < gp.buttons.length; buttonIndex += 1) {
+        pushIfUnused(buttonRef(buttonIndex));
+    }
+
+    for (let axisIndex = 0; axisIndex < gp.axes.length; axisIndex += 1) {
+        pushIfUnused(axisRef(axisIndex));
+    }
+
+    return refs;
+}
+
+export function applyPrimaryAxisMappingForCurrentMode(gp: Gamepad): void {
+    const primaryMapping = getRcPrimaryAxisMapping(gp);
+    if (!primaryMapping) return;
+    simSettings.gamepadMapping.roll = primaryMapping.roll;
+    simSettings.gamepadMapping.pitch = primaryMapping.pitch;
+    simSettings.gamepadMapping.throttle = primaryMapping.throttle;
+    simSettings.gamepadMapping.yaw = primaryMapping.yaw;
+}
+
 export function getFallbackMapping(gp: Gamepad, key: ChannelKey): GamepadInputRef | null {
+    const primaryMapping = getRcPrimaryAxisMapping(gp);
+    const auxRefs = getPreferredAuxRefs(gp);
     switch (key) {
         case 'roll':
-            return gp.axes.length > 0 ? axisRef(0) : null;
+            return primaryMapping?.roll ?? null;
         case 'pitch':
-            return gp.axes.length > 1 ? axisRef(1) : gp.axes.length > 0 ? axisRef(0) : null;
+            return primaryMapping?.pitch ?? null;
         case 'throttle':
-            return gp.axes.length > 2 ? axisRef(2) : gp.axes.length > 0 ? axisRef(gp.axes.length - 1) : null;
+            return primaryMapping?.throttle ?? null;
         case 'yaw':
-            return gp.axes.length > 3 ? axisRef(3) : gp.axes.length > 0 ? axisRef(Math.min(1, gp.axes.length - 1)) : null;
+            return primaryMapping?.yaw ?? null;
         case 'mode':
-            if (gp.buttons.length > 4) return buttonRef(4);
-            if (gp.buttons.length > 0) return buttonRef(0);
-            if (gp.axes.length > 4) return axisRef(4);
-            return gp.axes.length > 0 ? axisRef(0) : null;
+            return auxRefs[0] ?? null;
         case 'arm':
-            if (gp.buttons.length > 5) return buttonRef(5);
-            if (gp.buttons.length > 1) return buttonRef(1);
-            if (gp.axes.length > 5) return axisRef(5);
-            return gp.axes.length > 0 ? axisRef(0) : null;
+            return auxRefs[1] ?? auxRefs[0] ?? null;
         case 'magnet':
-            if (gp.buttons.length > 6) return buttonRef(6);
-            if (gp.buttons.length > 2) return buttonRef(2);
-            if (gp.axes.length > 6) return axisRef(6);
-            return gp.axes.length > 0 ? axisRef(0) : null;
+            return auxRefs[2] ?? auxRefs[1] ?? auxRefs[0] ?? null;
     }
 }
 
 export function ensureMappingsForGamepad(gp: Gamepad, channels: ChannelKey[]): void {
+    if (hasLegacyPrimaryMapping()) {
+        applyPrimaryAxisMappingForCurrentMode(gp);
+    }
+
     for (const key of channels) {
         const currentRef = getMappingRef(key);
         if (isAllowedForChannel(key, currentRef) && hasInputRef(gp, currentRef)) continue;
@@ -139,12 +235,19 @@ export function getGamepadName(gp: Gamepad): string {
 }
 
 export function createAxisOptions(gp: Gamepad): string {
-    return gp.axes.map((_, index) => `<option value="${axisRef(index)}">A${index}: Axis ${index}</option>`).join('');
+    return gp.axes
+        .map((_, index) => `<option value="${axisRef(index)}">A${index}: Axis ${index}</option>`)
+        .join('');
 }
 
 export function createAuxOptions(gp: Gamepad): string {
     const options: string[] = [];
-    gp.axes.forEach((_, index) => options.push(`<option value="${axisRef(index)}">A${index}: Axis ${index}</option>`));
-    gp.buttons.forEach((_, index) => options.push(`<option value="${buttonRef(index)}">B${index}: Button ${index}</option>`));
+    gp.axes.forEach((_, index) => {
+        const channelLabel = isLikelyRcTransmitter(gp) ? ` / CH${index + 1}` : '';
+        options.push(`<option value="${axisRef(index)}">A${index}: Axis ${index}${channelLabel}</option>`);
+    });
+    gp.buttons.forEach((_, index) => {
+        options.push(`<option value="${buttonRef(index)}">B${index}: Button ${index + 1}</option>`);
+    });
     return options.join('');
 }

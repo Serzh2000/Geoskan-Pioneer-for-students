@@ -1,10 +1,12 @@
-import { simState } from '../state.js';
+import { simState, simSettings } from '../state.js';
 
 const stateAlt = document.getElementById('state-alt') as HTMLElement | null;
 const stateSpd = document.getElementById('state-spd') as HTMLElement | null;
 const stateBat = document.getElementById('state-bat') as HTMLElement | null;
 const stateStatus = document.getElementById('state-status') as HTMLElement | null;
 const stateTime = document.getElementById('state-time') as HTMLElement | null;
+const stateMode = document.getElementById('state-mode') as HTMLElement | null;
+const hudStatMode = document.getElementById('hud-stat-mode') as HTMLElement | null;
 const camParams = document.getElementById('cam-params') as HTMLElement | null;
 const runBtn = document.getElementById('run-btn') as HTMLButtonElement | null;
 const stopBtn = document.getElementById('stop-btn') as HTMLButtonElement | null;
@@ -30,6 +32,18 @@ export function updateStats() {
         }
     }
     if (stateTime) stateTime.textContent = simState.current_time.toFixed(1);
+
+    // Update Flight Mode display (only when gamepad is connected)
+    if (hudStatMode) {
+        if (simSettings.gamepadConnected) {
+            hudStatMode.style.display = 'flex';
+            if (stateMode) {
+                stateMode.textContent = simState.flightMode;
+            }
+        } else {
+            hudStatMode.style.display = 'none';
+        }
+    }
 
     // Update Camera Params Visibility
     if (window.cameraMode === 'fpv') {

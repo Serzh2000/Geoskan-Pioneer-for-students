@@ -107,6 +107,7 @@ export function getObstacles() {
 
 export function updateDrone3D(dt: number) {
     if (!is3DActive || !renderer || !camera) return;
+    const cameraMode = (window as any).cameraMode || 'drone';
 
     if (simState.running && transformControl && transformControl.object) {
         log(`[3DDBG] updateDrone3D detach while running target=${(transformControl.object as any).name || 'unknown'}`, 'info');
@@ -138,6 +139,8 @@ export function updateDrone3D(dt: number) {
         const mesh = droneMeshes[id];
         if (!mesh) continue;
 
+        mesh.visible = !(cameraMode === 'fpv' && id === currentDroneId);
+
         if (drone.status === 'CRASHED') {
             explodeDrone(id, mesh);
             updateDebrisVisuals(mesh, dt);
@@ -149,7 +152,7 @@ export function updateDrone3D(dt: number) {
             animateRotors(mesh, dt, drone);
             
             mesh.position.set(drone.pos.x, drone.pos.y, drone.pos.z);
-            mesh.rotation.set(drone.orientation.roll, drone.orientation.pitch, drone.orientation.yaw, 'ZYX');
+            mesh.rotation.set(drone.orientation.pitch, drone.orientation.roll, drone.orientation.yaw, 'ZYX');
         }
 
         updateTrailForDrone(id);
@@ -163,7 +166,7 @@ export function updateDrone3D(dt: number) {
     }
 
     if (droneMeshes[currentDroneId]) {
-        updateCamera(camera, droneMeshes[currentDroneId], controls, (window as any).cameraMode || 'drone');
+        updateCamera(camera, droneMeshes[currentDroneId], controls, cameraMode);
     }
 
     try {

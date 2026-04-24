@@ -88,32 +88,39 @@ export function updateDebrisVisuals(mesh: THREE.Object3D, dt: number) {
         const vel = part.userData.vel as THREE.Vector3;
         const rotVel = part.userData.rotVel as THREE.Vector3;
 
+        // Если объект уже "лежит" на земле, ничего не делаем
+        if (vel.lengthSq() < 0.0001 && rotVel.lengthSq() < 0.0001) return;
+
         part.position.addScaledVector(vel, dt);
         part.rotation.x += rotVel.x * dt;
         part.rotation.y += rotVel.y * dt;
         part.rotation.z += rotVel.z * dt;
 
-        vel.z -= 15.0 * dt;
+        vel.z -= 15.0 * dt; // Gravity
 
-        const friction = 1.0 - 0.9 * dt;
+        const friction = 1.0 - 1.2 * dt;
         vel.x *= friction;
         vel.y *= friction;
-        rotVel.multiplyScalar(1.0 - 1.5 * dt);
+        rotVel.multiplyScalar(1.0 - 2.5 * dt);
 
         const worldZ = mesh.position.z + part.position.z;
-        if (worldZ >= 0.02) return;
+        if (worldZ > 0.01) return;
 
-        part.position.z = -mesh.position.z + 0.02;
-        if (Math.abs(vel.z) > 1.2) {
-            vel.z *= -0.25;
+        // Отскок или остановка
+        part.position.z = -mesh.position.z + 0.01;
+        if (Math.abs(vel.z) > 1.5) {
+            vel.z *= -0.3; // bounce
             vel.x *= 0.6;
             vel.y *= 0.6;
             return;
         }
 
+        // Полная остановка и укладывание плашмя
         vel.set(0, 0, 0);
         rotVel.set(0, 0, 0);
-        part.rotation.x = Math.PI / 2 * (Math.random() > 0.5 ? 1 : -1);
-        part.rotation.y = 0;
+        
+        // Укладываем плашмя (обычно по X или Y наклоняем на 90 градусов)
+        part.rotation.x = Math.round(part.rotation.x / (Math.PI / 2)) * (Math.PI / 2);
+        part.rotation.z = Math.round(part.rotation.z / (Math.PI / 2)) * (Math.PI / 2);
     });
 }

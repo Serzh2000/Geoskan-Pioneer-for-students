@@ -85,11 +85,12 @@ export const simSettings = {
     showGizmo: true,
     simSpeed: 1.0,
     gamepadConnected: false,
+    gamepadStickMode: 2 as 1 | 2 | 3 | 4,
     gamepadMapping: {
-        roll: 'a0' as GamepadInputRef,
+        roll: 'a2' as GamepadInputRef,
         pitch: 'a1' as GamepadInputRef,
-        throttle: 'a2' as GamepadInputRef,
-        yaw: 'a3' as GamepadInputRef,
+        throttle: 'a3' as GamepadInputRef,
+        yaw: 'a0' as GamepadInputRef,
         modeSwitch: 'b4' as GamepadInputRef,
         armSwitch: 'b5' as GamepadInputRef,
         magnetBtn: 'b6' as GamepadInputRef
@@ -100,17 +101,50 @@ export const simSettings = {
         center: Array.from({ length: 16 }, () => 0),
         isCalibrated: false
     },
-    gamepadInversion: [false, false, false, false, false, false, false, false], // R, P, T, Y, Mode, Arm, Magnet
+    gamepadInversion: [false, false, false, true, false, false, false, false], // R, P, T, Y, Mode, Arm, Magnet
     gamepadAuxRanges: {
-        arm: { min: 1700, max: 2000 } as AuxChannelRange,
-        magnet: { min: 1700, max: 2000 } as AuxChannelRange
+        arm: { min: 1800, max: 2100, center: 2000 } as AuxChannelRange,
+        magnet: { min: 1800, max: 2100, center: 2000 } as AuxChannelRange
     },
     gamepadModeRanges: {
-        loiter: { min: 1000, max: 1299, center: 1150 } as AuxChannelRange,
-        althold: { min: 1300, max: 1699, center: 1500 } as AuxChannelRange,
-        stabilize: { min: 1700, max: 2000, center: 1850 } as AuxChannelRange
+        // Standard 3-position switch values for RadioMaster TX12/TX15/TX16 (1000, 1500, 2000)
+        loiter: { min: 900, max: 1250, center: 1000 } as AuxChannelRange,
+        althold: { min: 1251, max: 1750, center: 1500 } as AuxChannelRange,
+        stabilize: { min: 1751, max: 2100, center: 2000 } as AuxChannelRange
     }
 };
+
+const STORAGE_KEY = 'geoskan_sim_gamepad_settings';
+
+export function saveGamepadSettings() {
+    const data = {
+        mapping: simSettings.gamepadMapping,
+        inversion: simSettings.gamepadInversion,
+        auxRanges: simSettings.gamepadAuxRanges,
+        modeRanges: simSettings.gamepadModeRanges,
+        stickMode: simSettings.gamepadStickMode
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+export function loadGamepadSettings() {
+    try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+            const data = JSON.parse(saved);
+            if (data.mapping) Object.assign(simSettings.gamepadMapping, data.mapping);
+            if (data.inversion) simSettings.gamepadInversion = data.inversion;
+            if (data.auxRanges) Object.assign(simSettings.gamepadAuxRanges, data.auxRanges);
+            if (data.modeRanges) Object.assign(simSettings.gamepadModeRanges, data.modeRanges);
+            if (data.stickMode) simSettings.gamepadStickMode = data.stickMode;
+        }
+    } catch (e) {
+        console.warn('[State] Failed to load gamepad settings:', e);
+    }
+}
+
+// Load on init
+loadGamepadSettings();
 
 export function matchesAuxRange(value: number, range: AuxChannelRange): boolean {
     const min = Math.max(1000, Math.min(range.min, range.max));

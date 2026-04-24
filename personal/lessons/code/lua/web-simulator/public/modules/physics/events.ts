@@ -23,6 +23,13 @@ function applyCrashState(simState: DroneState, id: string, reason: string) {
     simState.command_queue = [];
     simState.target_pos = { ...simState.pos };
     simState.target_alt = simState.pos.z;
+    
+    // Останавливаем вращение и инерцию при сильном ударе, 
+    // но даем упасть если это произошло в воздухе (логика в physics.ts)
+    if (simState.pos.z < 0.1) {
+        simState.vel.set(0, 0, 0);
+    }
+    
     triggerLuaCallback(id, 16);
     log(`[Physics] Дрон ${id} разбился: ${reason}`, 'warn');
 }

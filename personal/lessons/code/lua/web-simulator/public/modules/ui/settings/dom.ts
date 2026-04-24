@@ -26,6 +26,7 @@ export type SettingsDomRefs = {
     autoStatusEl: HTMLElement | null;
     channelDataStatusEl: HTMLElement | null;
     modeMetaEl: HTMLElement | null;
+    gpStickModeSelect: HTMLSelectElement | null;
     gpBtnCalibrate: HTMLButtonElement | null;
     gpBtnResetCal: HTMLButtonElement | null;
     mappingSelects: Record<ChannelKey, HTMLSelectElement | null>;
@@ -50,6 +51,7 @@ export function collectSettingsDomRefs(): SettingsDomRefs {
         autoStatusEl: document.getElementById('gp-auto-status'),
         channelDataStatusEl: document.getElementById('gp-channel-data-status'),
         modeMetaEl: document.getElementById('gp-mode-meta'),
+        gpStickModeSelect: document.getElementById('gp-stick-mode') as HTMLSelectElement | null,
         gpBtnCalibrate: document.getElementById('gp-btn-calibrate') as HTMLButtonElement | null,
         gpBtnResetCal: document.getElementById('gp-btn-reset-cal') as HTMLButtonElement | null,
         mappingSelects: {

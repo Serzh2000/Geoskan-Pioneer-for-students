@@ -144,8 +144,8 @@ export function setupTransformControlListeners() {
                     drone.pos.y = selectedObject.position.y;
                     drone.pos.z = Math.max(0, selectedObject.position.z);
                     selectedObject.position.z = drone.pos.z;
-                    drone.orientation.roll = selectedObject.rotation.x;
-                    drone.orientation.pitch = selectedObject.rotation.y;
+                    drone.orientation.pitch = selectedObject.rotation.x;
+                    drone.orientation.roll = selectedObject.rotation.y;
                     drone.orientation.yaw = selectedObject.rotation.z;
                     drone.target_alt = drone.pos.z;
                     drone.target_pos = { ...drone.pos };

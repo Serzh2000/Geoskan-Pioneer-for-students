@@ -10,7 +10,7 @@ import { triggerLuaCallback, updateTimers } from './lua/index.js';
 import { getObstacles } from './drone.js';
 import { log } from './ui/logger.js';
 import { checkPhysicsEvents } from './physics/events.js';
-import { updateMagnetGripper } from './physics/magnet-gripper.js';
+import { updateDetachedCargoPhysics, updateMagnetGripper } from './physics/magnet-gripper.js';
 import {
     MANUAL_TAKEOFF_ALTITUDE,
     MANUAL_TAKEOFF_THROTTLE,
@@ -19,6 +19,18 @@ import {
 
 export function updatePhysics(dt: number) {
     updateTimers();
+    updateDetachedCargoPhysics(dt, getObstacles);
+
+    const AIRBORNE_ALTITUDE_EPSILON = 0.1;
+    const STABILIZE_MAX_TILT = 0.75;
+    const STABILIZE_LATERAL_ACCEL = 18.0;
+    const ALTHOLD_MAX_TILT = 0.65;
+    const ALTHOLD_LATERAL_ACCEL = 14.0;
+    const LOITER_VISUAL_TILT_GAIN = 0.14;
+    const LOITER_VISUAL_TILT_LIMIT = 0.55;
+    const AUTO_MAX_TILT = 0.55;
+    const AUTO_TILT_GAIN = 0.14;
+    const AUTO_TILT_RESPONSE = 14.0;
 
     for (const id in drones) {
         const simState = drones[id];
@@ -99,11 +111,22 @@ export function updatePhysics(dt: number) {
             // Логика Arming через RC канал (CH6)
             const ch6 = simState.rcChannels[5];
             const armActive = matchesAuxRange(ch6, simSettings.gamepadAuxRanges.arm);
+            const isAirborne = simState.pos.z > AIRBORNE_ALTITUDE_EPSILON;
             if (armActive && (simState.status === 'ГОТОВ' || simState.status === 'ПРИЗЕМЛЕН')) {
                 simState.status = 'ВЗВЕДЕН';
                 triggerLuaCallback(id, 11); // Ev.ENGINES_STARTED
-            } else if (!armActive && simState.status === 'ВЗВЕДЕН') {
-                simState.status = 'ГОТОВ';
+            } else if (!armActive && (simState.status === 'ВЗВЕДЕН' || isFlying)) {
+                // Дизарм на земле не должен приводить к взрыву/крашу.
+                if (isAirborne) {
+                    simState.status = 'CRASHED';
+                    simState.running = false;
+                    log(`[Physics] DISARM в воздухе! Дрон ${id} падает.`, 'warn');
+                } else {
+                    simState.status = 'ГОТОВ';
+                    simState.vel = { x: 0, y: 0, z: 0 };
+                    simState.target_pos = { ...simState.pos, z: 0 };
+                    simState.target_alt = 0;
+                }
             }
 
             const throttle = simState.rcChannels[2];
@@ -146,14 +169,21 @@ export function updatePhysics(dt: number) {
                     simState.vel.z += (throttle * 15.0 - 9.81) * dt; 
                     simState.pos.z += simState.vel.z * dt;
                     
-                    simState.orientation.pitch = -pitch * 0.5;
-                    simState.orientation.roll = roll * 0.5;
+                    simState.orientation.pitch = pitch * STABILIZE_MAX_TILT;
+                    simState.orientation.roll = roll * STABILIZE_MAX_TILT;
                     simState.orientation.yaw += yaw * 3.0 * dt;
 
-                    // Горизонтальное движение зависит от наклона
+                    // Горизонтальное движение считаем в локальных осях дрона и
+                    // поворачиваем в мировые координаты по текущему yaw.
                     const drag = 0.5;
-                    simState.vel.x += (Math.sin(simState.orientation.pitch) * 15.0 - simState.vel.x * drag) * dt;
-                    simState.vel.y += (Math.sin(simState.orientation.roll) * 15.0 - simState.vel.y * drag) * dt;
+                    const localForwardAccel = Math.sin(simState.orientation.pitch) * -STABILIZE_LATERAL_ACCEL;
+                    const localRightAccel = Math.sin(simState.orientation.roll) * STABILIZE_LATERAL_ACCEL;
+                    const cosYaw = Math.cos(simState.orientation.yaw);
+                    const sinYaw = Math.sin(simState.orientation.yaw);
+                    const worldAx = localRightAccel * cosYaw - localForwardAccel * sinYaw;
+                    const worldAy = localRightAccel * sinYaw + localForwardAccel * cosYaw;
+                    simState.vel.x += (worldAx - simState.vel.x * drag) * dt;
+                    simState.vel.y += (worldAy - simState.vel.y * drag) * dt;
                     simState.pos.x += simState.vel.x * dt;
                     simState.pos.y += simState.vel.y * dt;
 
@@ -169,21 +199,27 @@ export function updatePhysics(dt: number) {
                     simState.pos.z += simState.vel.z * dt;
 
                     // Горизонтально как в stabilize
-                    simState.orientation.pitch = -pitch * 0.4;
-                    simState.orientation.roll = roll * 0.4;
+                    simState.orientation.pitch = pitch * ALTHOLD_MAX_TILT;
+                    simState.orientation.roll = roll * ALTHOLD_MAX_TILT;
                     simState.orientation.yaw += yaw * 3.0 * dt;
 
                     const drag = 0.8;
-                    simState.vel.x += (Math.sin(simState.orientation.pitch) * 12.0 - simState.vel.x * drag) * dt;
-                    simState.vel.y += (Math.sin(simState.orientation.roll) * 12.0 - simState.vel.y * drag) * dt;
+                    const localForwardAccel = Math.sin(simState.orientation.pitch) * -ALTHOLD_LATERAL_ACCEL;
+                    const localRightAccel = Math.sin(simState.orientation.roll) * ALTHOLD_LATERAL_ACCEL;
+                    const cosYaw = Math.cos(simState.orientation.yaw);
+                    const sinYaw = Math.sin(simState.orientation.yaw);
+                    const worldAx = localRightAccel * cosYaw - localForwardAccel * sinYaw;
+                    const worldAy = localRightAccel * sinYaw + localForwardAccel * cosYaw;
+                    simState.vel.x += (worldAx - simState.vel.x * drag) * dt;
+                    simState.vel.y += (worldAy - simState.vel.y * drag) * dt;
                     simState.pos.x += simState.vel.x * dt;
                     simState.pos.y += simState.vel.y * dt;
 
                 } else if (simState.flightMode === 'LOITER') {
                     // Удержание позиции (Navigation)
                     // Стики задают целевую скорость
-                    const targetVx = -pitch * 3.0;
-                    const targetVy = roll * 3.0;
+                    const targetVy = -pitch * 3.0;
+                    const targetVx = roll * 3.0;
                     const targetVz = (throttle - 0.5) * 2.0;
 
                     // Оптический поток: если под нами что-то есть, поднимаемся
@@ -220,9 +256,15 @@ export function updatePhysics(dt: number) {
 
                     simState.orientation.yaw += yaw * 3.0 * dt;
                     
-                    // Наклоны для визуализации скорости
-                    simState.orientation.pitch = -simState.vel.x * 0.1;
-                    simState.orientation.roll = simState.vel.y * 0.1;
+                    // Наклоны для визуализации скорости (Y - вперед, X - вправо)
+                    simState.orientation.pitch = Math.max(
+                        -LOITER_VISUAL_TILT_LIMIT,
+                        Math.min(LOITER_VISUAL_TILT_LIMIT, -simState.vel.y * LOITER_VISUAL_TILT_GAIN)
+                    );
+                    simState.orientation.roll = Math.max(
+                        -LOITER_VISUAL_TILT_LIMIT,
+                        Math.min(LOITER_VISUAL_TILT_LIMIT, simState.vel.x * LOITER_VISUAL_TILT_GAIN)
+                    );
                 }
             } else {
                 // AUTO Mode (PID-like smooth control from scripts)
@@ -264,30 +306,27 @@ export function updatePhysics(dt: number) {
             const local_ax = ax * cosY + ay * sinY;
             const local_ay = -ax * sinY + ay * cosY;
 
-            const maxTilt = 0.35; 
-            const targetPitch = Math.max(-maxTilt, Math.min(maxTilt, -local_ax * 0.1));
-            const targetRoll = Math.max(-maxTilt, Math.min(maxTilt, local_ay * 0.1));
+            const targetPitch = Math.max(-AUTO_MAX_TILT, Math.min(AUTO_MAX_TILT, -local_ay * AUTO_TILT_GAIN));
+            const targetRoll = Math.max(-AUTO_MAX_TILT, Math.min(AUTO_MAX_TILT, local_ax * AUTO_TILT_GAIN));
             
             // Smoothly interpolate current tilt to target tilt
-            simState.orientation.pitch += (targetPitch - simState.orientation.pitch) * 10 * dt;
-            simState.orientation.roll += (targetRoll - simState.orientation.roll) * 10 * dt;
+            simState.orientation.pitch += (targetPitch - simState.orientation.pitch) * AUTO_TILT_RESPONSE * dt;
+            simState.orientation.roll += (targetRoll - simState.orientation.roll) * AUTO_TILT_RESPONSE * dt;
             
             if (simState.pos.z < 0) {
                 simState.pos.z = 0;
                 simState.vel.z = 0;
+                simState.vel.x = 0;
+                simState.vel.y = 0;
             }
         } else if (simState.status === 'CRASHED') {
-            // Физика свободного падения для разбившегося дрона (центра взрыва)
-            simState.vel.z -= 9.81 * dt; 
-            
+            // Свободное падение при разбитии/Disarm в воздухе
+            simState.vel.z -= 9.81 * dt;
             simState.pos.x += simState.vel.x * dt;
             simState.pos.y += simState.vel.y * dt;
             simState.pos.z += simState.vel.z * dt;
-            
-            // Вращение центра взрыва почти не имеет значения, так как mesh.rotation 
-            // в drone.ts игнорируется при CRASHED, но оставим для порядка
-            
-            if (simState.pos.z < 0) {
+
+            if (simState.pos.z <= 0) {
                 simState.pos.z = 0;
                 simState.vel = { x: 0, y: 0, z: 0 };
             }
@@ -302,7 +341,9 @@ export function updatePhysics(dt: number) {
             simState.orientation.roll = 0;
         }
 
-        // Event Triggers
-        checkPhysicsEvents(simState, prevPos);
+        // Обработка коллизий (кроме уже разбитого)
+        if (simState.status !== 'CRASHED') {
+            checkPhysicsEvents(simState, prevPos);
+        }
     }
 }
