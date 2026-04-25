@@ -5,6 +5,34 @@ import { getObstacles } from '../drone.js';
 import { log } from '../ui/logger.js';
 import { obstacleHasCollision, sampleSegmentPoints } from './collisions.js';
 
+export const AIRBORNE_ALTITUDE_EPSILON = 0.1;
+export const GROUND_IMPACT_MIN_HEIGHT = 0.5;
+export const GROUND_IMPACT_VERTICAL_SPEED_THRESHOLD = 5.0;
+export const GROUND_IMPACT_TOTAL_SPEED_THRESHOLD = 7.0;
+
+export function beginDisarmedFall(simState: DroneState, id: string, reason: string) {
+    if (simState.status === 'CRASHED' || simState.status === 'DISARMED_FALL') return;
+
+    simState.status = 'DISARMED_FALL';
+    simState.running = false;
+    simState.pendingLocalPoint = false;
+    simState.pointReachedFlag = false;
+    simState.command_queue = [];
+    simState.target_pos = { ...simState.pos };
+    simState.target_alt = simState.pos.z;
+
+    log(`[Physics] Дрон ${id}: ${reason}`, 'warn');
+}
+
+export function shouldCrashOnGroundImpact(fallHeight: number, verticalSpeed: number, totalSpeed: number) {
+    if (fallHeight < GROUND_IMPACT_MIN_HEIGHT) return false;
+
+    return (
+        verticalSpeed >= GROUND_IMPACT_VERTICAL_SPEED_THRESHOLD
+        || totalSpeed >= GROUND_IMPACT_TOTAL_SPEED_THRESHOLD
+    );
+}
+
 function applyCrashState(simState: DroneState, id: string, reason: string) {
     if (simState.status === 'CRASHED') return;
 
@@ -27,7 +55,7 @@ function applyCrashState(simState: DroneState, id: string, reason: string) {
     // Останавливаем вращение и инерцию при сильном ударе, 
     // но даем упасть если это произошло в воздухе (логика в physics.ts)
     if (simState.pos.z < 0.1) {
-        simState.vel.set(0, 0, 0);
+        simState.vel = { x: 0, y: 0, z: 0 };
     }
     
     triggerLuaCallback(id, 16);

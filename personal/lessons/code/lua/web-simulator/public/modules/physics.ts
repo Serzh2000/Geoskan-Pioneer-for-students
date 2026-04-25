@@ -9,7 +9,12 @@ import { drones, pathPoints, MAX_PATH_POINTS, simSettings, matchesAuxRange } fro
 import { triggerLuaCallback, updateTimers } from './lua/index.js';
 import { getObstacles } from './drone.js';
 import { log } from './ui/logger.js';
-import { checkPhysicsEvents } from './physics/events.js';
+import {
+    AIRBORNE_ALTITUDE_EPSILON,
+    beginDisarmedFall,
+    checkPhysicsEvents,
+    shouldCrashOnGroundImpact
+} from './physics/events.js';
 import { updateDetachedCargoPhysics, updateMagnetGripper } from './physics/magnet-gripper.js';
 import {
     MANUAL_TAKEOFF_ALTITUDE,
@@ -21,7 +26,6 @@ export function updatePhysics(dt: number) {
     updateTimers();
     updateDetachedCargoPhysics(dt, getObstacles);
 
-    const AIRBORNE_ALTITUDE_EPSILON = 0.1;
     const STABILIZE_MAX_TILT = 0.75;
     const STABILIZE_LATERAL_ACCEL = 18.0;
     const ALTHOLD_MAX_TILT = 0.65;
@@ -77,9 +81,16 @@ export function updatePhysics(dt: number) {
             }
             if (cmd === 4) simState.status = 'ВЗВЕДЕН'; // Ev.ENGINES_ARM
             if (cmd === 5) {
-                simState.status = 'ГОТОВ';   // Ev.ENGINES_DISARM
-                simState.pendingLocalPoint = false;
-                simState.pointReachedFlag = false;
+                if (simState.pos.z > AIRBORNE_ALTITUDE_EPSILON) {
+                    beginDisarmedFall(simState, id, 'DISARM в воздухе: двигатели отключены, начинается свободное падение.');
+                } else {
+                    simState.status = 'ГОТОВ';   // Ev.ENGINES_DISARM
+                    simState.pendingLocalPoint = false;
+                    simState.pointReachedFlag = false;
+                    simState.vel = { x: 0, y: 0, z: 0 };
+                    simState.target_pos = { ...simState.pos, z: 0 };
+                    simState.target_alt = 0;
+                }
             }
         }
 
@@ -94,6 +105,7 @@ export function updatePhysics(dt: number) {
             simState.status !== 'ЗАПУСК' &&
             simState.status !== 'ОСТАНОВЛЕН' &&
             simState.status !== 'ОШИБКА' &&
+            simState.status !== 'DISARMED_FALL' &&
             simState.status !== 'CRASHED'
         );
         
@@ -112,15 +124,13 @@ export function updatePhysics(dt: number) {
             const ch6 = simState.rcChannels[5];
             const armActive = matchesAuxRange(ch6, simSettings.gamepadAuxRanges.arm);
             const isAirborne = simState.pos.z > AIRBORNE_ALTITUDE_EPSILON;
-            if (armActive && (simState.status === 'ГОТОВ' || simState.status === 'ПРИЗЕМЛЕН')) {
+            if (armActive && (simState.status === 'ГОТОВ' || simState.status === 'ПРИЗЕМЛЕН' || simState.status === 'DISARMED_FALL')) {
                 simState.status = 'ВЗВЕДЕН';
                 triggerLuaCallback(id, 11); // Ev.ENGINES_STARTED
             } else if (!armActive && (simState.status === 'ВЗВЕДЕН' || isFlying)) {
                 // Дизарм на земле не должен приводить к взрыву/крашу.
                 if (isAirborne) {
-                    simState.status = 'CRASHED';
-                    simState.running = false;
-                    log(`[Physics] DISARM в воздухе! Дрон ${id} падает.`, 'warn');
+                    beginDisarmedFall(simState, id, 'DISARM в воздухе: двигатели отключены, начинается свободное падение.');
                 } else {
                     simState.status = 'ГОТОВ';
                     simState.vel = { x: 0, y: 0, z: 0 };
@@ -319,8 +329,46 @@ export function updatePhysics(dt: number) {
                 simState.vel.x = 0;
                 simState.vel.y = 0;
             }
+        } else if (simState.status === 'DISARMED_FALL') {
+            const impactVel = { ...simState.vel };
+            simState.vel.z -= 9.81 * dt;
+            simState.pos.x += simState.vel.x * dt;
+            simState.pos.y += simState.vel.y * dt;
+            simState.pos.z += simState.vel.z * dt;
+
+            if (simState.pos.z <= 0) {
+                const verticalImpactSpeed = Math.max(0, -impactVel.z);
+                const totalImpactSpeed = Math.sqrt(
+                    impactVel.x ** 2
+                    + impactVel.y ** 2
+                    + impactVel.z ** 2
+                );
+                simState.pos.z = 0;
+
+                if (shouldCrashOnGroundImpact(prevPos.z, verticalImpactSpeed, totalImpactSpeed)) {
+                    simState.status = 'CRASHED';
+                    simState.running = false;
+                    simState.target_pos = { ...simState.pos };
+                    simState.target_alt = 0;
+                    simState.vel = { x: 0, y: 0, z: 0 };
+                    log(
+                        `[Physics] Дрон ${id} разрушен при ударе о землю: h=${prevPos.z.toFixed(2)}м, vz=${verticalImpactSpeed.toFixed(2)}м/с, v=${totalImpactSpeed.toFixed(2)}м/с.`,
+                        'warn'
+                    );
+                    triggerLuaCallback(id, 16);
+                } else {
+                    simState.status = 'ГОТОВ';
+                    simState.vel = { x: 0, y: 0, z: 0 };
+                    simState.target_pos = { ...simState.pos, z: 0 };
+                    simState.target_alt = 0;
+                    log(
+                        `[Physics] Дрон ${id} безопасно отключен после падения: h=${prevPos.z.toFixed(2)}м, vz=${verticalImpactSpeed.toFixed(2)}м/с.`,
+                        'info'
+                    );
+                }
+            }
         } else if (simState.status === 'CRASHED') {
-            // Свободное падение при разбитии/Disarm в воздухе
+            // Свободное падение после уже зафиксированного разрушения
             simState.vel.z -= 9.81 * dt;
             simState.pos.x += simState.vel.x * dt;
             simState.pos.y += simState.vel.y * dt;

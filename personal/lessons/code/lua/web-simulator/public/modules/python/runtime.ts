@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { drones, currentDroneId } from '../state.js';
 import { log } from '../ui/logger.js';
+import { beginDisarmedFall, AIRBORNE_ALTITUDE_EPSILON } from '../physics/events.js';
+import { triggerLuaCallback } from '../lua/index.js';
 
 let pyodideInstance: any = null;
 let pyodideLoadPromise: Promise<any> | null = null;
@@ -64,18 +66,31 @@ function installJsRuntimeAPI() {
     w.pioneer_arm = (id: string) => {
         if (w.py_is_cancelled(id)) throw new Error('PYTHON_CANCELLED');
         const d = getDroneOrDefault(id);
-        d.status = 'ВЗВЕДЕН';
-        d.pendingLocalPoint = false;
-        d.pointReachedFlag = false;
-        return true;
+        
+        if (d.status === 'ГОТОВ' || d.status === 'ПРИЗЕМЛЕН' || d.status === 'DISARMED_FALL') {
+            d.status = 'ВЗВЕДЕН';
+            d.pendingLocalPoint = false;
+            d.pointReachedFlag = false;
+            triggerLuaCallback(id, 11); // Ev.ENGINES_STARTED
+            return true;
+        }
+        return false;
     };
 
     w.pioneer_disarm = (id: string) => {
         if (w.py_is_cancelled(id)) throw new Error('PYTHON_CANCELLED');
         const d = getDroneOrDefault(id);
-        d.status = 'ГОТОВ';
-        d.pendingLocalPoint = false;
-        d.pointReachedFlag = false;
+        
+        if (d.pos.z > AIRBORNE_ALTITUDE_EPSILON) {
+            beginDisarmedFall(d, id, 'pioneer.disarm() в воздухе');
+        } else {
+            d.status = 'ГОТОВ';
+            d.pendingLocalPoint = false;
+            d.pointReachedFlag = false;
+            d.vel = { x: 0, y: 0, z: 0 };
+            d.target_pos = { ...d.pos, z: 0 };
+            d.target_alt = 0;
+        }
         return true;
     };
 

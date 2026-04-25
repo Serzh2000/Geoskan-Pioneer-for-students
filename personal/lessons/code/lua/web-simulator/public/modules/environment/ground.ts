@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { createTrussArena } from './truss-arena.js';
+import { GROUND_PHYSICS_MATERIAL } from '../physics/materials.js';
 
 export function createGround(scene: THREE.Scene, envGroup: THREE.Group) {
     const groundSize = 200;
@@ -66,7 +67,10 @@ export function createGround(scene: THREE.Scene, envGroup: THREE.Group) {
     const ground = new THREE.Mesh(groundGeom, groundMat);
     ground.receiveShadow = true;
     ground.name = 'Ground';
-    ground.userData = { type: 'ground' };
+    ground.userData = {
+        type: 'ground',
+        physicsMaterial: { ...GROUND_PHYSICS_MATERIAL }
+    };
     scene.add(ground); // Explicitly add to scene for easier raycasting
 
     const arenaAccentMat = new THREE.MeshStandardMaterial({

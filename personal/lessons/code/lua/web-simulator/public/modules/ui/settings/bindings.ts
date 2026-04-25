@@ -1,6 +1,7 @@
 import { simSettings, saveGamepadSettings } from '../../state.js';
 import { ACTION_AUX_CHANNELS, ALL_CHANNELS, PRIMARY_CHANNELS } from './constants.js';
 import type { SettingsDomRefs } from './dom.js';
+import { setMappingRef } from './mapping.js';
 import type { SettingsRuntimeState } from './runtime-state.js';
 import type { ActionAuxChannelKey, ChannelKey, StickMode } from './types.js';
 
@@ -100,10 +101,10 @@ export function bindGamepadSettingsControls(params: {
     }
 
     for (const key of ALL_CHANNELS) {
-        const select = (dom as any).mapSelects?.[key];
+        const select = dom.mappingSelects[key];
         if (select) {
             select.onchange = () => {
-                simSettings.gamepadMapping[key] = select.value;
+                setMappingRef(key, select.value as typeof simSettings.gamepadMapping.roll);
                 saveGamepadSettings();
             };
         }

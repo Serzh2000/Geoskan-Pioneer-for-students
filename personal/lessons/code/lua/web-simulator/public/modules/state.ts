@@ -217,7 +217,8 @@ const DISARMED_STATUSES = new Set([
     'ОСТАНОВЛЕН',
     'ЗАПУСК',
     'ОШИБКА',
-    'CRASHED'
+    'CRASHED',
+    'DISARMED_FALL'
 ]);
 
 export function isDroneArmed(drone: DroneState): boolean {

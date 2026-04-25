@@ -218,14 +218,22 @@ export function triggerLuaCallback(id: string, eventId: number) {
     if (!drone || !drone.luaState) return;
     const L = drone.luaState;
     
+    // console.log(`[Lua Debug] Triggering callback ${eventId} for drone ${id}`);
+    
     window.fengari.lua.lua_getglobal(L, window.fengari.to_luastring("callback"));
     if (window.fengari.lua.lua_isfunction(L, -1)) {
         window.fengari.lua.lua_pushinteger(L, eventId);
-        if (window.fengari.lua.lua_pcall(L, 1, 0, 0) !== 0) {
-            const errVal = window.fengari.lua.lua_tostring(L, -1);
-            const errorMsg = luaToStr(errVal, L);
-            console.error(`[Lua Error] callback(${eventId}) on ${id}:`, errorMsg);
-            window.fengari.lua.lua_pop(L, 1);
+        try {
+            if (window.fengari.lua.lua_pcall(L, 1, 0, 0) !== 0) {
+                const errVal = window.fengari.lua.lua_tostring(L, -1);
+                const errorMsg = luaToStr(errVal, L);
+                console.error(`[Lua Error] callback(${eventId}) on ${id}:`, errorMsg);
+                log(`[Lua Error] ${errorMsg}`, 'error');
+                window.fengari.lua.lua_pop(L, 1);
+            }
+        } catch (e) {
+            console.error(`[JS Error] Fatal error in triggerLuaCallback(${eventId}):`, e);
+            log(`[JS Error] Фатальная ошибка в коллбэке ${eventId}: ${e}`, 'error');
         }
     } else {
         window.fengari.lua.lua_pop(L, 1);

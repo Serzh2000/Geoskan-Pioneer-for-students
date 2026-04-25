@@ -1,18 +1,15 @@
 import * as THREE from 'three';
 import type { DroneState } from '../state.js';
 import { log } from '../ui/logger.js';
+import { simulateDetachedCargoStep, type CargoVelocity } from './cargo-contact.js';
+import {
+    DEFAULT_CARGO_MASS_KG,
+    DEFAULT_CARGO_PHYSICS_MATERIAL,
+    GROUND_PHYSICS_MATERIAL
+} from './materials.js';
 
 const CARGO_TYPES = new Set(['Грузик', 'Груз']);
-const CARGO_GRAVITY = 9.81;
-const CARGO_GROUND_Z = 0;
-const CARGO_GROUND_BOUNCE_DAMPING = 0.18;
 const CARGO_AIR_DRAG = 0.2;
-
-type CargoVelocity = {
-    x: number;
-    y: number;
-    z: number;
-};
 
 function isCargoObject(obj: THREE.Object3D) {
     return CARGO_TYPES.has(obj.userData?.type);
@@ -31,6 +28,11 @@ function setCargoVelocity(obj: THREE.Object3D, velocity: CargoVelocity) {
     obj.userData.physicsVelocity = velocity;
 }
 
+function getCargoMassKg(obj: THREE.Object3D) {
+    const massKg = obj.userData?.massKg;
+    return typeof massKg === 'number' && massKg > 0 ? massKg : DEFAULT_CARGO_MASS_KG;
+}
+
 export function updateDetachedCargoPhysics(dt: number, getObstacles: () => THREE.Object3D[]) {
     const obstacles = getObstacles();
     for (const obj of obstacles) {
@@ -38,26 +40,21 @@ export function updateDetachedCargoPhysics(dt: number, getObstacles: () => THREE
 
         const velocity = getCargoVelocity(obj);
         const isMoving = Math.abs(velocity.x) > 0.001 || Math.abs(velocity.y) > 0.001 || Math.abs(velocity.z) > 0.001;
-        const isAboveGround = obj.position.z > CARGO_GROUND_Z;
+        const isAboveGround = obj.position.z > 0;
         if (!isMoving && !isAboveGround) continue;
 
-        velocity.z -= CARGO_GRAVITY * dt;
-        velocity.x -= velocity.x * CARGO_AIR_DRAG * dt;
-        velocity.y -= velocity.y * CARGO_AIR_DRAG * dt;
+        const step = simulateDetachedCargoStep({
+            position: { x: obj.position.x, y: obj.position.y, z: obj.position.z },
+            velocity,
+            dt,
+            airDrag: CARGO_AIR_DRAG,
+            cargoMassKg: getCargoMassKg(obj),
+            cargoMaterial: obj.userData?.physicsMaterial ?? DEFAULT_CARGO_PHYSICS_MATERIAL,
+            groundMaterial: GROUND_PHYSICS_MATERIAL
+        });
 
-        obj.position.x += velocity.x * dt;
-        obj.position.y += velocity.y * dt;
-        obj.position.z += velocity.z * dt;
-
-        if (obj.position.z <= CARGO_GROUND_Z) {
-            obj.position.z = CARGO_GROUND_Z;
-            velocity.z = Math.abs(velocity.z) > 0.5 ? -velocity.z * CARGO_GROUND_BOUNCE_DAMPING : 0;
-            if (Math.abs(velocity.z) < 0.1) velocity.z = 0;
-            if (Math.abs(velocity.x) < 0.05) velocity.x = 0;
-            if (Math.abs(velocity.y) < 0.05) velocity.y = 0;
-        }
-
-        setCargoVelocity(obj, velocity);
+        obj.position.set(step.position.x, step.position.y, step.position.z);
+        setCargoVelocity(obj, step.velocity);
     }
 }
 

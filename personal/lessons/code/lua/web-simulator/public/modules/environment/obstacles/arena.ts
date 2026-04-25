@@ -3,6 +3,7 @@ import { createTrussArenaMesh } from '../truss-arena.js';
 import { setCommonMeta, applyShadows } from './utils.js';
 import { createStyledLandingPad } from './pads.js';
 import { createHillMesh, createFirTreeMesh } from './nature.js';
+import { DEFAULT_CARGO_MASS_KG, DEFAULT_CARGO_PHYSICS_MATERIAL } from '../../physics/materials.js';
 
 export function createArenaSpaceMesh() {
     const group = setCommonMeta(new THREE.Group(), 'Арена с сеткой', { collidableRadius: 9.5 });
@@ -37,6 +38,8 @@ export function createChargeStationMesh() {
 
 export function createCargoMesh() {
     const group = setCommonMeta(new THREE.Group(), 'Грузик', { collidableRadius: 0.22 });
+    group.userData.massKg = DEFAULT_CARGO_MASS_KG;
+    group.userData.physicsMaterial = { ...DEFAULT_CARGO_PHYSICS_MATERIAL };
     const crate = new THREE.Mesh(
         new THREE.BoxGeometry(0.35, 0.35, 0.28),
         new THREE.MeshStandardMaterial({ color: 0xb45309, roughness: 0.92 })
