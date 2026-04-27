@@ -1,7 +1,7 @@
 import { AUTO_DETECT_AUX_AXIS_THRESHOLD, AUTO_DETECT_AXIS_THRESHOLD, AUTO_DETECT_BUTTON_THRESHOLD, AUTO_DETECT_CONFIRM_MS, AUTO_DETECT_INPUT_SETTLE_MS, AUTO_DETECT_TIMEOUT_MS, PRIMARY_CHANNELS, axisRef, buttonRef } from './constants.js';
 import type { SettingsRuntimeState } from './runtime-state.js';
 import type { ChannelKey, PrimaryChannelKey } from './types.js';
-import type { GamepadInputRef } from '../../state.js';
+import type { GamepadInputRef } from '../../core/state.js';
 
 export function stopAutoDetection(
     state: SettingsRuntimeState,

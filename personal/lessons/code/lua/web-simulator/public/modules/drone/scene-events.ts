@@ -1,4 +1,4 @@
-import { log } from '../ui/logger.js';
+import { log } from '../shared/logging/logger.js';
 import { renderer, selectedObject, transformControl } from '../scene/scene-init.js';
 import { onPointerDown, onPointerUp } from '../scene/input.js';
 import { handleLinearEditingKeyDown, handleLinearEditingPointerMove } from '../scene/linear-editing.js';

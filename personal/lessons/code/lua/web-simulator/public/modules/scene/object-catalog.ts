@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { droneMeshes, selectedObject } from './scene-init.js';
-import { envGroup } from '../environment.js';
+import { envGroup } from '../environment/index.js';
 import { type ScenePathPoint } from '../environment/obstacles.js';
 
 export function formatPoints(points: ScenePathPoint[]) {

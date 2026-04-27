@@ -1,4 +1,4 @@
-import { simState, resetState } from '../public/modules/state.js';
+import { simState, resetState } from '../public/modules/core/state.js';
 
 describe('Simulation State', () => {
     beforeEach(() => {

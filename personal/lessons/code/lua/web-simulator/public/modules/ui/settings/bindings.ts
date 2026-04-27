@@ -1,4 +1,4 @@
-import { simSettings, saveGamepadSettings } from '../../state.js';
+import { simSettings, saveGamepadSettings } from '../../core/state.js';
 import { ACTION_AUX_CHANNELS, ALL_CHANNELS, INVERTIBLE_CHANNELS, PRIMARY_CHANNELS, getChannelInversionIndex } from './constants.js';
 import type { SettingsDomRefs } from './dom.js';
 import { setMappingRef } from './mapping.js';

@@ -1,4 +1,4 @@
-import type { GamepadInputRef } from '../../state.js';
+import type { GamepadInputRef } from '../../core/state.js';
 import { MAX_PRESET_POSITIONS, MIN_POSITION_SAMPLES, POSITION_CLUSTER_THRESHOLD, clamp } from './constants.js';
 import type { ObservedInputPosition, ObservedInputStats } from './types.js';
 

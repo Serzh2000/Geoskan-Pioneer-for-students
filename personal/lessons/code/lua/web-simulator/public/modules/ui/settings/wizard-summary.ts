@@ -1,4 +1,4 @@
-import type { AuxChannelRange, GamepadInputRef } from '../../state.js';
+import type { AuxChannelRange, GamepadInputRef } from '../../core/state.js';
 import { buildRangesFromPositions, pickRepresentativePositions } from './observed-inputs.js';
 import { CHANNEL_LABELS } from './wizard-config.js';
 import type { ChannelKey, PrimaryChannelKey } from './types.js';

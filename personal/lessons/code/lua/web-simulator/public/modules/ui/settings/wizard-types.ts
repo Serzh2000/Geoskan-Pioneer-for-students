@@ -1,4 +1,4 @@
-import type { AuxChannelRange, GamepadInputRef } from '../../state.js';
+import type { AuxChannelRange, GamepadInputRef } from '../../core/state.js';
 import type { ChannelKey, ObservedInputPosition } from './types.js';
 
 export type WizardStepType = 'primary' | 'aux';

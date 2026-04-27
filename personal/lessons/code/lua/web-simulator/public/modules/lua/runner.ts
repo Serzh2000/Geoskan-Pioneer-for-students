@@ -1,6 +1,6 @@
-import { log } from '../ui/logger.js';
-import { luaToStr } from '../utils.js';
-import { drones } from '../state.js';
+import { log } from '../shared/logging/logger.js';
+import { luaToStr } from './utils.js';
+import { drones } from '../core/state.js';
 
 export function runCoroutine(L: any, T: any, nresults: any, id: string) {
     const drone = drones[id];

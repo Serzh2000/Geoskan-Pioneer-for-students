@@ -1,8 +1,8 @@
 import * as THREE from 'three';
-import { log } from '../ui/logger.js';
+import { log } from '../shared/logging/logger.js';
 import { transformControl, transformHelper, controls, droneMeshes, selectedObject, multiSelectedObjects, setSelectedObject } from './scene-init.js';
-import { drones, currentDroneId, simState, simSettings } from '../state.js';
-import { envGroup, addObjectToScene, updateSceneObjectPoints, updateSceneObjectValue } from '../environment.js';
+import { drones, currentDroneId, simState, simSettings } from '../core/state.js';
+import { envGroup, addObjectToScene, updateSceneObjectPoints, updateSceneObjectValue } from '../environment/index.js';
 import { MarkerMapOptions, SceneObjectOptions, ScenePathPoint } from '../environment/obstacles.js';
 import { handleDeselection, deselectObject } from './selection.js';
 import { handleSelection, updateObjectSelectionVisuals } from './input.js';

@@ -1,4 +1,4 @@
-import type { GamepadInputRef } from '../../state.js';
+import type { GamepadInputRef } from '../../core/state.js';
 import type { ChannelKey, ObservedInputStats } from './types.js';
 
 export type AutoStatusMode = 'idle' | 'listening' | 'success';

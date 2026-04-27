@@ -2,9 +2,9 @@ import * as THREE from 'three';
 import { Line2 } from 'three/examples/jsm/lines/Line2.js';
 import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
-import { MAX_PATH_POINTS, pathPoints, simSettings } from '../state.js';
+import { MAX_PATH_POINTS, pathPoints, simSettings } from '../core/state.js';
 import { scene, droneTrails, is3DActive } from '../scene/scene-init.js';
-import { log } from '../ui/logger.js';
+import { log } from '../shared/logging/logger.js';
 
 function getTracerColorHex() {
     const color = new THREE.Color(simSettings.tracerColor || '#38bdf8');

@@ -1,7 +1,7 @@
 import * as THREE from 'three';
-import { drones } from '../state.js';
+import { drones } from '../core/state.js';
 import { droneMeshes, selectedObject, transformControl, controls } from './scene-init.js';
-import { envGroup } from '../environment.js';
+import { envGroup } from '../environment/index.js';
 import { snapMarkerToSurface } from '../environment/obstacles.js';
 
 let rotationGuide: THREE.Group | null = null;

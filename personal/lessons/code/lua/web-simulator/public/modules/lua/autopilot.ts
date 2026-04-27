@@ -1,6 +1,6 @@
-import { getDroneFromLua, isDroneArmed } from '../state.js';
-import { log } from '../ui/logger.js';
-import { pushCommand, triggerEvent, MCECommands, MCEEvents } from '../mce-events.js';
+import { getDroneFromLua, isDroneArmed } from '../core/state.js';
+import { log } from '../shared/logging/logger.js';
+import { pushCommand, triggerEvent, MCECommands, MCEEvents } from '../autopilot/mce-events.js';
 
 let localFrameOrigin = { x: 0, y: 0, z: 0 };
 

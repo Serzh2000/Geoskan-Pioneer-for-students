@@ -1,4 +1,4 @@
-import { getDroneFromLua } from '../state.js';
+import { getDroneFromLua } from '../core/state.js';
 
 export const sensors_pos = function(L: any) {
     const simState = getDroneFromLua(L);

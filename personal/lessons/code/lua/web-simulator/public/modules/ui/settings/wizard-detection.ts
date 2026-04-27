@@ -1,4 +1,4 @@
-import { simSettings, type GamepadInputRef } from '../../state.js';
+import { simSettings, type GamepadInputRef } from '../../core/state.js';
 import { normalizeCenteredAxis } from './calibration.js';
 import { axisRef, buttonRef, clampRc } from './constants.js';
 import { buildRangesFromPositions, getObservedPositions, pickRepresentativePositions } from './observed-inputs.js';

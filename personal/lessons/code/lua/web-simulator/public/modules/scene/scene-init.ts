@@ -4,8 +4,8 @@ import { TransformControls } from 'three/examples/jsm/controls/TransformControls
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 import { Line2 } from 'three/examples/jsm/lines/Line2.js';
 import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
-import { log } from '../ui/logger.js';
-import { setupEnvironment, envGroup } from '../environment.js';
+import { log } from '../shared/logging/logger.js';
+import { setupEnvironment, envGroup } from '../environment/index.js';
 
 export let scene: THREE.Scene;
 export let camera: THREE.PerspectiveCamera;

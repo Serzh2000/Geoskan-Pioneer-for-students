@@ -1,7 +1,7 @@
 import * as THREE from 'three';
-import { updateSceneObjectPoints } from '../environment.js';
+import { updateSceneObjectPoints } from '../environment/index.js';
 import type { ScenePathPoint } from '../environment/obstacles.js';
-import { log } from '../ui/logger.js';
+import { log } from '../shared/logging/logger.js';
 import { normalizePoints } from './object-catalog.js';
 import { camera, raycaster, renderer, scene, selectedObject } from './scene-init.js';
 import { exitTransformMode } from './selection.js';

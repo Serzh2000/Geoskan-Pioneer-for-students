@@ -5,9 +5,9 @@
  * удалять дроны из симуляции (если их больше одного).
  * Сохраняет и восстанавливает скрипты в редакторе при переключении.
  */
-import { log } from './logger.js';
-import { drones, createDroneState, currentDroneId, setCurrentDrone } from '../state.js';
-import { getEditorValue, setEditorValue } from '../editor.js';
+import { log } from '../shared/logging/logger.js';
+import { drones, createDroneState, currentDroneId, setCurrentDrone } from '../core/state.js';
+import { getEditorValue, setEditorValue } from '../editor/index.js';
 
 export function initDroneManager(onSceneUpdate?: () => void) {
     const list = document.getElementById('drone-list') as HTMLSelectElement;

@@ -1,4 +1,4 @@
-import { simState, simSettings } from '../state.js';
+import { simState, simSettings } from '../core/state.js';
 
 const stateAlt = document.getElementById('state-alt') as HTMLElement | null;
 const stateSpd = document.getElementById('state-spd') as HTMLElement | null;

@@ -1,4 +1,4 @@
-import { apiDocs, pythonApiDocs } from '../api-docs.js';
+import { apiDocs, pythonApiDocs } from '../docs/api-docs.js';
 
 export function setupHoverProvider(monaco: any) {
     monaco.languages.registerHoverProvider('lua', {

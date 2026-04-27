@@ -3,10 +3,10 @@
  * Собирает итоговую модель из составных частей (рама, моторы, LED, камера).
  */
 import * as THREE from 'three';
-import { createFrame } from './drone-model/frame.js';
-import { createLEDs } from './drone-model/leds.js';
-import { createCameraAndAntenna } from './drone-model/camera-antenna.js';
-import { createMotors } from './drone-model/motors.js';
+import { createFrame } from './frame.js';
+import { createLEDs } from './leds.js';
+import { createCameraAndAntenna } from './camera-antenna.js';
+import { createMotors } from './motors.js';
 
 export function createDroneModel() {
     const droneGroup = new THREE.Group();

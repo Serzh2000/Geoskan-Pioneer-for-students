@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import { simState } from './state.js';
 
 function syncOrbitControlsFromCamera(camera: THREE.PerspectiveCamera, controls: any) {
     if (!controls) return;

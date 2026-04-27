@@ -3,26 +3,26 @@
  * Экспортирует функции для инициализации и обновления сцены.
  */
 import * as THREE from 'three';
-import { drones, simState, currentDroneId, simSettings } from './state.js';
-import { log } from './ui/logger.js';
-import { envGroup } from './environment.js';
-import { createDroneModel, updateLEDs, animateRotors } from './drone-model.js';
-import { updateCamera } from './camera.js';
+import { drones, simState, currentDroneId, simSettings } from '../core/state.js';
+import { log } from '../shared/logging/logger.js';
+import { envGroup } from '../environment/index.js';
+import { createDroneModel, updateLEDs, animateRotors } from '../drone-model/index.js';
+import { updateCamera } from '../scene/camera.js';
 import { 
     initScene, scene, camera, renderer, controls, transformControl, 
     transformHelper, selectionHelper, 
     droneMeshes, is3DActive, selectedObject,
     setSelectedObject, setIsHittingGizmo,
     onWindowResize, syncViewportDependentSceneVisuals
-} from './scene/scene-init.js';
-import { setupTransformControlListeners } from './scene/transform.js';
+} from '../scene/scene-init.js';
+import { setupTransformControlListeners } from '../scene/transform.js';
 import { 
     getSelectedSceneObjectId, resetDroneToOrigin, deleteSelectedObject, 
     duplicateObject, addObject, appendPointToSelectedLinearObject, updateSelectedSceneObject
-} from './scene/object-manager.js';
-import { explodeDrone, resetDroneVisuals, updateDebrisVisuals } from './drone/crash-visuals.js';
-import { registerScenePointerHandlers, handleSceneKeyDown } from './drone/scene-events.js';
-import { initTrailForDrone, disposeTrailForDrone, updateTrailForDrone } from './drone/trails.js';
+} from '../scene/object-manager.js';
+import { explodeDrone, resetDroneVisuals, updateDebrisVisuals } from './crash-visuals.js';
+import { registerScenePointerHandlers, handleSceneKeyDown } from './scene-events.js';
+import { initTrailForDrone, disposeTrailForDrone, updateTrailForDrone } from './trails.js';
 
 (window as any).scene = scene;
 (window as any).camera = camera;
@@ -36,8 +36,8 @@ export {
     setSceneObjectTransformMode, getSelectedSceneObjectId,
     startSelectedLinearObjectEditing, finishSelectedLinearObjectEditing,
     isSelectedLinearObjectEditingActive, getSelectedLinearObjectEditingTargetId
-} from './scene/object-manager.js';
-export type { TransformMode } from './scene/object-manager.js';
+} from '../scene/object-manager.js';
+export type { TransformMode } from '../scene/object-manager.js';
 
 export interface SceneObjectInfo {
     id: string;

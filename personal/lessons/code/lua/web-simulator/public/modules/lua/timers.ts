@@ -1,5 +1,5 @@
-import { getDroneFromLua } from '../state.js';
-import { log } from '../ui/logger.js';
+import { getDroneFromLua } from '../core/state.js';
+import { log } from '../shared/logging/logger.js';
 
 export const timer_callLater = function(L: any) {
     if (window.fengari.lua.lua_gettop(L) < 2) return 0;

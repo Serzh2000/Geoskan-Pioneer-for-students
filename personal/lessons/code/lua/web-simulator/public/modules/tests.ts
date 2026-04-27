@@ -1,4 +1,4 @@
-import { log } from './ui/logger.js';
+import { log } from './shared/logging/logger.js';
 
 declare const THREE: any;
 

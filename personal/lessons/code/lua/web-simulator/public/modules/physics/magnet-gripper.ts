@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import type { DroneState } from '../state.js';
-import { log } from '../ui/logger.js';
+import type { DroneState } from '../core/state.js';
+import { log } from '../shared/logging/logger.js';
 import { simulateDetachedCargoStep, type CargoVelocity } from './cargo-contact.js';
 import {
     DEFAULT_CARGO_MASS_KG,

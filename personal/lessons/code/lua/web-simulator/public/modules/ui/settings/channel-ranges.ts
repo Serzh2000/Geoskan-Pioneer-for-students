@@ -1,4 +1,4 @@
-import { simSettings, type AuxChannelRange, type GamepadInputRef } from '../../state.js';
+import { simSettings, type AuxChannelRange, type GamepadInputRef } from '../../core/state.js';
 import { buildRangesFromPositions, getObservedPositions, pickRepresentativePositions } from './observed-inputs.js';
 import { clamp } from './constants.js';
 import type { ActionAuxChannelKey, ObservedInputPosition, ObservedInputStats } from './types.js';

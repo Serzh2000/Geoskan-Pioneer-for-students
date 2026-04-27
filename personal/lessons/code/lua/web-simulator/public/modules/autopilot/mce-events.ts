@@ -1,4 +1,4 @@
-import { log } from './ui/logger.js';
+import { log } from '../shared/logging/logger.js';
 
 export class EventEmitter {
     private listeners: { [event: string]: Array<(...args: any[]) => void> };

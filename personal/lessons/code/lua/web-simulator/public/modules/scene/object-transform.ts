@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { controls, selectedObject, transformControl, transformHelper } from './scene-init.js';
-import { simState, simSettings } from '../state.js';
+import { simState, simSettings } from '../core/state.js';
 import { updateTransformModeDecorations } from './transform.js';
 import { isTransformableObject } from './object-catalog.js';
 

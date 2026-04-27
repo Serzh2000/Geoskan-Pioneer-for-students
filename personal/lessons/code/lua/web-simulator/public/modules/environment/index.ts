@@ -3,8 +3,8 @@
  * Экспортирует функции для настройки сцены и добавления объектов.
  */
 import * as THREE from 'three';
-import { setupLights } from './environment/lights.js';
-import { createGround, createAxesLabels } from './environment/ground.js';
+import { setupLights } from './lights.js';
+import { createGround, createAxesLabels } from './ground.js';
 import {
     createArenaControlStationMesh,
     createArenaHeliportMesh,
@@ -43,7 +43,7 @@ import {
     snapMarkerToSurface,
     updateLinearFeaturePoints,
     updateMarkerValue
-} from './environment/obstacles.js';
+} from './obstacles.js';
 
 export let envGroup: THREE.Group;
 

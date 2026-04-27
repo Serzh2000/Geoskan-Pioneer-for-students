@@ -3,9 +3,9 @@
 /// <reference path="./shims.d.ts" />
 import * as THREE from 'three';
 import * as fengari from 'fengari-web';
-import { simState, resetState, resetRuntimeStatePreservePose, drones, currentDroneId, currentScriptLanguage, setCurrentScriptLanguage, ScriptLanguage } from './modules/state.js';
-import { init3D, updateDrone3D, is3DActive, addObject, appendPointToSelectedLinearObject, deleteSelectedObject, finishSelectedLinearObjectEditing, getSelectedSceneObjectId, isSelectedLinearObjectEditingActive, listSceneObjects, resetDroneToOrigin, selectSceneObjectById, setSceneObjectTransformMode, startSelectedLinearObjectEditing, updateSelectedSceneObject, deleteSceneObjectById } from './modules/drone.js';
-import { updatePhysics } from './modules/physics.js';
+import { simState, resetState, resetRuntimeStatePreservePose, drones, currentDroneId, currentScriptLanguage, setCurrentScriptLanguage, ScriptLanguage } from './modules/core/state.js';
+import { init3D, updateDrone3D, is3DActive, addObject, appendPointToSelectedLinearObject, deleteSelectedObject, finishSelectedLinearObjectEditing, getSelectedSceneObjectId, isSelectedLinearObjectEditingActive, listSceneObjects, resetDroneToOrigin, selectSceneObjectById, setSceneObjectTransformMode, startSelectedLinearObjectEditing, updateSelectedSceneObject, deleteSceneObjectById } from './modules/drone/index.js';
+import { updatePhysics } from './modules/physics/index.js';
 import { runLuaScript, stopLuaScript, triggerLuaCallback } from './modules/lua/index.js';
 import { setLocalFrameOrigin } from './modules/lua/autopilot.js';
 import { runPythonScript, stopPythonScript } from './modules/python/index.js';
@@ -16,9 +16,9 @@ import { runPythonScript, stopPythonScript } from './modules/python/index.js';
  * Управляет главным циклом обновления (requestAnimationFrame), 
  * запуском/остановкой Lua-скриптов и связью между UI и логикой симуляции.
  */
-import { initEditor, getEditorValue, setEditorValue, layoutEditor, setEditorLanguage } from './modules/editor.js';
+import { initEditor, getEditorValue, setEditorValue, layoutEditor, setEditorLanguage } from './modules/editor/index.js';
 import { initUI } from './modules/ui/index.js';
-import { log } from './modules/ui/logger.js';
+import { log } from './modules/shared/logging/logger.js';
 import { updateStats } from './modules/ui/stats.js';
 import { renderApiDocs } from './modules/ui/api-docs-ui.js';
 import type { MarkerMapOptions } from './modules/environment/obstacles.js';
@@ -28,7 +28,7 @@ import type { MarkerMapOptions } from './modules/environment/obstacles.js';
 (window as any).fengari = fengari;
 
 // Global Loop
-import { simSettings } from './modules/state.js';
+import { simSettings } from './modules/core/state.js';
 
 let animationFrameId: number;
 let lastTime = 0;

@@ -1,7 +1,7 @@
 ﻿/*
- * Агрегатор стилей веб-симулятора.
- * Сохраняет прежнюю точку подключения (`public/style.css`),
- * а модули сгруппированы по подпапкам внутри `public/styles`.
+ * Style entrypoint for the web simulator.
+ * Keeps the legacy `public/style.css` include path while
+ * actual style modules live under `public/styles`.
  */
 @import url('./styles/core/base.css');
 @import url('./styles/layout/header.css');

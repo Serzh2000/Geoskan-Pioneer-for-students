@@ -1,4 +1,4 @@
-import { apiDocs, evConstants, pythonApiDocs } from '../api-docs.js';
+import { apiDocs, evConstants, pythonApiDocs } from '../docs/api-docs.js';
 
 export function setupCompletionProvider(monaco: any) {
     monaco.languages.registerCompletionItemProvider('lua', {

@@ -1,4 +1,4 @@
-import { simSettings, type GamepadInputRef } from '../../state.js';
+import { simSettings, type GamepadInputRef } from '../../core/state.js';
 import { AUXILIARY_CHANNELS, PRIMARY_CHANNELS, axisRef, buttonRef, clampRc, clamp } from './constants.js';
 import type { ChannelKey, PrimaryChannelKey, StickMode } from './types.js';
 

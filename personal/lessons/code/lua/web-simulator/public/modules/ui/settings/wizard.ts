@@ -1,8 +1,6 @@
-﻿import { simSettings, saveGamepadSettings, type GamepadInputRef } from '../../state.js';
-import { INVERTIBLE_CHANNELS, getChannelInversionIndex } from './constants.js';
+﻿import { saveGamepadSettings, type GamepadInputRef } from '../../core/state.js';
+import { getChannelInversionIndex } from './constants.js';
 import {
-    buildRangesFromPositions,
-    pickRepresentativePositions,
     rememberObservedInputValue,
     resetObservedInputStats
 } from './observed-inputs.js';
@@ -15,8 +13,9 @@ import {
     getUsedRefs,
     rememberSwitchTransition
 } from './wizard-detection.js';
+import { createWizardDraftInversion, getStoredMappingRef, persistWizardResults } from './wizard-persistence.js';
 import { WizardPreviewController } from './wizard-preview.js';
-import { buildSummaryHtml, formatRefLabel } from './wizard-summary.js';
+import { renderWizardState as renderWizardUi } from './wizard-ui.js';
 import type {
     AuxDetectionResult,
     AxisMotionStats,
@@ -41,7 +40,7 @@ let wizardDraftInversion = createWizardDraftInversion();
 const previewController = new WizardPreviewController({
     getCurrentStep,
     getDetectedRef,
-    getStoredMappingRef,
+    getPreviewRef,
     getChannelInversion
 });
 
@@ -135,6 +134,24 @@ function prepareCurrentStep() {
     stepSwitchTransitions = new Map<GamepadInputRef, number>();
 }
 
+function renderWizardState() {
+    renderWizardUi({
+        currentStepIdx,
+        showingSummary,
+        detectedMapping,
+        auxResults,
+        stepObservedStats,
+        stepSwitchTransitions,
+        getCurrentStep,
+        getDetectedRef,
+        getCurrentChannelState,
+        getChannelInversion,
+        getFirstConnectedGamepad,
+        getResolvedPrimaryRef,
+        isCurrentStepResolved
+    });
+}
+
 function getCurrentStep(): WizardStep {
     return STEPS[currentStepIdx];
 }
@@ -145,38 +162,36 @@ function getFirstConnectedGamepad(): Gamepad | null {
     return connected[0] ?? null;
 }
 
-function createWizardDraftInversion(): boolean[] {
-    return INVERTIBLE_CHANNELS.map((_, index) => !!simSettings.gamepadInversion[index]);
-}
-
-function setMappingRefForChannel(channel: ChannelKey, ref: GamepadInputRef) {
-    switch (channel) {
-        case 'roll':
-            simSettings.gamepadMapping.roll = ref;
-            break;
-        case 'pitch':
-            simSettings.gamepadMapping.pitch = ref;
-            break;
-        case 'throttle':
-            simSettings.gamepadMapping.throttle = ref;
-            break;
-        case 'yaw':
-            simSettings.gamepadMapping.yaw = ref;
-            break;
-        case 'mode':
-            simSettings.gamepadMapping.modeSwitch = ref;
-            break;
-        case 'arm':
-            simSettings.gamepadMapping.armSwitch = ref;
-            break;
-        case 'magnet':
-            simSettings.gamepadMapping.magnetBtn = ref;
-            break;
-    }
-}
-
 function getDetectedRef(channel: ChannelKey): GamepadInputRef | null {
     return detectedMapping[channel] ?? null;
+}
+
+function getPreviewRef(channel: ChannelKey): GamepadInputRef | null {
+    const resolvedRef = getDetectedRef(channel);
+    if (resolvedRef) return resolvedRef;
+
+    const step = getCurrentStep();
+    if (step.type !== 'primary' || step.channel !== channel) return null;
+
+    const usedRefs = getUsedRefs(detectedMapping, channel);
+    let bestRef: GamepadInputRef | null = null;
+    let bestScore = 0;
+
+    for (let index = 0; index < stepAxisStats.length; index += 1) {
+        const ref = `a${index}` as GamepadInputRef;
+        if (usedRefs.has(ref)) continue;
+
+        const stats = stepAxisStats[index];
+        if (!stats) continue;
+
+        const score = stats.maxDelta * 4 + stats.travel + stats.activitySamples * 0.04;
+        if (score > bestScore) {
+            bestScore = score;
+            bestRef = ref;
+        }
+    }
+
+    return bestScore > 0.08 ? bestRef : null;
 }
 
 function isCurrentStepResolved(): boolean {
@@ -198,98 +213,8 @@ function getCurrentChannelState(): WizardChannelState | null {
     };
 }
 
-function renderWizardState() {
-    const instruction = document.getElementById('gp-wizard-instruction');
-    const status = document.getElementById('gp-wizard-status');
-    const nextBtn = document.getElementById('gp-wizard-next') as HTMLButtonElement | null;
-    const prevBtn = document.getElementById('gp-wizard-prev') as HTMLButtonElement | null;
-    const stepContainer = document.getElementById('gp-wizard-step-container');
-    const summaryContainer = document.getElementById('gp-wizard-summary');
-    const summaryContent = document.getElementById('gp-wizard-summary-content');
-    const axisLabel = document.getElementById('gp-wizard-axis-label');
-    const axisHint = document.getElementById('gp-wizard-axis-hint');
-    const primaryControls = document.getElementById('gp-wizard-primary-controls');
-    const invertCheckbox = document.getElementById('gp-wizard-invert') as HTMLInputElement | null;
-    const leftStickCard = document.getElementById('gp-wizard-stick-card-left');
-    const rightStickCard = document.getElementById('gp-wizard-stick-card-right');
-
-    if (!instruction || !status || !nextBtn || !prevBtn || !stepContainer || !summaryContainer || !summaryContent || !axisLabel || !axisHint || !primaryControls || !invertCheckbox || !leftStickCard || !rightStickCard) return;
-
-    if (showingSummary) {
-        stepContainer.style.display = 'none';
-        summaryContainer.style.display = 'block';
-        summaryContent.innerHTML = buildSummaryHtml({
-            detectedMapping,
-            auxResults,
-            getChannelInversion
-        });
-        instruction.textContent = 'Сводка по найденным каналам';
-        status.textContent = 'Проверьте найденные каналы и нажмите "Применить".';
-        prevBtn.disabled = false;
-        nextBtn.disabled = false;
-        nextBtn.textContent = 'Применить';
-        axisLabel.textContent = 'Проверка каналов';
-        axisHint.textContent = 'Итоговые инверсии и сопоставления будут сохранены и сразу применены к управлению.';
-        primaryControls.hidden = true;
-        leftStickCard.classList.remove('is-active');
-        rightStickCard.classList.remove('is-active');
-        return;
-    }
-
-    stepContainer.style.display = 'block';
-    summaryContainer.style.display = 'none';
-
-    const step = getCurrentStep();
-    const channelState = getCurrentChannelState();
-    instruction.textContent = step.instruction;
-    status.textContent = getStepStatusText(step);
-    prevBtn.disabled = currentStepIdx === 0;
-    nextBtn.disabled = !isCurrentStepResolved();
-    nextBtn.textContent = currentStepIdx === STEPS.length - 1 ? 'Показать сводку' : 'Далее';
-    axisLabel.textContent = CHANNEL_LABELS[step.channel];
-    axisHint.textContent = step.type === 'primary'
-        ? `Если ${CHANNEL_LABELS[step.channel].toLowerCase()} на модели и на стиках движется наоборот, включите инверсию канала.`
-        : `Если положения канала ${CHANNEL_LABELS[step.channel].toLowerCase()} идут в обратном порядке, включите инверсию до перехода дальше.`;
-    primaryControls.hidden = false;
-    invertCheckbox.checked = channelState?.inverted ?? false;
-    leftStickCard.classList.toggle('is-active', step.targetStick === 'L' || step.targetStick === 'both');
-    rightStickCard.classList.toggle('is-active', step.targetStick === 'R' || step.targetStick === 'both');
-}
-
-function getStepStatusText(step: WizardStep): string {
-    const ref = getDetectedRef(step.channel);
-    if (!ref) {
-        if (step.type === 'aux') {
-            const requiredPositions = step.minPositions ?? 2;
-            const candidate = getBestAuxCandidate({
-                gp: getFirstConnectedGamepad(),
-                step,
-                requireResolved: false,
-                detectedMapping,
-                stepObservedStats,
-                stepSwitchTransitions
-            });
-            if (!candidate) {
-                return `Ожидание переключений... Нужно зафиксировать минимум ${requiredPositions} положения.`;
-            }
-            const positionsText = candidate.positions.length > 0
-                ? candidate.positions.map((position) => position.centerRc).join(' / ')
-                : 'нет данных';
-            if (step.preferThreePositions && !candidate.hasMiddlePosition) {
-                return `Ожидание переключений... Пока видны только крайние положения ${positionsText}. Нужно среднее положение около 1500.`;
-            }
-            return `Ожидание переключений... Зафиксировано положений ${candidate.positions.length}/${requiredPositions}, переключений ${candidate.transitions}/${candidate.requiredTransitions}. Кандидат: ${formatRefLabel(candidate.ref)}. Положения: ${positionsText}.`;
-        }
-        return 'Ожидание движения...';
-    }
-
-    if (step.type === 'primary') {
-        return `Обнаружено: ${formatRefLabel(ref)}. Можно переходить дальше.`;
-    }
-
-    const auxResult = auxResults[step.channel as WizardAuxChannelKey];
-    const positionsText = auxResult?.positions.map((position) => position.centerRc).join(' / ') ?? 'нет данных';
-    return `Обнаружено: ${formatRefLabel(ref)}. Положения: ${positionsText}.`;
+function getResolvedPrimaryRef(channel: PrimaryChannelKey): GamepadInputRef | null {
+    return detectedMapping[channel] ?? getStoredMappingRef(channel);
 }
 
 function wizardLoop() {
@@ -307,12 +232,12 @@ function wizardLoop() {
             }));
         }
 
-        previewController.update(gp);
-
         if (!showingSummary) {
             sampleCurrentStep(gp);
             renderWizardState();
         }
+
+        previewController.update(gp);
     }
 
     requestAnimationFrame(wizardLoop);
@@ -380,15 +305,7 @@ function detectAuxInput(gp: Gamepad, step: WizardStep) {
 }
 
 function finishWizard() {
-    for (const channel of ['roll', 'pitch', 'throttle', 'yaw', 'mode', 'arm', 'magnet'] as ChannelKey[]) {
-        const ref = detectedMapping[channel];
-        if (ref) {
-            setMappingRefForChannel(channel, ref);
-        }
-    }
-
-    applyChannelInversion();
-    applyAuxResults();
+    persistWizardResults({ detectedMapping, auxResults, wizardDraftInversion });
     saveGamepadSettings();
     window.dispatchEvent(new CustomEvent(SETTINGS_CHANGED_EVENT));
 
@@ -396,54 +313,3 @@ function finishWizard() {
     if (overlay) overlay.style.display = 'none';
     stopWizard();
 }
-
-function applyChannelInversion() {
-    for (const channel of INVERTIBLE_CHANNELS) {
-        const inversionIndex = getChannelInversionIndex(channel);
-        if (inversionIndex < 0) continue;
-        simSettings.gamepadInversion[inversionIndex] = wizardDraftInversion[inversionIndex] ?? false;
-    }
-}
-
-function applyAuxResults() {
-    const modeResult = auxResults.mode;
-    if (modeResult) {
-        const positions = modeResult.positions.length > 3
-            ? pickRepresentativePositions(modeResult.positions, 3)
-            : modeResult.positions;
-        const ranges = buildRangesFromPositions(positions);
-        if (ranges.length >= 2) {
-            simSettings.gamepadModeRanges.loiter = ranges[0];
-            simSettings.gamepadModeRanges.althold = ranges[Math.min(1, ranges.length - 1)];
-            simSettings.gamepadModeRanges.stabilize = ranges[Math.min(2, ranges.length - 1)];
-        }
-    }
-
-    if (auxResults.arm?.selectedRange) {
-        simSettings.gamepadAuxRanges.arm = auxResults.arm.selectedRange;
-    }
-
-    if (auxResults.magnet?.selectedRange) {
-        simSettings.gamepadAuxRanges.magnet = auxResults.magnet.selectedRange;
-    }
-}
-
-function getStoredMappingRef(channel: ChannelKey): GamepadInputRef | null {
-    switch (channel) {
-        case 'roll':
-            return simSettings.gamepadMapping.roll;
-        case 'pitch':
-            return simSettings.gamepadMapping.pitch;
-        case 'throttle':
-            return simSettings.gamepadMapping.throttle;
-        case 'yaw':
-            return simSettings.gamepadMapping.yaw;
-        case 'mode':
-            return simSettings.gamepadMapping.modeSwitch;
-        case 'arm':
-            return simSettings.gamepadMapping.armSwitch;
-        case 'magnet':
-            return simSettings.gamepadMapping.magnetBtn;
-    }
-}
-

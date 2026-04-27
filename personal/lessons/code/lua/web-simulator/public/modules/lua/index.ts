@@ -1,7 +1,7 @@
-import { drones, currentDroneId } from '../state.js';
-import { log } from '../ui/logger.js';
-import { luaToStr } from '../utils.js';
-import { triggerEvent } from '../mce-events.js';
+import { drones, currentDroneId } from '../core/state.js';
+import { log } from '../shared/logging/logger.js';
+import { luaToStr } from './utils.js';
+import { triggerEvent } from '../autopilot/mce-events.js';
 import { runCoroutine } from './runner.js';
 import { ap_push, ap_goToPoint, ap_goToLocalPoint, ap_updateYaw } from './autopilot.js';
 import { sensors_pos, sensors_vel, sensors_accel, sensors_gyro, sensors_orientation, sensors_range, sensors_battery, sensors_tof } from './sensors.js';

@@ -1,4 +1,4 @@
-import { log } from './logger.js';
+import { log } from '../shared/logging/logger.js';
 
 export function initCameraModeUI() {
     (window as any).setCameraMode = function(mode: string) {

@@ -5,10 +5,10 @@
  * автодополнение (IntelliSense) и hover-подсказки для специфичных
  * API-функций дрона Pioneer. Управляет получением и установкой кода в редакторе.
  */
-import { setupSyntaxHighlighting } from './editor/syntax.js';
-import { setupHoverProvider } from './editor/hover.js';
-import { setupCompletionProvider } from './editor/completion.js';
-import { ScriptLanguage } from './state.js';
+import { setupSyntaxHighlighting } from './syntax.js';
+import { setupHoverProvider } from './hover.js';
+import { setupCompletionProvider } from './completion.js';
+import { ScriptLanguage } from '../core/state.js';
 
 let editorInstance: any;
 let pendingValue: string | null = null;

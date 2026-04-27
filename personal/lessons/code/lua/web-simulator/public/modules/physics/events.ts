@@ -1,8 +1,8 @@
 import * as THREE from 'three';
-import type { DroneState } from '../state.js';
+import type { DroneState } from '../core/state.js';
 import { triggerLuaCallback } from '../lua/index.js';
-import { getObstacles } from '../drone.js';
-import { log } from '../ui/logger.js';
+import { getObstacles } from '../drone/index.js';
+import { log } from '../shared/logging/logger.js';
 import { obstacleHasCollision, sampleSegmentPoints } from './collisions.js';
 
 export const AIRBORNE_ALTITUDE_EPSILON = 0.1;

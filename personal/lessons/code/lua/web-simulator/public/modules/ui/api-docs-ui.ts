@@ -4,8 +4,8 @@
  * событий и глобальных переменных, группируя их по категориям,
  * и встраивает во вкладку "Справочник API" в интерфейсе.
  */
-import { apiDocs } from '../api-docs.js';
-import { pythonApiDocs } from '../api-docs.js';
+import { apiDocs } from '../docs/api-docs.js';
+import { pythonApiDocs } from '../docs/api-docs.js';
 
 export function renderApiDocs(language: 'lua' | 'python' = 'lua') {
     const container = document.getElementById('api-docs');

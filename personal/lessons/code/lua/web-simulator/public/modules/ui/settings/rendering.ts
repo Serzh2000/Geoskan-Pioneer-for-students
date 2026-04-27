@@ -1,10 +1,10 @@
-import { simSettings, type GamepadInputRef } from '../../state.js';
+import { simSettings, type GamepadInputRef } from '../../core/state.js';
 import { ACTION_AUX_CHANNELS, ALL_CHANNELS, CALIBRATION_DURATION_MS, PRIMARY_CHANNELS, clamp } from './constants.js';
 import { buildRangesFromPositions, findClosestRangeByCenter, getObservedPositions } from './observed-inputs.js';
 import type { SettingsDomRefs } from './dom.js';
 import type { SettingsRuntimeState, AutoStatusMode } from './runtime-state.js';
 import type { ActionAuxChannelKey, ChannelKey, ObservedInputPosition, ObservedInputStats, PrimaryChannelKey } from './types.js';
-import type { AuxChannelRange } from '../../state.js';
+import type { AuxChannelRange } from '../../core/state.js';
 
 export function renderChannelValue(dom: SettingsDomRefs, key: ChannelKey, value: number): void {
     const el = dom.valueEls[key];

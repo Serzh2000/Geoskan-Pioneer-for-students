@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { controls, transformControl, transformHelper, selectedObject, setSelectedObject, scene, selectionHelper } from './scene-init.js';
-import { log } from '../ui/logger.js';
+import { log } from '../shared/logging/logger.js';
 import { updateTransformModeDecorations } from './transform.js';
 import { clearSelectedObjectInitialTransform } from './object-transform.js';
 

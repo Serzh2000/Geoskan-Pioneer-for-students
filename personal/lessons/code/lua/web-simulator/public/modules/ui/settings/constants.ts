@@ -1,4 +1,4 @@
-import type { GamepadInputRef } from '../../state.js';
+import type { GamepadInputRef } from '../../core/state.js';
 import type { ActionAuxChannelKey, AuxiliaryChannelKey, ChannelKey, PrimaryChannelKey } from './types.js';
 
 export const PRIMARY_CHANNELS: PrimaryChannelKey[] = ['roll', 'pitch', 'throttle', 'yaw'];
