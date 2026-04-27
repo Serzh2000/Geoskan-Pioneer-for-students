@@ -1,0 +1,46 @@
+﻿/*
+ * Базовые переменные, шрифты и глобальные стили.
+ * Файл выделен из `public/style.css` при декомпозиции общего CSS.
+ */
+/**
+ * Р“Р»Р°РІРЅС‹Р№ С„Р°Р№Р» СЃС‚РёР»РµР№ (CSS) РІРµР±-СЃРёРјСѓР»СЏС‚РѕСЂР°.
+ * РЎРѕРґРµСЂР¶РёС‚ РІСЃРµ С†РІРµС‚РѕРІС‹Рµ РїРµСЂРµРјРµРЅРЅС‹Рµ (РІ :root), СЃС‚РёР»Рё РґР»СЏ СЃРµС‚РєРё (grid),
+ * РІРєР»Р°РґРѕРє, РїР°РЅРµР»РµР№ С‚РµР»РµРјРµС‚СЂРёРё, РјРµРЅРµРґР¶РµСЂР° СЃС†РµРЅС‹, СЂРµРґР°РєС‚РѕСЂР° РєРѕРґР° Рё РєРЅРѕРїРѕРє.
+ * Р’С‹РЅРµСЃРµРЅ РёР· index.html РґР»СЏ СѓРґРѕР±СЃС‚РІР° РїРѕРґРґРµСЂР¶РєРё Рё С‡С‚РµРЅРёСЏ.
+ */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
+
+:root {
+    --bg-color: #020617; /* Deepest blue/black */
+    --card-bg: rgba(15, 23, 42, 0.7); /* Translucent slate */
+    --panel-bg: rgba(2, 6, 23, 0.85);
+    --accent-color: #38bdf8; /* Sky blue */
+    --accent-glow: rgba(56, 189, 248, 0.3);
+    --text-color: #f8fafc;
+    --text-muted: #94a3b8;
+    --border-color: rgba(255, 255, 255, 0.08);
+    --success: #10b981;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+    --shadow-card: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+    --glass-border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+body { 
+    margin: 0; padding: 0; font-family: var(--font-sans); 
+    display: flex; flex-direction: column; height: 100vh; box-sizing: border-box;
+    background: var(--bg-color); color: var(--text-color);
+    background-image: 
+        radial-gradient(circle at 15% 10%, rgba(56, 189, 248, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 85% 90%, rgba(14, 165, 233, 0.08) 0%, transparent 40%);
+}
+
+* { box-sizing: border-box; }
+
+

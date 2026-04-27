@@ -1,8 +1,47 @@
-import { defineConfig } from 'vite';
+import fs from 'node:fs';
+import { defineConfig, type Plugin } from 'vite';
 import path from 'path';
+
+const htmlIncludePattern = /<!--\s*@include\s+(.+?)\s*-->/g;
+
+function resolveHtmlIncludes(source: string, currentFile: string, chain = new Set<string>()): string {
+  return source.replace(htmlIncludePattern, (_match, includePath) => {
+    const resolvedPath = path.resolve(path.dirname(currentFile), String(includePath).trim());
+
+    if (chain.has(resolvedPath)) {
+      throw new Error(`Recursive HTML include detected: ${resolvedPath}`);
+    }
+    if (!fs.existsSync(resolvedPath)) {
+      throw new Error(`HTML include not found: ${resolvedPath}`);
+    }
+
+    const nextChain = new Set(chain);
+    nextChain.add(resolvedPath);
+    const included = fs.readFileSync(resolvedPath, 'utf8');
+    return resolveHtmlIncludes(included, resolvedPath, nextChain);
+  });
+}
+
+function htmlIncludesPlugin(rootDir: string): Plugin {
+  const fragmentsDir = path.resolve(rootDir, 'fragments');
+  const indexFile = path.resolve(rootDir, 'index.html');
+
+  return {
+    name: 'html-includes',
+    transformIndexHtml(html) {
+      return resolveHtmlIncludes(html, indexFile);
+    },
+    handleHotUpdate(ctx) {
+      if (ctx.file.startsWith(fragmentsDir) && ctx.file.endsWith('.html')) {
+        ctx.server.ws.send({ type: 'full-reload' });
+      }
+    }
+  };
+}
 
 export default defineConfig({
   root: 'public',
+  plugins: [htmlIncludesPlugin(path.resolve(__dirname, 'public'))],
   build: {
     outDir: '../dist/public',
     emptyOutDir: true,

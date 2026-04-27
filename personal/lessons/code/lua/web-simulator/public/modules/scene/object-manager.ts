@@ -9,6 +9,7 @@ import { handleSelection, updateObjectSelectionVisuals } from './input.js';
 import { findSceneObjectById, getSceneTopLevelObjects, isTransformableObject, listSceneObjects, normalizePoints, parsePointsText } from './object-catalog.js';
 import type { TransformMode } from './object-transform.js';
 import { activateTransformMode, clearSelectedObjectInitialTransform, getRotationStepDegrees, getRotationStepOptions, rememberSelectedObjectInitialTransform, resetSelectedObjectToInitialTransform, rotateSelectedObjectByDegrees, setRotationStepDegrees } from './object-transform.js';
+import { finishLinearFeatureEditing, getLinearFeatureEditingTargetId, isLinearFeatureEditingActive, startLinearFeatureEditing } from './linear-editing.js';
 
 export function groupObjects() {
     if (multiSelectedObjects.length < 2) {
@@ -113,6 +114,9 @@ export function getSelectedSceneObjectId() {
 export function selectSceneObjectById(id: string) {
     const obj = findSceneObjectById(id);
     if (!obj) return false;
+    if (isLinearFeatureEditingActive() && !isLinearFeatureEditingActive(id)) {
+        finishLinearFeatureEditing(true);
+    }
     handleSelection(obj, window.innerWidth / 2, window.innerHeight / 2, false);
     return true;
 }
@@ -174,6 +178,7 @@ export function deleteSelectedObject() {
     
     if (selectedObject && !isDrone) {
         const obj = selectedObject;
+        if (isLinearFeatureEditingActive(obj.uuid)) finishLinearFeatureEditing(true);
         handleDeselection();
 
         obj.traverse((child: any) => {
@@ -191,6 +196,23 @@ export function deleteSelectedObject() {
         obj.removeFromParent();
         log('Объект удален', 'info');
     }
+}
+
+export function startSelectedLinearObjectEditing() {
+    return startLinearFeatureEditing(selectedObject);
+}
+
+export function finishSelectedLinearObjectEditing(commit = true) {
+    if (!isLinearFeatureEditingActive()) return false;
+    return finishLinearFeatureEditing(commit);
+}
+
+export function isSelectedLinearObjectEditingActive(id?: string) {
+    return isLinearFeatureEditingActive(id);
+}
+
+export function getSelectedLinearObjectEditingTargetId() {
+    return getLinearFeatureEditingTargetId();
 }
 
 export function duplicateObject() {

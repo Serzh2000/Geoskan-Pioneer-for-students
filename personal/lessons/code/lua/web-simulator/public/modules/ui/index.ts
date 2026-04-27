@@ -56,6 +56,9 @@ export interface UICallbacks {
         ) => void;
         updateSelected: (params: { value?: string; markerDictionary?: string; pointsText?: string; floors?: number }) => boolean;
         appendPoint: () => boolean;
+        startLinearEditing: () => boolean;
+        finishLinearEditing: (commit?: boolean) => boolean;
+        isLinearEditingActive: (id?: string) => boolean;
         setMode: (mode: 'translate' | 'rotate' | 'scale', id?: string) => boolean;
         resetDroneOrigin: () => boolean;
         getSelectedId: () => string | null;

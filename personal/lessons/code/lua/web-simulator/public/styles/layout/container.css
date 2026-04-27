@@ -1,0 +1,15 @@
+﻿/*
+ * Основная раскладка контейнера.
+ * Файл выделен из `public/style.css` при декомпозиции общего CSS.
+ */
+/* LAYOUT GRID */
+.container { 
+    display: flex;
+    gap: 0; 
+    flex: 1; 
+    min-height: 0;
+    position: relative;
+    overflow: hidden;
+}
+
+

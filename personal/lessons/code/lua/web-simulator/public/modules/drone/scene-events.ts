@@ -1,11 +1,13 @@
 import { log } from '../ui/logger.js';
 import { renderer, selectedObject, transformControl } from '../scene/scene-init.js';
 import { onPointerDown, onPointerUp } from '../scene/input.js';
+import { handleLinearEditingKeyDown, handleLinearEditingPointerMove } from '../scene/linear-editing.js';
 import { handleDeselection } from '../scene/selection.js';
 import { activateTransformMode, deleteSelectedObject } from '../scene/object-manager.js';
 
 let scenePointerDownCaptureHandler: ((event: PointerEvent) => void) | null = null;
 let scenePointerUpCaptureHandler: ((event: PointerEvent) => void) | null = null;
+let scenePointerMoveCaptureHandler: ((event: PointerEvent) => void) | null = null;
 
 function isScenePointerEvent(event: PointerEvent) {
     if (!renderer?.domElement) return false;
@@ -22,6 +24,9 @@ export function registerScenePointerHandlers() {
     if (scenePointerUpCaptureHandler) {
         document.removeEventListener('pointerup', scenePointerUpCaptureHandler, true);
     }
+    if (scenePointerMoveCaptureHandler) {
+        document.removeEventListener('pointermove', scenePointerMoveCaptureHandler, true);
+    }
 
     scenePointerDownCaptureHandler = (event: PointerEvent) => {
         if (!isScenePointerEvent(event)) return;
@@ -35,13 +40,21 @@ export function registerScenePointerHandlers() {
         onPointerUp(event);
     };
 
+    scenePointerMoveCaptureHandler = (event: PointerEvent) => {
+        if (!isScenePointerEvent(event)) return;
+        handleLinearEditingPointerMove(event);
+    };
+
     document.addEventListener('pointerdown', scenePointerDownCaptureHandler, true);
     document.addEventListener('pointerup', scenePointerUpCaptureHandler, true);
+    document.addEventListener('pointermove', scenePointerMoveCaptureHandler, true);
 }
 
 export function handleSceneKeyDown(event: KeyboardEvent) {
     const target = event.target as HTMLElement;
     if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || (target.closest && target.closest('.monaco-editor'))) return;
+
+    if (handleLinearEditingKeyDown(event)) return;
 
     if (event.key.toLowerCase() === 'escape') {
         if (transformControl?.object || selectedObject) handleDeselection();

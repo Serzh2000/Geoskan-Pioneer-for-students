@@ -57,6 +57,7 @@ export function initSceneManager(callbacks: UICallbacks) {
     const selectedPointsEl = document.getElementById('scene-selected-points') as HTMLTextAreaElement | null;
     const applyMetaBtn = document.getElementById('scene-apply-meta-btn');
     const appendPointBtn = document.getElementById('scene-append-point-btn');
+    const visualEditBtn = document.getElementById('scene-visual-edit-btn');
     const deleteBtn = document.getElementById('scene-delete-btn');
     const groupBtn = document.getElementById('scene-group-btn');
     const ungroupBtn = document.getElementById('scene-ungroup-btn');
@@ -303,6 +304,10 @@ export function initSceneManager(callbacks: UICallbacks) {
             if (selectedFloorsEl) selectedFloorsEl.value = '9';
             if (selectedBuildingIncidentsEl) selectedBuildingIncidentsEl.value = '';
             if (selectedPointsEl) selectedPointsEl.value = '';
+            if (visualEditBtn) {
+                visualEditBtn.style.display = 'none';
+                visualEditBtn.toggleAttribute('disabled', true);
+            }
             return;
         }
 
@@ -337,6 +342,8 @@ export function initSceneManager(callbacks: UICallbacks) {
         lastSelectedId = selected.id;
 
         const isBuildingSelected = selected.sceneType === 'Многоэтажка';
+        const isVisualEditing = callbacks.sceneManager?.isLinearEditingActive(selected.id) || false;
+        const isAnyLinearEditing = callbacks.sceneManager?.isLinearEditingActive() || false;
         if (selectedDictionaryEl) {
             const isMarkerDictionaryEditable = !!selected.supportsMarkerDictionary;
             selectedDictionaryEl.disabled = !isMarkerDictionaryEditable;
@@ -362,6 +369,14 @@ export function initSceneManager(callbacks: UICallbacks) {
             selectedPointsEl.style.display = selected.supportsPoints ? 'block' : 'none';
         }
         if (appendPointBtn) appendPointBtn.toggleAttribute('disabled', !selected.supportsPoints);
+        if (visualEditBtn) {
+            visualEditBtn.style.display = selected.supportsPoints ? 'inline-flex' : 'none';
+            visualEditBtn.textContent = isVisualEditing ? 'Готово' : 'Проложить';
+            visualEditBtn.toggleAttribute('disabled', isAnyLinearEditing && !isVisualEditing);
+            visualEditBtn.title = isVisualEditing
+                ? 'Завершить визуальную прокладку'
+                : 'Добавлять точки маршрута кликами по сцене';
+        }
     };
 
     if (addTypeEl) {
@@ -460,6 +475,19 @@ export function initSceneManager(callbacks: UICallbacks) {
     if (appendPointBtn) {
         appendPointBtn.addEventListener('click', () => {
             callbacks.sceneManager && callbacks.sceneManager.appendPoint();
+            render();
+        });
+    }
+
+    if (visualEditBtn) {
+        visualEditBtn.addEventListener('click', () => {
+            const selectedId = callbacks.sceneManager?.getSelectedId();
+            if (!callbacks.sceneManager || !selectedId) return;
+            if (callbacks.sceneManager.isLinearEditingActive(selectedId)) {
+                callbacks.sceneManager.finishLinearEditing(true);
+            } else {
+                callbacks.sceneManager.startLinearEditing();
+            }
             render();
         });
     }

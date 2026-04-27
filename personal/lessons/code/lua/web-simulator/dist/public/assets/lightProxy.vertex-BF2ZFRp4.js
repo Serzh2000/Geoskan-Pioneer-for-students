@@ -1,1 +1,0 @@
-import"./shaderStore-EocWwLxt.js";import"./sceneUboDeclaration-CI-ge1JL.js";import"./sceneVertexDeclaration-Cf2eJoxI.js";import"./clusteredLightingFunctions-mRtfIZo0.js";import{ur as e}from"./index-fgR7vt3_.js";export{e as lightProxyVertexShader};

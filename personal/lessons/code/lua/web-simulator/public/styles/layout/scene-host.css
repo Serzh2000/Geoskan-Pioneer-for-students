@@ -1,0 +1,23 @@
+﻿/*
+ * Основная область сцены.
+ * Файл выделен из `public/style.css` при декомпозиции общего CSS.
+ */
+/* MAIN SCENE AREA */
+.main-scene {
+    flex: 1;
+    min-width: 0;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.scene-container {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+}
+
+#canvas-container { position: absolute; inset: 0; }
+#canvas { width: 100%; height: 100%; outline: none; }
+
+

@@ -4,7 +4,7 @@
 import * as THREE from 'three';
 import * as fengari from 'fengari-web';
 import { simState, resetState, resetRuntimeStatePreservePose, drones, currentDroneId, currentScriptLanguage, setCurrentScriptLanguage, ScriptLanguage } from './modules/state.js';
-import { init3D, updateDrone3D, is3DActive, addObject, appendPointToSelectedLinearObject, deleteSelectedObject, listSceneObjects, selectSceneObjectById, deleteSceneObjectById, setSceneObjectTransformMode, resetDroneToOrigin, getSelectedSceneObjectId, updateSelectedSceneObject } from './modules/drone.js';
+import { init3D, updateDrone3D, is3DActive, addObject, appendPointToSelectedLinearObject, deleteSelectedObject, finishSelectedLinearObjectEditing, getSelectedSceneObjectId, isSelectedLinearObjectEditingActive, listSceneObjects, resetDroneToOrigin, selectSceneObjectById, setSceneObjectTransformMode, startSelectedLinearObjectEditing, updateSelectedSceneObject, deleteSceneObjectById } from './modules/drone.js';
 import { updatePhysics } from './modules/physics.js';
 import { runLuaScript, stopLuaScript, triggerLuaCallback } from './modules/lua/index.js';
 import { setLocalFrameOrigin } from './modules/lua/autopilot.js';
@@ -86,6 +86,9 @@ function init() {
             ) => addObject(type, options),
             updateSelected: (params: { value?: string; markerDictionary?: string; pointsText?: string; floors?: number }) => updateSelectedSceneObject(params),
             appendPoint: () => appendPointToSelectedLinearObject(),
+            startLinearEditing: () => startSelectedLinearObjectEditing(),
+            finishLinearEditing: (commit = true) => finishSelectedLinearObjectEditing(commit),
+            isLinearEditingActive: (id?: string) => isSelectedLinearObjectEditingActive(id),
             setMode: (mode: 'translate' | 'rotate' | 'scale', id?: string) => setSceneObjectTransformMode(mode, id),
             resetDroneOrigin: () => resetDroneToOrigin(),
             getSelectedId: () => getSelectedSceneObjectId()

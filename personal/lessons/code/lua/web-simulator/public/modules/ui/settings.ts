@@ -1,4 +1,4 @@
-﻿﻿/**
+﻿/**
  * Модуль интерфейса настроек симулятора.
  * Инициализирует вкладку "Настройки", связывая чекбоксы и ползунки
  * с глобальным состоянием `simSettings`. Позволяет управлять отображением
@@ -7,7 +7,7 @@
 import { simSettings, drones, currentDroneId, matchesAuxRange, saveGamepadSettings, type GamepadInputRef } from '../state.js';
 import { ALL_CHANNELS, CALIBRATION_DURATION_MS, PRIMARY_CHANNELS, axisRef, buttonRef, clamp, clampRc } from './settings/constants.js';
 import { startAutoDetection, detectAutoInput, stopAutoDetection } from './settings/auto-detect.js';
-import { bindGamepadSettingsControls, bindGeneralSettingsControls } from './settings/bindings.js';
+import { bindGamepadSettingsControls, bindGeneralSettingsControls, syncInversionCheckboxes } from './settings/bindings.js';
 import { initWizard } from './settings/wizard.js';
 import { applyModeRangesFromObserved, getAuxRange, getModeObservedPositions, getObservedStats, setAuxRange } from './settings/channel-ranges.js';
 import { beginCalibration as beginCalibrationValues, finishCalibration as finishCalibrationValues, normalizeCenteredAxis, normalizeThrottleAxis, resetCalibration as resetCalibrationValues, sampleCalibration } from './settings/calibration.js';
@@ -392,6 +392,7 @@ export function initSettingsUI() {
 
     window.addEventListener('gamepadsettingschanged', () => {
         lastModePositionsCount = 0;
+        syncInversionCheckboxes(dom);
         const gp = findCurrentActiveGamepad();
         if (gp) {
             initMappingSelects(gp);

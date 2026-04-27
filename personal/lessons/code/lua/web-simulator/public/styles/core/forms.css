@@ -1,0 +1,39 @@
+﻿/*
+ * Глобальные поля ввода и служебные скрытия.
+ * Файл выделен из `public/style.css` при декомпозиции общего CSS.
+ */
+/* FORM ELEMENTS GLOBALLY */
+input[type="text"], input[type="number"], textarea, select {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-color);
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-sans);
+    font-size: 11px;
+    transition: all 0.2s;
+    outline: none;
+    box-sizing: border-box;
+}
+
+input:focus, textarea:focus, select:focus {
+    border-color: var(--accent-color);
+    background: rgba(0, 0, 0, 0.5);
+    box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.3);
+}
+
+textarea {
+    resize: vertical;
+    font-family: var(--font-mono);
+}
+
+/* SCROLLBARS FOR SIDEBAR */
+.panel-content::-webkit-scrollbar { width: 4px; }
+.panel-content::-webkit-scrollbar-thumb { background: rgba(56, 189, 248, 0.2); }
+.panel-content::-webkit-scrollbar-thumb:hover { background: rgba(56, 189, 248, 0.4); }
+
+/* HIDE OLD ELEMENTS */
+.left-panel, .right-panel, .right-sidebar { display: none !important; }
+
+

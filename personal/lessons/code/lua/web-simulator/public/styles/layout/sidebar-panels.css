@@ -1,0 +1,42 @@
+﻿/*
+ * Контейнеры боковых панелей.
+ * Файл выделен из `public/style.css` при декомпозиции общего CSS.
+ */
+/* SIDEBAR PANELS */
+.sidebar-panels {
+    height: 100%;
+    background: rgba(15, 23, 42, 0.7);
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    flex-direction: column;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    position: relative;
+    z-index: 90;
+    backdrop-filter: blur(12px);
+    box-shadow: 10px 0 20px rgba(0,0,0,0.2);
+}
+
+.sidebar-panels.is-collapsed {
+    border-right-color: transparent;
+    box-shadow: none;
+}
+
+.sidebar-panels.is-collapsed .resizer {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.sidebar-panel {
+    display: none;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+}
+
+.sidebar-panel.active {
+    display: flex;
+}
+
+

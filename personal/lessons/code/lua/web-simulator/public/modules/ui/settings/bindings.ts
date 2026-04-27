@@ -5,6 +5,14 @@ import { setMappingRef } from './mapping.js';
 import type { SettingsRuntimeState } from './runtime-state.js';
 import type { ActionAuxChannelKey, ChannelKey, StickMode } from './types.js';
 
+export function syncInversionCheckboxes(dom: SettingsDomRefs): void {
+    for (const [index, key] of PRIMARY_CHANNELS.entries()) {
+        const checkbox = dom.invCheckboxes[key];
+        if (!checkbox) continue;
+        checkbox.checked = simSettings.gamepadInversion[index];
+    }
+}
+
 export function bindGeneralSettingsControls(dom: SettingsDomRefs): void {
     if (dom.showTracerEl) {
         dom.showTracerEl.checked = simSettings.showTracer;

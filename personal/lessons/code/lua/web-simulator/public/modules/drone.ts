@@ -33,7 +33,9 @@ export {
     addObject, deleteSelectedObject, duplicateObject, resetDroneToOrigin,
     listSceneObjects, selectSceneObjectById, deleteSceneObjectById,
     appendPointToSelectedLinearObject, updateSelectedSceneObject,
-    setSceneObjectTransformMode, getSelectedSceneObjectId
+    setSceneObjectTransformMode, getSelectedSceneObjectId,
+    startSelectedLinearObjectEditing, finishSelectedLinearObjectEditing,
+    isSelectedLinearObjectEditingActive, getSelectedLinearObjectEditingTargetId
 } from './scene/object-manager.js';
 export type { TransformMode } from './scene/object-manager.js';
 

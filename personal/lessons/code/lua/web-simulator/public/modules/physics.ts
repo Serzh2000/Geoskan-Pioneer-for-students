@@ -11,6 +11,7 @@ import { getObstacles } from './drone.js';
 import { log } from './ui/logger.js';
 import {
     AIRBORNE_ALTITUDE_EPSILON,
+    applyCrashState,
     beginDisarmedFall,
     checkPhysicsEvents,
     shouldCrashOnGroundImpact
@@ -21,20 +22,40 @@ import {
     MANUAL_TAKEOFF_THROTTLE,
     TRACE_SAMPLE_INTERVAL
 } from './physics/constants.js';
+import { bodyPlanarToWorld, worldPlanarToBody } from './physics/frames.js';
 
 export function updatePhysics(dt: number) {
     updateTimers();
     updateDetachedCargoPhysics(dt, getObstacles);
 
-    const STABILIZE_MAX_TILT = 0.75;
-    const STABILIZE_LATERAL_ACCEL = 18.0;
+    const STABILIZE_MAX_TILT = 0.8;
     const ALTHOLD_MAX_TILT = 0.65;
-    const ALTHOLD_LATERAL_ACCEL = 14.0;
     const LOITER_VISUAL_TILT_GAIN = 0.14;
     const LOITER_VISUAL_TILT_LIMIT = 0.55;
     const AUTO_MAX_TILT = 0.55;
     const AUTO_TILT_GAIN = 0.14;
     const AUTO_TILT_RESPONSE = 14.0;
+    const STICK_DEADZONE = 0.04;
+    const MAX_YAW_RATE = 2.8;
+    const STABILIZE_MAX_BODY_SPEED = 8.0;
+    const ALTHOLD_MAX_BODY_SPEED = 5.5;
+    const LOITER_MAX_BODY_SPEED = 3.5;
+    const STABILIZE_MAX_CLIMB_RATE = 6.0;
+    const ALTHOLD_MAX_CLIMB_RATE = 3.5;
+    const LOITER_MAX_CLIMB_RATE = 2.2;
+    const STABILIZE_BODY_ACCEL = 16.0;
+    const ALTHOLD_BODY_ACCEL = 12.0;
+    const LOITER_BODY_ACCEL = 9.0;
+    const MANUAL_VERTICAL_ACCEL = 10.0;
+
+    const applyDeadzone = (value: number) => Math.abs(value) < STICK_DEADZONE ? 0 : value;
+    const clampStick = (channel: number) => Math.max(-1, Math.min(1, (channel - 1500) / 500));
+    const normalizeThrottle = (channel: number) => Math.max(0, Math.min(1, (channel - 1000) / 1000));
+    const approach = (current: number, target: number, maxDelta: number) => {
+        if (current < target) return Math.min(current + maxDelta, target);
+        if (current > target) return Math.max(current - maxDelta, target);
+        return current;
+    };
 
     for (const id in drones) {
         const simState = drones[id];
@@ -169,69 +190,42 @@ export function updatePhysics(dt: number) {
         if (isFlying) {
             if (simSettings.gamepadConnected && simState.flightMode !== 'AUTO') {
                 // Управление с пульта
-                const roll = (simState.rcChannels[0] - 1500) / 500;    // -1..1
-                const pitch = (simState.rcChannels[1] - 1500) / 500;   // -1..1
-                const throttle = (simState.rcChannels[2] - 1000) / 1000; // 0..1
-                const yaw = (simState.rcChannels[3] - 1500) / 500;     // -1..1
+                const roll = applyDeadzone(clampStick(simState.rcChannels[0]));
+                const pitch = applyDeadzone(clampStick(simState.rcChannels[1]));
+                const throttle = normalizeThrottle(simState.rcChannels[2]);
+                const yaw = applyDeadzone(clampStick(simState.rcChannels[3]));
+
+                let maxBodySpeed = STABILIZE_MAX_BODY_SPEED;
+                let maxClimbRate = STABILIZE_MAX_CLIMB_RATE;
+                let bodyAccel = STABILIZE_BODY_ACCEL;
+                let targetTiltLimit = STABILIZE_MAX_TILT;
+
+                if (simState.flightMode === 'ALTHOLD') {
+                    maxBodySpeed = ALTHOLD_MAX_BODY_SPEED;
+                    maxClimbRate = ALTHOLD_MAX_CLIMB_RATE;
+                    bodyAccel = ALTHOLD_BODY_ACCEL;
+                    targetTiltLimit = ALTHOLD_MAX_TILT;
+                } else if (simState.flightMode === 'LOITER') {
+                    maxBodySpeed = LOITER_MAX_BODY_SPEED;
+                    maxClimbRate = LOITER_MAX_CLIMB_RATE;
+                    bodyAccel = LOITER_BODY_ACCEL;
+                    targetTiltLimit = LOITER_VISUAL_TILT_LIMIT;
+                }
+
+                const currentBodyVelocity = worldPlanarToBody(simState.vel.x, simState.vel.y, simState.orientation.yaw);
+                const targetBodyForwardSpeed = pitch * maxBodySpeed;
+                const targetBodyRightSpeed = roll * maxBodySpeed;
+                const nextBodyForwardSpeed = approach(currentBodyVelocity.forward, targetBodyForwardSpeed, bodyAccel * dt);
+                const nextBodyRightSpeed = approach(currentBodyVelocity.right, targetBodyRightSpeed, bodyAccel * dt);
+                const targetVerticalSpeed = ((throttle - 0.5) * 2) * maxClimbRate;
+
+                simState.orientation.yaw += yaw * MAX_YAW_RATE * dt;
 
                 if (simState.flightMode === 'STABILIZE') {
-                    // Ручной режим: газ напрямую влияет на вертикальную скорость, ролл/питч на углы
-                    simState.vel.z += (throttle * 15.0 - 9.81) * dt; 
-                    simState.pos.z += simState.vel.z * dt;
-                    
-                    simState.orientation.pitch = pitch * STABILIZE_MAX_TILT;
-                    simState.orientation.roll = roll * STABILIZE_MAX_TILT;
-                    simState.orientation.yaw += yaw * 3.0 * dt;
-
-                    // Горизонтальное движение считаем в локальных осях дрона и
-                    // поворачиваем в мировые координаты по текущему yaw.
-                    const drag = 0.5;
-                    const localForwardAccel = Math.sin(simState.orientation.pitch) * -STABILIZE_LATERAL_ACCEL;
-                    const localRightAccel = Math.sin(simState.orientation.roll) * STABILIZE_LATERAL_ACCEL;
-                    const cosYaw = Math.cos(simState.orientation.yaw);
-                    const sinYaw = Math.sin(simState.orientation.yaw);
-                    const worldAx = localRightAccel * cosYaw - localForwardAccel * sinYaw;
-                    const worldAy = localRightAccel * sinYaw + localForwardAccel * cosYaw;
-                    simState.vel.x += (worldAx - simState.vel.x * drag) * dt;
-                    simState.vel.y += (worldAy - simState.vel.y * drag) * dt;
-                    simState.pos.x += simState.vel.x * dt;
-                    simState.pos.y += simState.vel.y * dt;
-
+                    simState.vel.z = approach(simState.vel.z, targetVerticalSpeed, MANUAL_VERTICAL_ACCEL * dt);
                 } else if (simState.flightMode === 'ALTHOLD') {
-                    // Удержание высоты: стик газа меняет целевую высоту
-                    const targetClimbRate = (throttle - 0.5) * 4.0; // -2..2 м/с
-                    simState.target_pos.z += targetClimbRate * dt;
-                    if (simState.target_pos.z < 0) simState.target_pos.z = 0;
-
-                    // PID для высоты
-                    const errZ = simState.target_pos.z - simState.pos.z;
-                    simState.vel.z += (errZ * 4.0 - simState.vel.z * 2.5) * dt;
-                    simState.pos.z += simState.vel.z * dt;
-
-                    // Горизонтально как в stabilize
-                    simState.orientation.pitch = pitch * ALTHOLD_MAX_TILT;
-                    simState.orientation.roll = roll * ALTHOLD_MAX_TILT;
-                    simState.orientation.yaw += yaw * 3.0 * dt;
-
-                    const drag = 0.8;
-                    const localForwardAccel = Math.sin(simState.orientation.pitch) * -ALTHOLD_LATERAL_ACCEL;
-                    const localRightAccel = Math.sin(simState.orientation.roll) * ALTHOLD_LATERAL_ACCEL;
-                    const cosYaw = Math.cos(simState.orientation.yaw);
-                    const sinYaw = Math.sin(simState.orientation.yaw);
-                    const worldAx = localRightAccel * cosYaw - localForwardAccel * sinYaw;
-                    const worldAy = localRightAccel * sinYaw + localForwardAccel * cosYaw;
-                    simState.vel.x += (worldAx - simState.vel.x * drag) * dt;
-                    simState.vel.y += (worldAy - simState.vel.y * drag) * dt;
-                    simState.pos.x += simState.vel.x * dt;
-                    simState.pos.y += simState.vel.y * dt;
-
+                    simState.vel.z = approach(simState.vel.z, targetVerticalSpeed, MANUAL_VERTICAL_ACCEL * dt);
                 } else if (simState.flightMode === 'LOITER') {
-                    // Удержание позиции (Navigation)
-                    // Стики задают целевую скорость
-                    const targetVy = -pitch * 3.0;
-                    const targetVx = roll * 3.0;
-                    const targetVz = (throttle - 0.5) * 2.0;
-
                     // Оптический поток: если под нами что-то есть, поднимаемся
                     let terrainAlt = 0;
                     const obstacles = getObstacles();
@@ -240,42 +234,43 @@ export function updatePhysics(dt: number) {
                             terrainAlt = Math.max(terrainAlt, obj.position.z + 0.5);
                         }
                     }
-                    
-                    const effectiveTargetZ = Math.max(simState.target_pos.z, terrainAlt);
-                    simState.target_pos.z += targetVz * dt;
-                    
-                    // Позиция X, Y обновляется на основе скорости от стиков
-                    simState.target_pos.x += targetVx * dt;
-                    simState.target_pos.y += targetVy * dt;
+                    simState.vel.z = approach(simState.vel.z, targetVerticalSpeed, MANUAL_VERTICAL_ACCEL * dt);
+                    if (simState.pos.z <= terrainAlt && simState.vel.z < 0) {
+                        simState.vel.z = 0;
+                        simState.pos.z = terrainAlt;
+                    }
+                }
 
-                    // PID контроль для следования за target_pos
-                    const kp = 5.0;
-                    const kd = 3.0;
-                    
-                    const errX = simState.target_pos.x - simState.pos.x;
-                    const errY = simState.target_pos.y - simState.pos.y;
-                    const errZ = effectiveTargetZ - simState.pos.z;
+                const targetWorldVelocity = bodyPlanarToWorld(
+                    nextBodyRightSpeed,
+                    nextBodyForwardSpeed,
+                    simState.orientation.yaw
+                );
 
-                    simState.vel.x += (errX * kp - simState.vel.x * kd) * dt;
-                    simState.vel.y += (errY * kp - simState.vel.y * kd) * dt;
-                    simState.vel.z += (errZ * kp - simState.vel.z * kd) * dt;
+                simState.vel.x = targetWorldVelocity.x;
+                simState.vel.y = targetWorldVelocity.y;
+                simState.pos.x += simState.vel.x * dt;
+                simState.pos.y += simState.vel.y * dt;
+                simState.pos.z += simState.vel.z * dt;
 
-                    simState.pos.x += simState.vel.x * dt;
-                    simState.pos.y += simState.vel.y * dt;
-                    simState.pos.z += simState.vel.z * dt;
-
-                    simState.orientation.yaw += yaw * 3.0 * dt;
-                    
-                    // Наклоны для визуализации скорости (Y - вперед, X - вправо)
+                if (simState.flightMode === 'LOITER') {
                     simState.orientation.pitch = Math.max(
                         -LOITER_VISUAL_TILT_LIMIT,
-                        Math.min(LOITER_VISUAL_TILT_LIMIT, -simState.vel.y * LOITER_VISUAL_TILT_GAIN)
+                        Math.min(LOITER_VISUAL_TILT_LIMIT, nextBodyForwardSpeed * LOITER_VISUAL_TILT_GAIN)
                     );
                     simState.orientation.roll = Math.max(
                         -LOITER_VISUAL_TILT_LIMIT,
-                        Math.min(LOITER_VISUAL_TILT_LIMIT, simState.vel.x * LOITER_VISUAL_TILT_GAIN)
+                        Math.min(LOITER_VISUAL_TILT_LIMIT, nextBodyRightSpeed * LOITER_VISUAL_TILT_GAIN)
                     );
+                } else {
+                    const tiltGain = targetTiltLimit / Math.max(0.001, maxBodySpeed);
+                    simState.orientation.pitch = Math.max(-targetTiltLimit, Math.min(targetTiltLimit, nextBodyForwardSpeed * tiltGain));
+                    simState.orientation.roll = Math.max(-targetTiltLimit, Math.min(targetTiltLimit, nextBodyRightSpeed * tiltGain));
                 }
+
+                simState.target_pos = { ...simState.pos };
+                simState.target_alt = simState.pos.z;
+                simState.target_yaw = simState.orientation.yaw;
             } else {
                 // AUTO Mode (PID-like smooth control from scripts)
                 const kp = 4.0; 
@@ -308,26 +303,44 @@ export function updatePhysics(dt: number) {
                 
                 const yaw_vel = errYaw * kp_yaw;
                 simState.orientation.yaw += yaw_vel * dt;
-            }
-            
-            const cosY = Math.cos(simState.orientation.yaw);
-            const sinY = Math.sin(simState.orientation.yaw);
-            
-            const local_ax = ax * cosY + ay * sinY;
-            const local_ay = -ax * sinY + ay * cosY;
 
-            const targetPitch = Math.max(-AUTO_MAX_TILT, Math.min(AUTO_MAX_TILT, -local_ay * AUTO_TILT_GAIN));
-            const targetRoll = Math.max(-AUTO_MAX_TILT, Math.min(AUTO_MAX_TILT, local_ax * AUTO_TILT_GAIN));
-            
-            // Smoothly interpolate current tilt to target tilt
-            simState.orientation.pitch += (targetPitch - simState.orientation.pitch) * AUTO_TILT_RESPONSE * dt;
-            simState.orientation.roll += (targetRoll - simState.orientation.roll) * AUTO_TILT_RESPONSE * dt;
-            
-            if (simState.pos.z < 0) {
+                const bodyAccel = worldPlanarToBody(ax, ay, simState.orientation.yaw);
+                const targetPitch = Math.max(-AUTO_MAX_TILT, Math.min(AUTO_MAX_TILT, bodyAccel.forward * AUTO_TILT_GAIN));
+                const targetRoll = Math.max(-AUTO_MAX_TILT, Math.min(AUTO_MAX_TILT, bodyAccel.right * AUTO_TILT_GAIN));
+
+                // Smoothly interpolate current tilt to target tilt
+                simState.orientation.pitch += (targetPitch - simState.orientation.pitch) * AUTO_TILT_RESPONSE * dt;
+                simState.orientation.roll += (targetRoll - simState.orientation.roll) * AUTO_TILT_RESPONSE * dt;
+            }
+
+            if (simState.pos.z <= 0) {
+                const verticalImpactSpeed = Math.max(0, -simState.vel.z);
+                const totalImpactSpeed = Math.sqrt(
+                    simState.vel.x ** 2
+                    + simState.vel.y ** 2
+                    + simState.vel.z ** 2
+                );
+
                 simState.pos.z = 0;
-                simState.vel.z = 0;
-                simState.vel.x = 0;
-                simState.vel.y = 0;
+
+                if (shouldCrashOnGroundImpact(prevPos.z, verticalImpactSpeed, totalImpactSpeed)) {
+                    applyCrashState(
+                        simState,
+                        id,
+                        `жесткий удар о землю: h=${prevPos.z.toFixed(2)}м, vz=${verticalImpactSpeed.toFixed(2)}м/с, v=${totalImpactSpeed.toFixed(2)}м/с`
+                    );
+                } else if (simState.status === 'ПОСАДКА') {
+                    simState.status = 'ПРИЗЕМЛЕН';
+                    simState.vel = { x: 0, y: 0, z: 0 };
+                    simState.target_pos = { ...simState.pos, z: 0 };
+                    simState.target_alt = 0;
+                    triggerLuaCallback(id, 7);
+                } else {
+                    simState.status = 'ГОТОВ';
+                    simState.vel = { x: 0, y: 0, z: 0 };
+                    simState.target_pos = { ...simState.pos, z: 0 };
+                    simState.target_alt = 0;
+                }
             }
         } else if (simState.status === 'DISARMED_FALL') {
             const impactVel = { ...simState.vel };

@@ -1,0 +1,21 @@
+﻿/*
+ * Разделитель панелей.
+ * Файл выделен из `public/style.css` при декомпозиции общего CSS.
+ */
+/* RESIZER */
+.resizer {
+    width: 4px;
+    height: 100%;
+    cursor: col-resize;
+    position: absolute;
+    right: 0;
+    top: 0;
+    z-index: 101;
+    transition: background 0.2s;
+}
+
+.resizer:hover, .resizer.dragging {
+    background: var(--accent-color);
+}
+
+

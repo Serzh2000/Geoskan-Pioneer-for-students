@@ -33,7 +33,7 @@ export function shouldCrashOnGroundImpact(fallHeight: number, verticalSpeed: num
     );
 }
 
-function applyCrashState(simState: DroneState, id: string, reason: string) {
+export function applyCrashState(simState: DroneState, id: string, reason: string) {
     if (simState.status === 'CRASHED') return;
 
     const bounceX = -0.7;

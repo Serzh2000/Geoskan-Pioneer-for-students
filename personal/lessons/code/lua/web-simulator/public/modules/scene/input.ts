@@ -35,6 +35,7 @@ import {
 import {
     isTransformableObject,
 } from './object-catalog.js';
+import { handleLinearEditingPointerUp, isLinearFeatureEditingActive } from './linear-editing.js';
 
 const groundPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
 const CLICK_TRACE_PREFIX = '[3D-CLICK]';
@@ -231,6 +232,11 @@ export function onPointerUp(event: PointerEvent) {
     mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
     raycaster.setFromCamera(mouse, camera);
+
+    if (isLinearFeatureEditingActive()) {
+        handleLinearEditingPointerUp(event);
+        return;
+    }
     
     const targets: THREE.Object3D[] = [];
     for (const id in droneMeshes) {
