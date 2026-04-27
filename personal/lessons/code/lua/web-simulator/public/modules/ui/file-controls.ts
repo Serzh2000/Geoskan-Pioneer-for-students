@@ -3,6 +3,7 @@ import type { UICallbacks } from './index.js';
 export function initFileControls(callbacks: UICallbacks) {
     const fileSelector = document.getElementById('file-selector') as HTMLSelectElement | null;
     if (fileSelector) {
+        fileSelector.title = 'Выберите файл скрипта или используйте локальную загрузку';
         fetch('/api/files')
             .then((res) => {
                 if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
@@ -10,6 +11,7 @@ export function initFileControls(callbacks: UICallbacks) {
             })
             .then((files) => {
                 fileSelector.innerHTML = '<option value="">Выберите файл...</option>';
+                fileSelector.title = 'Выберите файл скрипта';
                 if (Array.isArray(files)) {
                     files.forEach((f: string) => {
                         const opt = document.createElement('option');
@@ -21,7 +23,8 @@ export function initFileControls(callbacks: UICallbacks) {
             })
             .catch((err) => {
                 console.error('Failed to load file list:', err);
-                fileSelector.innerHTML = '<option value="">Ошибка загрузки (API недоступно)</option>';
+                fileSelector.innerHTML = '<option value="">API недоступно</option>';
+                fileSelector.title = 'Ошибка загрузки списка файлов: API недоступно';
             });
 
         fileSelector.addEventListener('change', async (e: Event) => {

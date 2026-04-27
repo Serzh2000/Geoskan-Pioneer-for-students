@@ -5,6 +5,7 @@ export const PRIMARY_CHANNELS: PrimaryChannelKey[] = ['roll', 'pitch', 'throttle
 export const AUXILIARY_CHANNELS: AuxiliaryChannelKey[] = ['mode', 'arm', 'magnet'];
 export const ACTION_AUX_CHANNELS: ActionAuxChannelKey[] = ['arm', 'magnet'];
 export const ALL_CHANNELS: ChannelKey[] = [...PRIMARY_CHANNELS, ...AUXILIARY_CHANNELS];
+export const INVERTIBLE_CHANNELS: ChannelKey[] = [...ALL_CHANNELS];
 
 export const CENTER_DEADBAND = 0.03;
 export const THROTTLE_IDLE_DEADBAND = 0.02;
@@ -23,3 +24,7 @@ export const axisRef = (index: number): GamepadInputRef => `a${index}` as Gamepa
 export const buttonRef = (index: number): GamepadInputRef => `b${index}` as GamepadInputRef;
 export const clamp = (value: number, min: number, max: number): number => Math.min(max, Math.max(min, value));
 export const clampRc = (value: number): number => Math.round(clamp(value, 1000, 2000));
+
+export function getChannelInversionIndex(channel: ChannelKey): number {
+    return INVERTIBLE_CHANNELS.indexOf(channel);
+}

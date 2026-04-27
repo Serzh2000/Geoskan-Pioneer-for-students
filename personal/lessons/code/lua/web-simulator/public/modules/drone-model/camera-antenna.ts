@@ -22,13 +22,13 @@ export function createCameraAndAntenna() {
     camGroup.add(lens);
     
     // FPV Camera Logic Object
-    const fpvCamera = new THREE.PerspectiveCamera(80, 16/9, 0.01, 1000); 
+    const fpvCamera = new THREE.PerspectiveCamera(80, 16/9, 0.01, 1000);
+    fpvCamera.name = 'fpv_camera';
     // Positioned relative to camGroup, looking along Y
     fpvCamera.position.set(0, 0.11, 0.03); 
     fpvCamera.up.set(0, 0, 1); 
     fpvCamera.lookAt(new THREE.Vector3(0, 1, -0.1)); 
     camGroup.add(fpvCamera);
-    (window as any).fpvCamera = fpvCamera;
     
     group.add(camGroup);
 

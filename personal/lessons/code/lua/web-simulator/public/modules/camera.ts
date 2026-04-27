@@ -51,17 +51,16 @@ export function updateCamera(camera: THREE.PerspectiveCamera, droneMesh: THREE.O
         camera.quaternion.slerp(new THREE.Quaternion().setFromRotationMatrix(m), 0.1);
 
     } else if (mode === 'fpv') {
-        if (window.fpvCamera) {
+        const fpvCamera = droneMesh.getObjectByName('fpv_camera') as THREE.PerspectiveCamera | null;
+        if (fpvCamera) {
+            droneMesh.updateMatrixWorld(true);
             const camWorldPos = new THREE.Vector3();
-            window.fpvCamera.getWorldPosition(camWorldPos);
+            fpvCamera.getWorldPosition(camWorldPos);
             const camWorldRot = new THREE.Quaternion();
-            window.fpvCamera.getWorldQuaternion(camWorldRot);
+            fpvCamera.getWorldQuaternion(camWorldRot);
 
             camera.position.lerp(camWorldPos, 0.5);
             camera.quaternion.slerp(camWorldRot, 0.5);
-            
-            // Ensure FPV camera is always updated
-            window.fpvCamera.updateMatrixWorld();
         }
     } else if (mode === 'ground') {
         // Режим "Земля" - плавный переход к виду сверху

@@ -2,14 +2,14 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Pioneer Lua Web Simulator</title>
+    <title>Pioneer Lua Web Simulator</title>
     <!-- Three.js and modules loaded via Vite -->
     <!-- Fengari for Lua in browser -->
     <script src="https://cdn.jsdelivr.net/npm/fengari-web@0.1.4/dist/fengari-web.js"></script>
     <!-- Monaco Editor from CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs/loader.js"></script>
-  <script type="module" crossorigin src="/assets/index-DMb9FPZC.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-BFmGdzcK.css">
+  <script type="module" crossorigin src="/assets/index-CMkQji-D.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-c92ehsFi.css">
 </head>
 <body>
     <div class="container">
@@ -709,22 +709,30 @@
                         <div class="gp-wizard-visual">
                             <div id="gp-wizard-drone-card" class="gp-wizard-drone-card">
                                 <div class="gp-wizard-drone-stage">
-                                    <div id="gp-wizard-drone-shadow" class="gp-wizard-drone-shadow"></div>
-                                    <div id="gp-wizard-drone" class="gp-wizard-drone" aria-hidden="true">
-                                        <div class="gp-wizard-drone-arm gp-wizard-drone-arm-h"></div>
-                                        <div class="gp-wizard-drone-arm gp-wizard-drone-arm-v"></div>
-                                        <div class="gp-wizard-drone-rotor gp-wizard-drone-rotor-fl"></div>
-                                        <div class="gp-wizard-drone-rotor gp-wizard-drone-rotor-fr"></div>
-                                        <div class="gp-wizard-drone-rotor gp-wizard-drone-rotor-rl"></div>
-                                        <div class="gp-wizard-drone-rotor gp-wizard-drone-rotor-rr"></div>
-                                        <div class="gp-wizard-drone-core"></div>
-                                        <div class="gp-wizard-drone-nose"></div>
-                                    </div>
+                                    <div id="gp-wizard-drone-viewport" class="gp-wizard-drone-viewport" aria-hidden="true"></div>
                                 </div>
                                 <div class="gp-wizard-drone-meta">
                                     <div id="gp-wizard-axis-label" class="gp-wizard-axis-label">Газ</div>
                                     <div id="gp-wizard-axis-hint" class="gp-wizard-axis-hint">Если дрон реагирует наоборот, включите инверсию прямо здесь.</div>
                                 </div>
+                            </div>
+                        </div>
+                        <div class="gp-wizard-stick-panel" aria-hidden="true">
+                            <div id="gp-wizard-stick-card-left" class="gp-wizard-stick-card">
+                                <div class="gp-wizard-stick-title">Левый стик</div>
+                                <div class="gp-wizard-stick-shell">
+                                    <div class="gp-wizard-stick-guides"></div>
+                                    <div id="gp-wizard-stick-left" class="gp-wizard-stick-knob"></div>
+                                </div>
+                                <div class="gp-wizard-stick-legend">Газ / Рыскание</div>
+                            </div>
+                            <div id="gp-wizard-stick-card-right" class="gp-wizard-stick-card">
+                                <div class="gp-wizard-stick-title">Правый стик</div>
+                                <div class="gp-wizard-stick-shell">
+                                    <div class="gp-wizard-stick-guides"></div>
+                                    <div id="gp-wizard-stick-right" class="gp-wizard-stick-knob"></div>
+                                </div>
+                                <div class="gp-wizard-stick-legend">Тангаж / Крен</div>
                             </div>
                         </div>
                         <div id="gp-wizard-primary-controls" class="gp-wizard-primary-controls">
@@ -748,6 +756,6 @@
             </div>
         </div>
     </div>
-
+
 </body>
 </html>

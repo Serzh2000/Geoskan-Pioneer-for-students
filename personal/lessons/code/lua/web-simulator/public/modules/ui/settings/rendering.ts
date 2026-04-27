@@ -167,7 +167,9 @@ export function renderAuxRangePresetOptions(params: {
         .join('');
 
     const current = findClosestRangeByCenter(ranges, getAuxRange(key).center);
-    const currentIndex = current ? ranges.indexOf(current) : 0;
+    const currentIndex = current
+        ? ranges.findIndex((range) => range.min === current.min && range.max === current.max && range.center === current.center)
+        : 0;
     controls.presetSelect.value = String(Math.max(0, currentIndex));
     controls.presetSelect.disabled = false;
 }

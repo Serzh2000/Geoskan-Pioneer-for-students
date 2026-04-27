@@ -1,11 +1,11 @@
-﻿/**
+/**
  * Модуль интерфейса настроек симулятора.
  * Инициализирует вкладку "Настройки", связывая чекбоксы и ползунки
  * с глобальным состоянием `simSettings`. Позволяет управлять отображением
  * трассера, гизмо трансформации, скоростью симуляции и USB-пультом.
  */
 import { simSettings, drones, currentDroneId, matchesAuxRange, saveGamepadSettings, type GamepadInputRef } from '../state.js';
-import { ALL_CHANNELS, CALIBRATION_DURATION_MS, PRIMARY_CHANNELS, axisRef, buttonRef, clamp, clampRc } from './settings/constants.js';
+import { ALL_CHANNELS, CALIBRATION_DURATION_MS, PRIMARY_CHANNELS, axisRef, buttonRef, clamp, clampRc, getChannelInversionIndex } from './settings/constants.js';
 import { startAutoDetection, detectAutoInput, stopAutoDetection } from './settings/auto-detect.js';
 import { bindGamepadSettingsControls, bindGeneralSettingsControls, syncInversionCheckboxes } from './settings/bindings.js';
 import { initWizard } from './settings/wizard.js';
@@ -314,13 +314,13 @@ export function initSettingsUI() {
             }
         }
 
-        const roll = readChannelValue(gp, 'roll', 0);
-        const pitch = readChannelValue(gp, 'pitch', 1);
-        const throttle = readChannelValue(gp, 'throttle', 2);
-        const yaw = readChannelValue(gp, 'yaw', 3);
-        const mode = readChannelValue(gp, 'mode');
-        const arm = readChannelValue(gp, 'arm');
-        const magnet = readChannelValue(gp, 'magnet');
+        const roll = readChannelValue(gp, 'roll', getChannelInversionIndex('roll'));
+        const pitch = readChannelValue(gp, 'pitch', getChannelInversionIndex('pitch'));
+        const throttle = readChannelValue(gp, 'throttle', getChannelInversionIndex('throttle'));
+        const yaw = readChannelValue(gp, 'yaw', getChannelInversionIndex('yaw'));
+        const mode = readChannelValue(gp, 'mode', getChannelInversionIndex('mode'));
+        const arm = readChannelValue(gp, 'arm', getChannelInversionIndex('arm'));
+        const magnet = readChannelValue(gp, 'magnet', getChannelInversionIndex('magnet'));
 
         drone.rcChannels[0] = roll;
         drone.rcChannels[1] = pitch;

@@ -10,6 +10,19 @@ function shouldSkipCollisionForObject(obj: THREE.Object3D) {
     return NON_COLLIDABLE_TYPES.has(type);
 }
 
+function isGateObject(obj: THREE.Object3D | null | undefined) {
+    return String(obj?.userData?.type || obj?.name || '') === 'Ворота';
+}
+
+function findGateAncestor(obj: THREE.Object3D | null) {
+    let current = obj;
+    while (current) {
+        if (isGateObject(current)) return current;
+        current = current.parent;
+    }
+    return null;
+}
+
 export function sampleSegmentPoints(start: THREE.Vector3, end: THREE.Vector3) {
     const distance = start.distanceTo(end);
     const steps = Math.max(1, Math.ceil(distance / COLLISION_SAMPLE_STEP));
@@ -60,15 +73,28 @@ function gateHasCollision(gate: THREE.Object3D, samples: THREE.Vector3[]) {
 }
 
 export function obstacleHasCollision(obj: THREE.Object3D, samples: THREE.Vector3[]) {
-    if (shouldSkipCollisionForObject(obj)) return false;
-    if (obj.userData?.type === 'Ворота') {
+    if (isGateObject(obj)) {
         return gateHasCollision(obj, samples);
+    }
+    if (shouldSkipCollisionForObject(obj)) return false;
+
+    const nestedGates: THREE.Object3D[] = [];
+    obj.traverse((node) => {
+        if (node !== obj && isGateObject(node)) {
+            nestedGates.push(node);
+        }
+    });
+    for (const gate of nestedGates) {
+        if (gateHasCollision(gate, samples)) {
+            return true;
+        }
     }
 
     let hit = false;
     obj.updateWorldMatrix(true, true);
     obj.traverse((node: any) => {
         if (hit || !node.isMesh || !node.visible) return;
+        if (findGateAncestor(node.parent)) return;
         const material = Array.isArray(node.material) ? node.material[0] : node.material;
         if (material && 'opacity' in material && material.opacity !== undefined && material.opacity < 0.2) return;
         const box = new THREE.Box3().setFromObject(node);

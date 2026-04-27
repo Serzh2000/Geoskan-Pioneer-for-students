@@ -7,6 +7,7 @@ export const MANUAL_TAKEOFF_ALTITUDE = 0.8;
 export const NON_COLLIDABLE_TYPES = new Set([
     'Ground',
     'ground',
+    'Ворота',
     'Дорога',
     'Железнодорожные пути',
     'Площадка H',

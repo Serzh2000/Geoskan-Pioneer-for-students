@@ -80,6 +80,7 @@
 .header-controls-group {
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: 8px;
     padding: 6px 10px;
     border-radius: 12px;
@@ -88,26 +89,42 @@
 }
 
 .header-select {
-    min-width: 130px;
-    max-width: 220px;
-    padding: 4px 8px;
-    height: 28px;
+    min-width: 180px;
+    max-width: 320px;
+    height: 34px;
+    padding: 6px 12px;
     font-size: 11px;
+    line-height: 1.2;
+    flex: 1 1 220px;
 }
 
 .header-actions button {
-    padding: 4px 12px;
-    height: 28px;
+    padding: 0 12px;
+    height: 34px;
     font-size: 10px;
     font-weight: 700;
+    line-height: 1;
     border-radius: 8px;
     white-space: nowrap;
     flex-shrink: 0;
 }
 
 .header-lang-select {
-    min-width: 85px;
-    max-width: 100px;
+    min-width: 110px;
+    max-width: 130px;
+    flex: 0 0 110px;
+}
+
+.header-actions .btn-primary,
+.header-actions .btn-secondary,
+.header-actions .header-select {
+    display: inline-flex;
+    align-items: center;
+}
+
+.header-actions select.btn-secondary.header-select {
+    padding-right: 32px;
+    background-position: right 8px center;
 }
 
 .header-danger-btn {

@@ -1,15 +1,16 @@
 import { simSettings, saveGamepadSettings } from '../../state.js';
-import { ACTION_AUX_CHANNELS, ALL_CHANNELS, PRIMARY_CHANNELS } from './constants.js';
+import { ACTION_AUX_CHANNELS, ALL_CHANNELS, INVERTIBLE_CHANNELS, PRIMARY_CHANNELS, getChannelInversionIndex } from './constants.js';
 import type { SettingsDomRefs } from './dom.js';
 import { setMappingRef } from './mapping.js';
 import type { SettingsRuntimeState } from './runtime-state.js';
 import type { ActionAuxChannelKey, ChannelKey, StickMode } from './types.js';
 
 export function syncInversionCheckboxes(dom: SettingsDomRefs): void {
-    for (const [index, key] of PRIMARY_CHANNELS.entries()) {
+    for (const key of PRIMARY_CHANNELS) {
         const checkbox = dom.invCheckboxes[key];
         if (!checkbox) continue;
-        checkbox.checked = simSettings.gamepadInversion[index];
+        const inversionIndex = getChannelInversionIndex(key);
+        checkbox.checked = inversionIndex >= 0 ? !!simSettings.gamepadInversion[inversionIndex] : false;
     }
 }
 
@@ -88,12 +89,14 @@ export function bindGamepadSettingsControls(params: {
         selectAuxPreset
     } = params;
 
-    for (const [index, key] of PRIMARY_CHANNELS.entries()) {
+    for (const key of PRIMARY_CHANNELS) {
         const checkbox = dom.invCheckboxes[key];
         if (!checkbox) continue;
-        checkbox.checked = simSettings.gamepadInversion[index];
+        const inversionIndex = getChannelInversionIndex(key);
+        checkbox.checked = inversionIndex >= 0 ? !!simSettings.gamepadInversion[inversionIndex] : false;
         checkbox.onchange = () => {
-            simSettings.gamepadInversion[index] = checkbox.checked;
+            if (inversionIndex < 0) return;
+            simSettings.gamepadInversion[inversionIndex] = checkbox.checked;
             saveGamepadSettings();
         };
     }

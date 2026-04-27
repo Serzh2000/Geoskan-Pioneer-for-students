@@ -10,6 +10,9 @@ import {
 
 const CARGO_TYPES = new Set(['Грузик', 'Груз']);
 const CARGO_AIR_DRAG = 0.2;
+const MAGNET_ATTACH_OFFSET_Z = 0.15;
+const MAGNET_CAPTURE_RADIUS_XY = 0.28;
+const MAGNET_CAPTURE_HEIGHT = 0.38;
 
 function isCargoObject(obj: THREE.Object3D) {
     return CARGO_TYPES.has(obj.userData?.type);
@@ -78,19 +81,20 @@ export function updateMagnetGripper(
     if (drone.magnetGripper.attachedObjectId) {
         const obj = getObstacles().find((item) => item.uuid === drone.magnetGripper.attachedObjectId);
         if (obj) {
-            obj.position.set(drone.pos.x, drone.pos.y, drone.pos.z - 0.15);
+            obj.position.set(drone.pos.x, drone.pos.y, drone.pos.z - MAGNET_ATTACH_OFFSET_Z);
             obj.rotation.set(drone.orientation.pitch, drone.orientation.roll, drone.orientation.yaw, 'ZYX');
         }
         return;
     }
 
     const obstacles = getObstacles();
-    const dronePos = new THREE.Vector3(drone.pos.x, drone.pos.y, drone.pos.z);
+    const magnetPos = new THREE.Vector3(drone.pos.x, drone.pos.y, drone.pos.z - MAGNET_ATTACH_OFFSET_Z);
     for (const obj of obstacles) {
         // Захватываем перетаскиваемые объекты или специальные грузики
         if (obj.userData?.draggable || isCargoObject(obj)) {
-            const dist = dronePos.distanceTo(obj.position);
-            if (dist < 0.35) {
+            const planarDistance = Math.hypot(magnetPos.x - obj.position.x, magnetPos.y - obj.position.y);
+            const verticalDistance = Math.abs(magnetPos.z - obj.position.z);
+            if (planarDistance <= MAGNET_CAPTURE_RADIUS_XY && verticalDistance <= MAGNET_CAPTURE_HEIGHT) {
                 drone.magnetGripper.attachedObjectId = obj.uuid;
                 obj.userData.attachedToDrone = drone.id;
                 setCargoVelocity(obj, { x: 0, y: 0, z: 0 });

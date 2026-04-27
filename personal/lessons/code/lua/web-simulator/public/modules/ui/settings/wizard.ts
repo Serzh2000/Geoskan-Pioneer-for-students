@@ -1,69 +1,29 @@
-import { simSettings, saveGamepadSettings, type AuxChannelRange, type GamepadInputRef } from '../../state.js';
-import { normalizeCenteredAxis, normalizeThrottleAxis } from './calibration.js';
-import { clampRc, axisRef, buttonRef } from './constants.js';
-import { buildRangesFromPositions, getObservedPositions, pickRepresentativePositions, rememberObservedInputValue, resetObservedInputStats } from './observed-inputs.js';
-import type { ChannelKey, ObservedInputPosition, PrimaryChannelKey } from './types.js';
-
-type WizardStepType = 'primary' | 'aux';
-
-interface WizardStep {
-    instruction: string;
-    channel: ChannelKey;
-    type: WizardStepType;
-    targetStick: 'L' | 'R' | 'both';
-    minPositions?: number;
-    preferThreePositions?: boolean;
-}
-
-type AxisMotionStats = {
-    maxDelta: number;
-    travel: number;
-    activitySamples: number;
-};
-
-type AuxDetectionResult = {
-    ref: GamepadInputRef;
-    positions: ObservedInputPosition[];
-    ranges: AuxChannelRange[];
-    selectedRange: AuxChannelRange | null;
-};
-
-type AuxDetectionCandidate = AuxDetectionResult & {
-    transitions: number;
-    requiredTransitions: number;
-    score: number;
-    hasEnoughPositions: boolean;
-    looksLikeSwitch: boolean;
-    hasMiddlePosition: boolean;
-};
-
-type PrimaryChannelState = {
-    channel: PrimaryChannelKey;
-    label: string;
-    inverted: boolean;
-};
-
-const SETTINGS_CHANGED_EVENT = 'gamepadsettingschanged';
-
-const STEPS: WizardStep[] = [
-    { instruction: 'Подвигайте стик газа вверх и вниз', channel: 'throttle', type: 'primary', targetStick: 'L' },
-    { instruction: 'Подвигайте стик рыскания влево и вправо', channel: 'yaw', type: 'primary', targetStick: 'L' },
-    { instruction: 'Подвигайте стик тангажа вверх и вниз', channel: 'pitch', type: 'primary', targetStick: 'R' },
-    { instruction: 'Подвигайте стик крена влево и вправо', channel: 'roll', type: 'primary', targetStick: 'R' },
-    { instruction: 'Пощелкайте тумблер режима по всем положениям', channel: 'mode', type: 'aux', targetStick: 'both', minPositions: 3, preferThreePositions: true },
-    { instruction: 'Пощелкайте тумблер взвода по всем положениям', channel: 'arm', type: 'aux', targetStick: 'both', minPositions: 2 },
-    { instruction: 'Нажмите или пощелкайте канал магнита', channel: 'magnet', type: 'aux', targetStick: 'both', minPositions: 2 }
-];
-
-const CHANNEL_LABELS: Record<ChannelKey, string> = {
-    roll: 'Крен',
-    pitch: 'Тангаж',
-    throttle: 'Газ',
-    yaw: 'Рыскание',
-    mode: 'Режим',
-    arm: 'Взвод',
-    magnet: 'Магнит'
-};
+﻿import { simSettings, saveGamepadSettings, type GamepadInputRef } from '../../state.js';
+import { INVERTIBLE_CHANNELS, getChannelInversionIndex } from './constants.js';
+import {
+    buildRangesFromPositions,
+    pickRepresentativePositions,
+    rememberObservedInputValue,
+    resetObservedInputStats
+} from './observed-inputs.js';
+import type { ChannelKey, PrimaryChannelKey } from './types.js';
+import { CHANNEL_LABELS, SETTINGS_CHANGED_EVENT, STEPS } from './wizard-config.js';
+import {
+    detectPrimaryAxis,
+    getAuxStepRcValue,
+    getBestAuxCandidate,
+    getUsedRefs,
+    rememberSwitchTransition
+} from './wizard-detection.js';
+import { WizardPreviewController } from './wizard-preview.js';
+import { buildSummaryHtml, formatRefLabel } from './wizard-summary.js';
+import type {
+    AuxDetectionResult,
+    AxisMotionStats,
+    WizardAuxChannelKey,
+    WizardChannelState,
+    WizardStep
+} from './wizard-types.js';
 
 let currentStepIdx = 0;
 let isWizardActive = false;
@@ -75,8 +35,15 @@ let stepObservedStats = resetObservedInputStats();
 let stepLastSwitchValues = new Map<GamepadInputRef, number>();
 let stepSwitchTransitions = new Map<GamepadInputRef, number>();
 let detectedMapping: Partial<Record<ChannelKey, GamepadInputRef>> = {};
-let auxResults: Partial<Record<'mode' | 'arm' | 'magnet', AuxDetectionResult>> = {};
-let wizardDraftInversion = [...simSettings.gamepadInversion];
+let auxResults: Partial<Record<WizardAuxChannelKey, AuxDetectionResult>> = {};
+let wizardDraftInversion = createWizardDraftInversion();
+
+const previewController = new WizardPreviewController({
+    getCurrentStep,
+    getDetectedRef,
+    getStoredMappingRef,
+    getChannelInversion
+});
 
 export function initWizard() {
     const btn = document.getElementById('gp-btn-wizard');
@@ -131,12 +98,14 @@ export function initWizard() {
     };
 
     invertCheckbox.onchange = () => {
-        const primaryState = getCurrentPrimaryChannelState();
-        if (!primaryState) return;
-        const inversionIndex = getPrimaryChannelInversionIndex(primaryState.channel);
+        const channelState = getCurrentChannelState();
+        const inversionIndex = channelState ? getChannelInversionIndex(channelState.channel) : -1;
+        if (inversionIndex < 0) return;
         wizardDraftInversion[inversionIndex] = invertCheckbox.checked;
         renderWizardState();
     };
+
+    window.addEventListener('resize', () => previewController.syncSize());
 }
 
 function startWizard() {
@@ -145,7 +114,8 @@ function startWizard() {
     currentStepIdx = 0;
     detectedMapping = {};
     auxResults = {};
-    wizardDraftInversion = [...simSettings.gamepadInversion];
+    wizardDraftInversion = createWizardDraftInversion();
+    previewController.ensureScene();
     prepareCurrentStep();
     renderWizardState();
     requestAnimationFrame(wizardLoop);
@@ -175,6 +145,10 @@ function getFirstConnectedGamepad(): Gamepad | null {
     return connected[0] ?? null;
 }
 
+function createWizardDraftInversion(): boolean[] {
+    return INVERTIBLE_CHANNELS.map((_, index) => !!simSettings.gamepadInversion[index]);
+}
+
 function setMappingRefForChannel(channel: ChannelKey, ref: GamepadInputRef) {
     switch (channel) {
         case 'roll':
@@ -201,140 +175,26 @@ function setMappingRefForChannel(channel: ChannelKey, ref: GamepadInputRef) {
     }
 }
 
-function getUsedRefs(exceptChannel?: ChannelKey): Set<GamepadInputRef> {
-    const used = new Set<GamepadInputRef>();
-    for (const [channel, ref] of Object.entries(detectedMapping) as Array<[ChannelKey, GamepadInputRef | undefined]>) {
-        if (!ref || channel === exceptChannel) continue;
-        used.add(ref);
-    }
-    return used;
-}
-
 function getDetectedRef(channel: ChannelKey): GamepadInputRef | null {
     return detectedMapping[channel] ?? null;
-}
-
-function getAuxCandidate(step: WizardStep, ref: GamepadInputRef): AuxDetectionCandidate | null {
-    const positions = getObservedPositions(stepObservedStats, ref);
-    const stablePositions = step.preferThreePositions && positions.length > 3
-        ? pickRepresentativePositions(positions, 3)
-        : positions;
-    const ranges = buildRangesFromPositions(stablePositions);
-    const stats = stepObservedStats.get(ref);
-    if (!stats) return null;
-
-    const minPositions = step.minPositions ?? 2;
-    const span = stats.maxRc - stats.minRc;
-    const transitions = stepSwitchTransitions.get(ref) ?? 0;
-    const requiredTransitions = Math.max(1, minPositions - 1);
-    const positionCount = stablePositions.length;
-    const hasEnoughPositions = positionCount >= minPositions;
-    const looksLikeSwitch = span >= 250 || ref.startsWith('b');
-    const hasMiddlePosition = stablePositions.some((position) => Math.abs(position.centerRc - 1500) <= 150);
-    const selectedRange = step.channel === 'mode'
-        ? null
-        : ranges[ranges.length - 1] ?? null;
-    const score = transitions * 20000 + positionCount * 10000 + span * 10 + Math.min(stats.samples, 999);
-
-    return {
-        ref,
-        positions: stablePositions,
-        ranges,
-        selectedRange,
-        transitions,
-        requiredTransitions,
-        score,
-        hasEnoughPositions,
-        looksLikeSwitch,
-        hasMiddlePosition
-    };
-}
-
-function isBetterAuxCandidate(
-    step: WizardStep,
-    candidate: AuxDetectionCandidate,
-    bestCandidate: AuxDetectionCandidate | null,
-    requireResolved: boolean
-): boolean {
-    if (!bestCandidate) return true;
-
-    if (!requireResolved) {
-        if (candidate.hasEnoughPositions !== bestCandidate.hasEnoughPositions) {
-            return candidate.hasEnoughPositions;
-        }
-        if (step.preferThreePositions && candidate.hasMiddlePosition !== bestCandidate.hasMiddlePosition) {
-            return candidate.hasMiddlePosition;
-        }
-        if (candidate.positions.length !== bestCandidate.positions.length) {
-            return candidate.positions.length > bestCandidate.positions.length;
-        }
-        if (step.preferThreePositions && candidate.ref.startsWith('a') !== bestCandidate.ref.startsWith('a')) {
-            return candidate.ref.startsWith('a');
-        }
-        if (candidate.looksLikeSwitch !== bestCandidate.looksLikeSwitch) {
-            return candidate.looksLikeSwitch;
-        }
-        if (candidate.transitions !== bestCandidate.transitions) {
-            return candidate.transitions > bestCandidate.transitions;
-        }
-    }
-
-    return candidate.score > bestCandidate.score;
-}
-
-function getBestAuxCandidate(step: WizardStep, requireResolved: boolean): AuxDetectionCandidate | null {
-    const gp = getFirstConnectedGamepad();
-    if (!gp) return null;
-
-    const usedRefs = getUsedRefs(step.channel);
-    let bestCandidate: AuxDetectionCandidate | null = null;
-
-    const refs: GamepadInputRef[] = [
-        ...gp.axes.map((_, index) => axisRef(index)),
-        ...gp.buttons.map((_, index) => buttonRef(index))
-    ];
-
-    for (const ref of refs) {
-        if (usedRefs.has(ref)) continue;
-
-        const candidate = getAuxCandidate(step, ref);
-        if (!candidate) continue;
-        if (requireResolved && (!candidate.hasEnoughPositions || !candidate.looksLikeSwitch || candidate.transitions < candidate.requiredTransitions)) {
-            continue;
-        }
-
-        if (isBetterAuxCandidate(step, candidate, bestCandidate, requireResolved)) {
-            bestCandidate = candidate;
-        }
-    }
-
-    return bestCandidate;
 }
 
 function isCurrentStepResolved(): boolean {
     return getDetectedRef(getCurrentStep().channel) !== null;
 }
 
-function getPrimaryChannelInversionIndex(channel: PrimaryChannelKey): number {
-    switch (channel) {
-        case 'roll':
-            return 0;
-        case 'pitch':
-            return 1;
-        case 'throttle':
-            return 2;
-        case 'yaw':
-            return 3;
-    }
+function getChannelInversion(channel: ChannelKey): boolean {
+    const inversionIndex = getChannelInversionIndex(channel);
+    return inversionIndex >= 0 ? !!wizardDraftInversion[inversionIndex] : false;
 }
 
-function getCurrentPrimaryChannelState(): PrimaryChannelState | null {
+function getCurrentChannelState(): WizardChannelState | null {
     const step = getCurrentStep();
-    if (step.type !== 'primary') return null;
     return {
-        channel: step.channel as PrimaryChannelKey,
+        channel: step.channel,
         label: CHANNEL_LABELS[step.channel],
-        inverted: wizardDraftInversion[getPrimaryChannelInversionIndex(step.channel as PrimaryChannelKey)] ?? false
+        inverted: getChannelInversion(step.channel),
+        type: step.type
     };
 }
 
@@ -350,13 +210,19 @@ function renderWizardState() {
     const axisHint = document.getElementById('gp-wizard-axis-hint');
     const primaryControls = document.getElementById('gp-wizard-primary-controls');
     const invertCheckbox = document.getElementById('gp-wizard-invert') as HTMLInputElement | null;
+    const leftStickCard = document.getElementById('gp-wizard-stick-card-left');
+    const rightStickCard = document.getElementById('gp-wizard-stick-card-right');
 
-    if (!instruction || !status || !nextBtn || !prevBtn || !stepContainer || !summaryContainer || !summaryContent || !axisLabel || !axisHint || !primaryControls || !invertCheckbox) return;
+    if (!instruction || !status || !nextBtn || !prevBtn || !stepContainer || !summaryContainer || !summaryContent || !axisLabel || !axisHint || !primaryControls || !invertCheckbox || !leftStickCard || !rightStickCard) return;
 
     if (showingSummary) {
         stepContainer.style.display = 'none';
         summaryContainer.style.display = 'block';
-        summaryContent.innerHTML = buildSummaryHtml();
+        summaryContent.innerHTML = buildSummaryHtml({
+            detectedMapping,
+            auxResults,
+            getChannelInversion
+        });
         instruction.textContent = 'Сводка по найденным каналам';
         status.textContent = 'Проверьте найденные каналы и нажмите "Применить".';
         prevBtn.disabled = false;
@@ -365,6 +231,8 @@ function renderWizardState() {
         axisLabel.textContent = 'Проверка каналов';
         axisHint.textContent = 'Итоговые инверсии и сопоставления будут сохранены и сразу применены к управлению.';
         primaryControls.hidden = true;
+        leftStickCard.classList.remove('is-active');
+        rightStickCard.classList.remove('is-active');
         return;
     }
 
@@ -372,18 +240,20 @@ function renderWizardState() {
     summaryContainer.style.display = 'none';
 
     const step = getCurrentStep();
-    const primaryState = getCurrentPrimaryChannelState();
+    const channelState = getCurrentChannelState();
     instruction.textContent = step.instruction;
     status.textContent = getStepStatusText(step);
     prevBtn.disabled = currentStepIdx === 0;
     nextBtn.disabled = !isCurrentStepResolved();
     nextBtn.textContent = currentStepIdx === STEPS.length - 1 ? 'Показать сводку' : 'Далее';
     axisLabel.textContent = CHANNEL_LABELS[step.channel];
-    axisHint.textContent = primaryState
-        ? `Если ${CHANNEL_LABELS[step.channel].toLowerCase()} на экране работает наоборот, включите инверсию канала.`
-        : 'Для вспомогательных каналов проверьте положения тумблера и диапазоны в итоговой сводке.';
-    primaryControls.hidden = !primaryState;
-    invertCheckbox.checked = primaryState?.inverted ?? false;
+    axisHint.textContent = step.type === 'primary'
+        ? `Если ${CHANNEL_LABELS[step.channel].toLowerCase()} на модели и на стиках движется наоборот, включите инверсию канала.`
+        : `Если положения канала ${CHANNEL_LABELS[step.channel].toLowerCase()} идут в обратном порядке, включите инверсию до перехода дальше.`;
+    primaryControls.hidden = false;
+    invertCheckbox.checked = channelState?.inverted ?? false;
+    leftStickCard.classList.toggle('is-active', step.targetStick === 'L' || step.targetStick === 'both');
+    rightStickCard.classList.toggle('is-active', step.targetStick === 'R' || step.targetStick === 'both');
 }
 
 function getStepStatusText(step: WizardStep): string {
@@ -391,7 +261,14 @@ function getStepStatusText(step: WizardStep): string {
     if (!ref) {
         if (step.type === 'aux') {
             const requiredPositions = step.minPositions ?? 2;
-            const candidate = getBestAuxCandidate(step, false);
+            const candidate = getBestAuxCandidate({
+                gp: getFirstConnectedGamepad(),
+                step,
+                requireResolved: false,
+                detectedMapping,
+                stepObservedStats,
+                stepSwitchTransitions
+            });
             if (!candidate) {
                 return `Ожидание переключений... Нужно зафиксировать минимум ${requiredPositions} положения.`;
             }
@@ -410,7 +287,7 @@ function getStepStatusText(step: WizardStep): string {
         return `Обнаружено: ${formatRefLabel(ref)}. Можно переходить дальше.`;
     }
 
-    const auxResult = auxResults[step.channel as 'mode' | 'arm' | 'magnet'];
+    const auxResult = auxResults[step.channel as WizardAuxChannelKey];
     const positionsText = auxResult?.positions.map((position) => position.centerRc).join(' / ') ?? 'нет данных';
     return `Обнаружено: ${formatRefLabel(ref)}. Положения: ${positionsText}.`;
 }
@@ -430,7 +307,7 @@ function wizardLoop() {
             }));
         }
 
-        updateDroneVisuals(gp);
+        previewController.update(gp);
 
         if (!showingSummary) {
             sampleCurrentStep(gp);
@@ -444,7 +321,7 @@ function wizardLoop() {
 function sampleCurrentStep(gp: Gamepad) {
     const step = getCurrentStep();
     if (step.type === 'primary') {
-        detectPrimaryAxis(gp, step.channel as PrimaryChannelKey);
+        detectPrimaryInput(gp, step.channel as PrimaryChannelKey);
         if (currentStepIdx === STEPS.length - 1 && isCurrentStepResolved()) {
             showingSummary = true;
         }
@@ -457,217 +334,49 @@ function sampleCurrentStep(gp: Gamepad) {
     }
 }
 
-function detectPrimaryAxis(gp: Gamepad, channel: PrimaryChannelKey) {
-    const usedRefs = getUsedRefs(channel);
-    let bestRef: GamepadInputRef | null = null;
-    let bestScore = Number.NEGATIVE_INFINITY;
-    let bestMaxDelta = 0;
-
-    for (let index = 0; index < gp.axes.length; index += 1) {
-        const value = gp.axes[index] ?? 0;
-        const baseline = stepBaselineAxes[index] ?? 0;
-        const last = stepLastAxes[index] ?? baseline;
-        const stats = stepAxisStats[index];
-        const deltaFromBaseline = Math.abs(value - baseline);
-        const deltaFromLast = Math.abs(value - last);
-
-        stats.maxDelta = Math.max(stats.maxDelta, deltaFromBaseline);
-        stats.travel += deltaFromLast;
-        if (deltaFromBaseline >= 0.12) {
-            stats.activitySamples += 1;
-        }
-        stepLastAxes[index] = value;
-
-        const ref = axisRef(index);
-        if (usedRefs.has(ref)) continue;
-
-        const score = stats.maxDelta * 4 + stats.travel + stats.activitySamples * 0.04;
-        if (score > bestScore) {
-            bestScore = score;
-            bestRef = ref;
-            bestMaxDelta = stats.maxDelta;
-        }
+function detectPrimaryInput(gp: Gamepad, channel: PrimaryChannelKey) {
+    const bestRef = detectPrimaryAxis({
+        gp,
+        stepBaselineAxes,
+        stepLastAxes,
+        stepAxisStats,
+        usedRefs: getUsedRefs(detectedMapping, channel)
+    });
+    if (bestRef) {
+        detectedMapping[channel] = bestRef;
     }
-
-    if (!bestRef || (bestMaxDelta < 0.35 && bestScore < 1.1)) return;
-    detectedMapping[channel] = bestRef;
 }
 
 function detectAuxInput(gp: Gamepad, step: WizardStep) {
+    const channel = step.channel as WizardAuxChannelKey;
+    const isInverted = getChannelInversion(channel);
+
     for (let index = 0; index < gp.axes.length; index += 1) {
-        const ref = axisRef(index);
-        const rawValue = gp.axes[index] ?? 0;
-        const normalized = normalizeCenteredAxis(simSettings.gamepadCalibration, rawValue, index);
-        const rcValue = clampRc(1500 + normalized * 500);
+        const ref = `a${index}` as GamepadInputRef;
+        const rcValue = getAuxStepRcValue(gp, ref, channel, isInverted);
         rememberObservedInputValue(stepObservedStats, ref, rcValue);
-        rememberSwitchTransition(ref, rcValue);
+        rememberSwitchTransition(stepLastSwitchValues, stepSwitchTransitions, ref, rcValue);
     }
 
     for (let index = 0; index < gp.buttons.length; index += 1) {
-        const ref = buttonRef(index);
-        const buttonValue = Math.max(0, Math.min(1, gp.buttons[index]?.value ?? 0));
-        const rcValue = clampRc(1000 + buttonValue * 1000);
+        const ref = `b${index}` as GamepadInputRef;
+        const rcValue = getAuxStepRcValue(gp, ref, channel, isInverted);
         rememberObservedInputValue(stepObservedStats, ref, rcValue);
-        rememberSwitchTransition(ref, rcValue);
+        rememberSwitchTransition(stepLastSwitchValues, stepSwitchTransitions, ref, rcValue);
     }
 
-    const bestResult = getBestAuxCandidate(step, true);
-
+    const bestResult = getBestAuxCandidate({
+        gp,
+        step,
+        requireResolved: true,
+        detectedMapping,
+        stepObservedStats,
+        stepSwitchTransitions
+    });
     if (!bestResult) return;
 
-    detectedMapping[step.channel] = bestResult.ref;
-    auxResults[step.channel as 'mode' | 'arm' | 'magnet'] = bestResult;
-}
-
-function rememberSwitchTransition(ref: GamepadInputRef, rcValue: number) {
-    const previousValue = stepLastSwitchValues.get(ref);
-    if (previousValue === undefined) {
-        stepLastSwitchValues.set(ref, rcValue);
-        return;
-    }
-
-    if (Math.abs(previousValue - rcValue) >= 140) {
-        stepSwitchTransitions.set(ref, (stepSwitchTransitions.get(ref) ?? 0) + 1);
-        stepLastSwitchValues.set(ref, rcValue);
-    }
-}
-
-function updateDroneVisuals(gp: Gamepad) {
-    const drone = document.getElementById('gp-wizard-drone');
-    const shadow = document.getElementById('gp-wizard-drone-shadow');
-    if (!drone || !shadow) return;
-
-    const step = getCurrentStep();
-    const liveRefForCurrentStep = getDetectedRef(step.channel);
-    const roll = getChannelPreviewValue(gp, 'roll', step.channel === 'roll' ? liveRefForCurrentStep : null);
-    const pitch = getChannelPreviewValue(gp, 'pitch', step.channel === 'pitch' ? liveRefForCurrentStep : null);
-    const yaw = getChannelPreviewValue(gp, 'yaw', step.channel === 'yaw' ? liveRefForCurrentStep : null);
-    const throttle = getThrottlePreviewValue(gp, step.channel === 'throttle' ? liveRefForCurrentStep : null);
-
-    const horizontalOffset = roll * 18;
-    const verticalOffset = -throttle * 78 + pitch * 16;
-    const yawAngle = yaw * 38;
-    const pitchAngle = pitch * -24;
-    const rollAngle = roll * 24;
-    const shadowScale = 1 - throttle * 0.28;
-    const shadowOpacity = 0.66 - throttle * 0.24;
-
-    drone.style.transform = `translate3d(calc(-50% + ${horizontalOffset}px), ${verticalOffset}px, 0) rotateZ(${yawAngle}deg) rotateX(${pitchAngle}deg) rotateY(${rollAngle}deg)`;
-    shadow.style.transform = `translateX(calc(-50% + ${horizontalOffset * 0.6}px)) scale(${shadowScale})`;
-    shadow.style.opacity = `${Math.max(0.18, shadowOpacity)}`;
-}
-
-function getChannelPreviewValue(gp: Gamepad, channel: PrimaryChannelKey, liveOverride: GamepadInputRef | null): number {
-    const ref = liveOverride ?? detectedMapping[channel] ?? null;
-    if (!ref) return 0;
-    return getNormalizedRefValue(gp, ref, channel);
-}
-
-function getThrottlePreviewValue(gp: Gamepad, liveOverride: GamepadInputRef | null): number {
-    const ref = liveOverride ?? detectedMapping.throttle ?? null;
-    if (!ref) return 0;
-    const value = getNormalizedRefValue(gp, ref, 'throttle');
-    return Math.max(0, Math.min(1, (value + 1) / 2));
-}
-
-function getNormalizedRefValue(gp: Gamepad, ref: GamepadInputRef, channel: ChannelKey): number {
-    const index = Number(ref.slice(1));
-    const primaryChannel = channel === 'mode' || channel === 'arm' || channel === 'magnet' ? null : channel;
-    const isInverted = primaryChannel
-        ? wizardDraftInversion[getPrimaryChannelInversionIndex(primaryChannel)] ?? false
-        : false;
-    if (ref.startsWith('b')) {
-        const buttonValue = Math.max(0, Math.min(1, gp.buttons[index]?.value ?? 0));
-        if (channel === 'throttle') {
-            const normalizedThrottle = isInverted ? 1 - buttonValue : buttonValue;
-            return normalizedThrottle * 2 - 1;
-        }
-        const centeredButton = buttonValue * 2 - 1;
-        return isInverted ? -centeredButton : centeredButton;
-    }
-
-    const rawValue = gp.axes[index] ?? 0;
-    if (channel === 'throttle') {
-        const normalized = normalizeThrottleAxis(simSettings.gamepadCalibration, rawValue, index);
-        const normalizedThrottle = isInverted ? 1 - normalized : normalized;
-        return normalizedThrottle * 2 - 1;
-    }
-
-    const centered = normalizeCenteredAxis(simSettings.gamepadCalibration, rawValue, index);
-    return isInverted ? -centered : centered;
-}
-
-function buildSummaryHtml(): string {
-    const primaryRows = (['throttle', 'yaw', 'pitch', 'roll'] as PrimaryChannelKey[])
-        .map((channel) => {
-            const ref = detectedMapping[channel];
-            const value = ref ? formatRefLabel(ref) : 'не найдено';
-            const inversionIndex = getPrimaryChannelInversionIndex(channel);
-            const inversionLabel = wizardDraftInversion[inversionIndex] ? 'Инверсия включена' : 'Инверсия выключена';
-            return `
-                <div class="gp-wizard-summary-row"><span>${CHANNEL_LABELS[channel]}</span><strong>${value}</strong></div>
-                <div class="gp-wizard-summary-row"><span>Направление</span><strong class="gp-wizard-summary-badge">${inversionLabel}</strong></div>
-            `;
-        })
-        .join('');
-
-    const auxRows = (['mode', 'arm', 'magnet'] as Array<'mode' | 'arm' | 'magnet'>)
-        .map((channel) => {
-            const result = auxResults[channel];
-            const refText = result ? formatRefLabel(result.ref) : 'не найдено';
-            const positionsText = result?.positions.length
-                ? result.positions.map((position) => position.centerRc).join(' / ')
-                : 'нет зафиксированных положений';
-            const rangeText = channel === 'mode'
-                ? formatModeRanges()
-                : formatAuxRange(result?.selectedRange ?? null);
-            return `
-                <div class="gp-wizard-summary-card">
-                    <div class="gp-wizard-summary-card-title">${CHANNEL_LABELS[channel]}</div>
-                    <div class="gp-wizard-summary-row"><span>Вход</span><strong>${refText}</strong></div>
-                    <div class="gp-wizard-summary-row"><span>Положения</span><strong>${positionsText}</strong></div>
-                    <div class="gp-wizard-summary-note">${rangeText}</div>
-                </div>
-            `;
-        })
-        .join('');
-
-    return `
-        <div class="gp-wizard-summary-grid">
-            <div class="gp-wizard-summary-card">
-                <div class="gp-wizard-summary-card-title">Основные каналы</div>
-                ${primaryRows}
-            </div>
-            ${auxRows}
-        </div>
-    `;
-}
-
-function formatModeRanges(): string {
-    const ranges = auxResults.mode?.ranges ?? [];
-    const selected = ranges.length > 3 ? pickRepresentativePositions(auxResults.mode?.positions ?? [], 3) : auxResults.mode?.positions ?? [];
-    const preparedRanges = buildRangesFromPositions(selected);
-    if (preparedRanges.length < 2) {
-        return 'Недостаточно данных для диапазонов Mode.';
-    }
-
-    const loiter = preparedRanges[0];
-    const althold = preparedRanges[Math.min(1, preparedRanges.length - 1)];
-    const stabilize = preparedRanges[Math.min(2, preparedRanges.length - 1)];
-    return `Loiter ${formatAuxRange(loiter)} | AltHold ${formatAuxRange(althold)} | Stabilize ${formatAuxRange(stabilize)}`;
-}
-
-function formatAuxRange(range: AuxChannelRange | null): string {
-    if (!range) return 'Диапазон не определен';
-    return `${range.min}-${range.max}`;
-}
-
-function formatRefLabel(ref: GamepadInputRef): string {
-    const index = Number(ref.slice(1));
-    if (ref.startsWith('a')) {
-        return `Ось ${index} / CH${index + 1}`;
-    }
-    return `Кнопка ${index + 1}`;
+    detectedMapping[channel] = bestResult.ref;
+    auxResults[channel] = bestResult;
 }
 
 function finishWizard() {
@@ -678,7 +387,7 @@ function finishWizard() {
         }
     }
 
-    applyPrimaryInversion();
+    applyChannelInversion();
     applyAuxResults();
     saveGamepadSettings();
     window.dispatchEvent(new CustomEvent(SETTINGS_CHANGED_EVENT));
@@ -688,9 +397,10 @@ function finishWizard() {
     stopWizard();
 }
 
-function applyPrimaryInversion() {
-    for (const channel of ['roll', 'pitch', 'throttle', 'yaw'] as PrimaryChannelKey[]) {
-        const inversionIndex = getPrimaryChannelInversionIndex(channel);
+function applyChannelInversion() {
+    for (const channel of INVERTIBLE_CHANNELS) {
+        const inversionIndex = getChannelInversionIndex(channel);
+        if (inversionIndex < 0) continue;
         simSettings.gamepadInversion[inversionIndex] = wizardDraftInversion[inversionIndex] ?? false;
     }
 }
@@ -717,3 +427,23 @@ function applyAuxResults() {
         simSettings.gamepadAuxRanges.magnet = auxResults.magnet.selectedRange;
     }
 }
+
+function getStoredMappingRef(channel: ChannelKey): GamepadInputRef | null {
+    switch (channel) {
+        case 'roll':
+            return simSettings.gamepadMapping.roll;
+        case 'pitch':
+            return simSettings.gamepadMapping.pitch;
+        case 'throttle':
+            return simSettings.gamepadMapping.throttle;
+        case 'yaw':
+            return simSettings.gamepadMapping.yaw;
+        case 'mode':
+            return simSettings.gamepadMapping.modeSwitch;
+        case 'arm':
+            return simSettings.gamepadMapping.armSwitch;
+        case 'magnet':
+            return simSettings.gamepadMapping.magnetBtn;
+    }
+}
+
