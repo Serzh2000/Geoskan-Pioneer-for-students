@@ -265,6 +265,9 @@ export function resetState(id: string = currentDroneId) {
     drone.command_queue = [];
     drone.timers = [];
     drone.leds = Array.from({ length: 29 }, () => ({ r: 0, g: 0, b: 0, w: 0 }));
+    drone.rcChannels = [1500, 1500, 1000, 1500, 1000, 1000, 1000, 1000];
+    drone.magnetGripper.active = false;
+    drone.magnetGripper.attachedObjectId = null;
     drone.pendingLocalPoint = false;
     drone.pointReachedFlag = false;
     drone.traceSampleAccumulator = 0;

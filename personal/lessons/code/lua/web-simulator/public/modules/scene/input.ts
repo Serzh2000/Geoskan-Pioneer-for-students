@@ -12,7 +12,7 @@ import {
     focusOrbitControlsOnObject,
     toggleMultiSelectObject
 } from './scene-init.js';
-import { currentDroneId, simState } from '../core/state.js';
+import { simState } from '../core/state.js';
 import { handleDeselection, deselectObject, exitTransformMode } from './selection.js';
 import { updateTransformModeDecorations } from './transform.js';
 import {

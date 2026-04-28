@@ -223,6 +223,7 @@ export function createGamepadSettingsController(dom: SettingsDomRefs, state: Set
         drone.rcChannels[4] = mode;
         drone.rcChannels[5] = arm;
         drone.rcChannels[6] = magnet;
+        drone.rcChannels[7] = magnet;
 
         updateBar(dom, 'roll', roll);
         updateBar(dom, 'pitch', pitch);
@@ -259,6 +260,7 @@ export function createGamepadSettingsController(dom: SettingsDomRefs, state: Set
         drone.rcChannels[4] = 1000;
         drone.rcChannels[5] = 1000;
         drone.rcChannels[6] = 1000;
+        drone.rcChannels[7] = 1000;
         drone.magnetGripper.active = false;
         renderAuxRangeEditorsState();
     };

@@ -2,7 +2,6 @@
  * Главный модуль 3D-сцены (Three.js).
  * Экспортирует функции для инициализации и обновления сцены.
  */
-import * as THREE from 'three';
 import { drones, simState, currentDroneId, simSettings } from '../core/state.js';
 import { log } from '../shared/logging/logger.js';
 import { envGroup } from '../environment/index.js';
@@ -16,10 +15,6 @@ import {
     onWindowResize, syncViewportDependentSceneVisuals
 } from '../scene/scene-init.js';
 import { setupTransformControlListeners } from '../scene/transform.js';
-import { 
-    getSelectedSceneObjectId, resetDroneToOrigin, deleteSelectedObject, 
-    duplicateObject, addObject, appendPointToSelectedLinearObject, updateSelectedSceneObject
-} from '../scene/object-manager.js';
 import { explodeDrone, resetDroneVisuals, updateDebrisVisuals } from './crash-visuals.js';
 import { registerScenePointerHandlers, handleSceneKeyDown } from './scene-events.js';
 import { initTrailForDrone, disposeTrailForDrone, updateTrailForDrone } from './trails.js';

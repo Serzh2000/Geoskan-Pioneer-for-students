@@ -82,18 +82,25 @@ export class WizardPreviewController {
 
         const step = this.resolvers.getCurrentStep();
         const activeRefForCurrentStep = this.resolvers.getPreviewRef(step.channel);
-        const roll = step.channel === 'roll'
-            ? this.getCenteredPreviewValue(gp, 'roll', activeRefForCurrentStep)
-            : 0;
-        const pitch = step.channel === 'pitch'
-            ? this.getCenteredPreviewValue(gp, 'pitch', activeRefForCurrentStep)
-            : 0;
-        const yaw = step.channel === 'yaw'
-            ? this.getCenteredPreviewValue(gp, 'yaw', activeRefForCurrentStep)
-            : 0;
-        const throttle = step.channel === 'throttle'
-            ? this.getThrottlePreviewValue(gp, activeRefForCurrentStep)
-            : 0;
+        const roll = this.getCenteredPreviewValue(
+            gp,
+            'roll',
+            step.type === 'primary' && step.channel === 'roll' ? activeRefForCurrentStep : null
+        );
+        const pitch = this.getCenteredPreviewValue(
+            gp,
+            'pitch',
+            step.type === 'primary' && step.channel === 'pitch' ? activeRefForCurrentStep : null
+        );
+        const yaw = this.getCenteredPreviewValue(
+            gp,
+            'yaw',
+            step.type === 'primary' && step.channel === 'yaw' ? activeRefForCurrentStep : null
+        );
+        const throttle = this.getThrottlePreviewValue(
+            gp,
+            step.type === 'primary' && step.channel === 'throttle' ? activeRefForCurrentStep : null
+        );
 
         this.drone.position.set(roll * 0.06, -pitch * 0.04, throttle * 0.32);
         this.drone.rotation.order = 'ZYX';
@@ -107,7 +114,7 @@ export class WizardPreviewController {
         }
 
         this.renderer.render(this.scene, this.camera);
-        this.updateStickVisuals(step, activeRefForCurrentStep, { roll, pitch, yaw, throttle });
+        this.updateStickVisuals({ roll, pitch, yaw, throttle });
     }
 
     private getCenteredPreviewValue(gp: Gamepad, channel: PrimaryChannelKey, liveOverride: GamepadInputRef | null): number {
@@ -122,44 +129,43 @@ export class WizardPreviewController {
         return readRefNormalizedValue(gp, ref, 'throttle', this.resolvers.getChannelInversion('throttle'));
     }
 
-    private updateStickVisuals(
-        step: WizardStep,
-        liveRefForCurrentStep: GamepadInputRef | null,
-        values: { roll: number; pitch: number; yaw: number; throttle: number }
-    ): void {
+    private updateStickVisuals(values: { roll: number; pitch: number; yaw: number; throttle: number }): void {
         const leftStick = document.getElementById('gp-wizard-stick-left');
         const rightStick = document.getElementById('gp-wizard-stick-right');
         if (!leftStick || !rightStick) return;
 
-        const slot = step.type === 'primary'
-            ? getPrimaryChannelStickSlot(step.channel as PrimaryChannelKey, liveRefForCurrentStep)
-            : null;
-        const primaryChannel = step.type === 'primary' ? step.channel : null;
+        const slots = {
+            yaw: getPrimaryChannelStickSlot('yaw', this.resolvers.getPreviewRef('yaw')),
+            throttle: getPrimaryChannelStickSlot('throttle', this.resolvers.getPreviewRef('throttle')),
+            roll: getPrimaryChannelStickSlot('roll', this.resolvers.getPreviewRef('roll')),
+            pitch: getPrimaryChannelStickSlot('pitch', this.resolvers.getPreviewRef('pitch'))
+        } satisfies Record<PrimaryChannelKey, ReturnType<typeof getPrimaryChannelStickSlot>>;
         let leftX = 0;
         let leftY = 0;
         let rightX = 0;
         let rightY = 0;
 
-        switch (slot) {
-            case 'left-x':
-                leftX = primaryChannel === 'yaw' || primaryChannel === 'roll' ? values[primaryChannel] : 0;
-                break;
-            case 'left-y':
-                leftY = primaryChannel === 'throttle'
-                    ? (0.5 - values.throttle) * 56
-                    : primaryChannel === 'pitch' ? -values.pitch * 28 : 0;
-                break;
-            case 'right-x':
-                rightX = primaryChannel === 'yaw' || primaryChannel === 'roll' ? values[primaryChannel] : 0;
-                break;
-            case 'right-y':
-                rightY = primaryChannel === 'throttle'
-                    ? (0.5 - values.throttle) * 56
-                    : primaryChannel === 'pitch' ? -values.pitch * 28 : 0;
-                break;
-        }
+        if (slots.yaw === 'left-x') leftX = values.yaw * 35;
+        else if (slots.yaw === 'right-x') rightX = values.yaw * 35;
+        else if (slots.yaw === 'left-y') leftY = values.yaw * 35;
+        else if (slots.yaw === 'right-y') rightY = values.yaw * 35;
 
-        leftStick.style.transform = `translate(${leftX * 28}px, ${leftY}px)`;
-        rightStick.style.transform = `translate(${rightX * 28}px, ${rightY}px)`;
+        if (slots.roll === 'left-x') leftX = values.roll * 35;
+        else if (slots.roll === 'right-x') rightX = values.roll * 35;
+        else if (slots.roll === 'left-y') leftY = values.roll * 35;
+        else if (slots.roll === 'right-y') rightY = values.roll * 35;
+
+        if (slots.pitch === 'left-x') leftX = values.pitch * 35;
+        else if (slots.pitch === 'right-x') rightX = values.pitch * 35;
+        else if (slots.pitch === 'left-y') leftY = values.pitch * 35;
+        else if (slots.pitch === 'right-y') rightY = values.pitch * 35;
+
+        if (slots.throttle === 'left-x') leftX = (values.throttle - 0.5) * 70;
+        else if (slots.throttle === 'right-x') rightX = (values.throttle - 0.5) * 70;
+        else if (slots.throttle === 'left-y') leftY = (0.5 - values.throttle) * 70;
+        else if (slots.throttle === 'right-y') rightY = (0.5 - values.throttle) * 70;
+
+        leftStick.style.transform = `translate(${leftX}px, ${leftY}px)`;
+        rightStick.style.transform = `translate(${rightX}px, ${rightY}px)`;
     }
 }

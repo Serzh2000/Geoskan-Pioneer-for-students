@@ -65,23 +65,10 @@ export function rcToThrottleNormalized(value: number): number {
     return clamp((value - 1000) / 1000, 0, 1);
 }
 
-export function getPrimaryStickSlot(ref: GamepadInputRef | null): PrimaryStickSlot | null {
-    if (!ref?.startsWith('a')) return null;
-    const axisIndex = Number(ref.slice(1));
-    switch (axisIndex) {
-        case 0:
-            return 'left-x';
-        case 1:
-            return 'left-y';
-        case 2:
-            return 'right-x';
-        case 3:
-            return 'right-y';
-        default:
-            return null;
-    }
+export function getPrimaryStickSlot(_ref: GamepadInputRef | null): PrimaryStickSlot | null {
+    return null; // Legacy: physical axis no longer dictates visual slot
 }
 
-export function getPrimaryChannelStickSlot(channel: PrimaryChannelKey, ref: GamepadInputRef | null = null): PrimaryStickSlot {
-    return getPrimaryStickSlot(ref) ?? MODE_PRIMARY_STICK_SLOTS[simSettings.gamepadStickMode][channel];
+export function getPrimaryChannelStickSlot(channel: PrimaryChannelKey, _ref: GamepadInputRef | null = null): PrimaryStickSlot {
+    return MODE_PRIMARY_STICK_SLOTS[simSettings.gamepadStickMode][channel];
 }

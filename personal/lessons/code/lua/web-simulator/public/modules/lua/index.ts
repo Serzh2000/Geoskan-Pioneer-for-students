@@ -4,7 +4,7 @@ import { luaToStr } from './utils.js';
 import { triggerEvent } from '../autopilot/mce-events.js';
 import { runCoroutine } from './runner.js';
 import { ap_push, ap_goToPoint, ap_goToLocalPoint, ap_updateYaw } from './autopilot.js';
-import { sensors_pos, sensors_vel, sensors_accel, sensors_gyro, sensors_orientation, sensors_range, sensors_battery, sensors_tof } from './sensors.js';
+import { sensors_pos, sensors_vel, sensors_accel, sensors_gyro, sensors_orientation, sensors_range, sensors_battery, sensors_tof, sensors_rc } from './sensors.js';
 import { timer_callLater, timer_new, sys_time, sys_deltaTime, js_sleep } from './timers.js';
 import { camera_requestMakeShot, camera_checkRequestShot, camera_requestRecordStart, camera_requestRecordStop, gpio_new, uart_new, spi_new } from './hardware.js';
 import { ledbar_fromHSV, js_init_leds, js_ledbar_set } from './leds.js';
@@ -42,7 +42,8 @@ export function setupLuaBridgeForDrone(id: string) {
             orientation = js_sensors_orientation,
             range = js_sensors_range,
             battery = js_sensors_battery,
-            tof = js_sensors_tof
+            tof = js_sensors_tof,
+            rc = js_sensors_rc
         }
         Timer = { 
             callLater = js_timer_callLater,
@@ -94,6 +95,7 @@ export function setupLuaBridgeForDrone(id: string) {
     lua.lua_register(luaState, "js_sensors_range", sensors_range);
     lua.lua_register(luaState, "js_sensors_battery", sensors_battery);
     lua.lua_register(luaState, "js_sensors_tof", sensors_tof);
+    lua.lua_register(luaState, "js_sensors_rc", sensors_rc);
     lua.lua_register(luaState, "js_timer_callLater", timer_callLater);
     lua.lua_register(luaState, "js_timer_new", timer_new);
     lua.lua_register(luaState, "js_camera_requestMakeShot", camera_requestMakeShot);

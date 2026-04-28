@@ -9,8 +9,7 @@ import {
     createArucoMarkerMapMesh
 } from './markers.js';
 import { createApartmentBuildingMesh } from './buildings.js';
-import { createFirTreeMesh, createParkPatch, createTreeMesh, createHillMesh } from './nature.js';
-import { createStyledLandingPad } from './pads.js';
+import { createParkPatch, createTreeMesh } from './nature.js';
 import {
     createArenaControlStationMesh,
     createArenaHeliportMesh,
