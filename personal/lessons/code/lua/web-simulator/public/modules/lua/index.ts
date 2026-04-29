@@ -1,4 +1,5 @@
-import { drones, currentDroneId } from '../core/state.js';
+import { drones, currentDroneId, getDroneFromLua } from '../core/state.js';
+import { showDronePrintBubble } from '../drone/index.js';
 import { log } from '../shared/logging/logger.js';
 import { luaToStr } from './utils.js';
 import { triggerEvent } from '../autopilot/mce-events.js';
@@ -8,6 +9,15 @@ import { sensors_pos, sensors_vel, sensors_accel, sensors_gyro, sensors_orientat
 import { timer_callLater, timer_new, sys_time, sys_deltaTime, js_sleep } from './timers.js';
 import { camera_requestMakeShot, camera_checkRequestShot, camera_requestRecordStart, camera_requestRecordStop, gpio_new, uart_new, spi_new } from './hardware.js';
 import { ledbar_fromHSV, js_init_leds, js_ledbar_set } from './leds.js';
+
+const lua_print = function(L: any) {
+    const drone = getDroneFromLua(L);
+    const rawText = window.fengari.lua.lua_tostring(L, 1);
+    const text = rawText ? window.fengari.to_jsstring(rawText) : '';
+    showDronePrintBubble(drone.id, text);
+    log(`[Lua print] ${text}`, 'info');
+    return 0;
+};
 
 export function setupLuaBridgeForDrone(id: string) {
     const L = window.fengari.L;
@@ -65,6 +75,13 @@ export function setupLuaBridgeForDrone(id: string) {
         launchTime = function() return 0 end
         boardNumber = "SIMULATOR"
         sleep = js_sleep
+        print = function(...)
+            local parts = {}
+            for i = 1, select("#", ...) do
+                parts[i] = tostring(select(i, ...))
+            end
+            js_print(table.concat(parts, "\t"))
+        end
 
         Ledbar = {}
         Ledbar.fromHSV = js_ledbar_fromHSV
@@ -111,6 +128,7 @@ export function setupLuaBridgeForDrone(id: string) {
     lua.lua_register(luaState, "js_init_leds", js_init_leds);
     lua.lua_register(luaState, "js_ledbar_set", js_ledbar_set);
     lua.lua_register(luaState, "js_sleep", js_sleep);
+    lua.lua_register(luaState, "js_print", lua_print);
 
     // Save Drone ID in the Lua registry/global
     lua.lua_pushstring(luaState, window.fengari.to_luastring(id));

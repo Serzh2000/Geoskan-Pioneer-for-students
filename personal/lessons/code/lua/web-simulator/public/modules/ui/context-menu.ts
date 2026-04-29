@@ -6,6 +6,10 @@ type MenuCallbacks = {
     onDuplicate: () => void;
     onShowCoords?: () => void;
     onResetOrigin?: () => void;
+    objectInfoTitle?: string;
+    objectInfoItems?: { title?: string; text: string }[];
+    objectActionsTitle?: string;
+    objectActions?: { label: string; icon: string; action: () => void; active?: boolean; danger?: boolean }[];
 };
 
 type ObjectToolPanelCallbacks = {
@@ -47,10 +51,46 @@ export function initContextMenu() {
     const { style, menu, header, toolbar, toolbarTitle, toolbarActions } = createContextMenuDom();
     document.head.appendChild(style);
 
-    const addButton = (label: string, icon: string, action: () => void, className = '') => {
+    const addSeparator = () => {
+        const separator = document.createElement('div');
+        separator.className = 'ctx-separator';
+        menu.appendChild(separator);
+    };
+
+    const addSectionLabel = (label: string) => {
+        const section = document.createElement('div');
+        section.className = 'ctx-section-label';
+        section.textContent = label;
+        menu.appendChild(section);
+    };
+
+    const addInfoCard = (text: string, title?: string) => {
+        const card = document.createElement('div');
+        card.className = 'ctx-info-card';
+        if (title) {
+            const titleEl = document.createElement('div');
+            titleEl.className = 'ctx-info-title';
+            titleEl.textContent = title;
+            card.appendChild(titleEl);
+        }
+        const textEl = document.createElement('div');
+        textEl.className = 'ctx-info-text';
+        textEl.textContent = text;
+        card.appendChild(textEl);
+        menu.appendChild(card);
+    };
+
+    const addButton = (
+        label: string,
+        icon: string,
+        action: () => void,
+        className = '',
+        active = false
+    ) => {
         const button = document.createElement('button');
         button.type = 'button';
         button.className = `ctx-btn ${className}`.trim();
+        if (active) button.classList.add('active');
         button.innerHTML = `<span>${icon}</span><span>${label}</span>`;
         const run = (e: Event) => {
             e.preventDefault();
@@ -78,6 +118,20 @@ export function initContextMenu() {
         }
         if (callbacks.onResetOrigin) {
             addButton('Вернуть в начало', '🏠', () => callbacks.onResetOrigin && callbacks.onResetOrigin());
+        }
+        if (callbacks.objectInfoItems?.length) {
+            addSeparator();
+            addSectionLabel(callbacks.objectInfoTitle || 'Информация');
+            callbacks.objectInfoItems.forEach((infoItem) => {
+                addInfoCard(infoItem.text, infoItem.title);
+            });
+        }
+        if (callbacks.objectActions?.length) {
+            addSeparator();
+            addSectionLabel(callbacks.objectActionsTitle || 'Действия объекта');
+            callbacks.objectActions.forEach((action) => {
+                addButton(action.label, action.icon, action.action, action.danger ? 'danger' : '', !!action.active);
+            });
         }
         addButton('Удалить', '🗑️', () => callbacks.onDelete(), 'danger');
         addButton('Отмена', '✖', () => {}, 'cancel');
@@ -234,8 +288,30 @@ export function initContextMenu() {
     document.body.appendChild(menu);
     document.body.appendChild(toolbar);
 
-    window.showContextMenu = (x: number, y: number, onTransform: (mode: string) => void, onDelete: () => void, onDuplicate: () => void, onShowCoords?: () => void, onResetOrigin?: () => void) => {
-        callbacks = { onTransform, onDelete, onDuplicate, onShowCoords, onResetOrigin };
+    window.showContextMenu = (
+        x: number,
+        y: number,
+        onTransform: (mode: string) => void,
+        onDelete: () => void,
+        onDuplicate: () => void,
+        onShowCoords?: () => void,
+        onResetOrigin?: () => void,
+        objectInfoTitle?: string,
+        objectInfoItems?: { title?: string; text: string }[],
+        objectActionsTitle?: string,
+        objectActions?: { label: string; icon: string; action: () => void; active?: boolean; danger?: boolean }[]
+    ) => {
+        callbacks = {
+            onTransform,
+            onDelete,
+            onDuplicate,
+            onShowCoords,
+            onResetOrigin,
+            objectInfoTitle,
+            objectInfoItems,
+            objectActionsTitle,
+            objectActions
+        };
         show(x, y);
     };
 

@@ -64,6 +64,8 @@ export interface DroneState {
     leds: LedColor[];
     script: string;
     pythonScript: string;
+    printBubbleText: string;
+    printBubbleUntil: number;
     luaState: any; // fengari state
 }
 
@@ -181,6 +183,8 @@ export function createDroneState(id: string, name: string, x: number = 0, y: num
         leds: Array.from({ length: 29 }, () => ({ r: 0, g: 0, b: 0, w: 0 })),
         script: '-- Pioneer Lua Script\n\nap.push(Ev.MCE_TAKEOFF)',
         pythonScript: `# Pioneer Python Script\nfrom pioneer_sdk import Pioneer\nimport time\n\npioneer = Pioneer(simulator=True)\n\npioneer.arm()\npioneer.takeoff()\n\ntime.sleep(3)\n\npioneer.go_to_local_point(x=1, y=1, z=1)\nwhile not pioneer.point_reached():\n    time.sleep(0.05)\n\ntime.sleep(2)\n\npioneer.land()\npioneer.close_connection()`,
+        printBubbleText: '',
+        printBubbleUntil: 0,
         luaState: null
     };
     drones[id] = drone;
@@ -271,5 +275,7 @@ export function resetState(id: string = currentDroneId) {
     drone.pendingLocalPoint = false;
     drone.pointReachedFlag = false;
     drone.traceSampleAccumulator = 0;
+    drone.printBubbleText = '';
+    drone.printBubbleUntil = 0;
     pathPoints[id] = [];
 }

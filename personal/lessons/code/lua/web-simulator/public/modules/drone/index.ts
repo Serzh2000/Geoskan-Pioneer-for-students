@@ -2,6 +2,7 @@
  * Главный модуль 3D-сцены (Three.js).
  * Экспортирует функции для инициализации и обновления сцены.
  */
+import * as THREE from 'three';
 import { drones, simState, currentDroneId, simSettings } from '../core/state.js';
 import { log } from '../shared/logging/logger.js';
 import { envGroup } from '../environment/index.js';
@@ -10,7 +11,7 @@ import { updateCamera } from '../scene/camera.js';
 import { 
     initScene, scene, camera, renderer, controls, transformControl, 
     transformHelper, selectionHelper, 
-    droneMeshes, is3DActive, selectedObject,
+    droneMeshes, is3DActive, selectedObject, canvasContainer,
     setSelectedObject, setIsHittingGizmo,
     onWindowResize, syncViewportDependentSceneVisuals
 } from '../scene/scene-init.js';
@@ -52,9 +53,102 @@ export interface SceneObjectInfo {
     metaLines?: string[];
 }
 
+const PRINT_BUBBLE_LIFETIME_MS = 4200;
+const PRINT_BUBBLE_MAX_LENGTH = 180;
+const bubbleWorldPosition = new THREE.Vector3();
+const bubbleScreenPosition = new THREE.Vector3();
+let printBubbleOverlay: HTMLDivElement | null = null;
+const printBubbleElements: Record<string, HTMLDivElement> = {};
+
+function ensurePrintBubbleOverlay(): HTMLDivElement | null {
+    if (printBubbleOverlay?.isConnected) return printBubbleOverlay;
+    if (!canvasContainer) return null;
+
+    printBubbleOverlay = document.createElement('div');
+    printBubbleOverlay.className = 'drone-print-bubbles';
+    canvasContainer.appendChild(printBubbleOverlay);
+    return printBubbleOverlay;
+}
+
+function getPrintBubbleElement(id: string): HTMLDivElement | null {
+    const overlay = ensurePrintBubbleOverlay();
+    if (!overlay) return null;
+    if (printBubbleElements[id]?.isConnected) return printBubbleElements[id];
+
+    const bubble = document.createElement('div');
+    bubble.className = 'drone-print-bubble';
+    overlay.appendChild(bubble);
+    printBubbleElements[id] = bubble;
+    return bubble;
+}
+
+function hidePrintBubble(id: string) {
+    const bubble = printBubbleElements[id];
+    if (!bubble) return;
+    bubble.classList.remove('visible');
+}
+
+function syncDronePrintBubbles() {
+    if (!camera || !canvasContainer) return;
+    const now = performance.now();
+    const width = canvasContainer.clientWidth;
+    const height = canvasContainer.clientHeight;
+
+    for (const id in printBubbleElements) {
+        if (!drones[id]) {
+            printBubbleElements[id].remove();
+            delete printBubbleElements[id];
+        }
+    }
+
+    for (const id in drones) {
+        const drone = drones[id];
+        const mesh = droneMeshes[id];
+        const bubble = getPrintBubbleElement(id);
+        if (!bubble || !mesh || !mesh.visible || !drone.printBubbleText || drone.printBubbleUntil <= now) {
+            hidePrintBubble(id);
+            continue;
+        }
+
+        mesh.getWorldPosition(bubbleWorldPosition);
+        bubbleWorldPosition.z += 0.42;
+        bubbleScreenPosition.copy(bubbleWorldPosition).project(camera);
+
+        if (bubbleScreenPosition.z < -1 || bubbleScreenPosition.z > 1) {
+            hidePrintBubble(id);
+            continue;
+        }
+
+        const x = (bubbleScreenPosition.x * 0.5 + 0.5) * width;
+        const y = (-bubbleScreenPosition.y * 0.5 + 0.5) * height;
+        bubble.textContent = drone.printBubbleText;
+        bubble.style.left = `${x}px`;
+        bubble.style.top = `${y}px`;
+        bubble.classList.add('visible');
+    }
+}
+
+export function showDronePrintBubble(id: string, text: string) {
+    const drone = drones[id];
+    if (!drone) return;
+
+    const normalizedText = String(text ?? '')
+        .replace(/\r\n/g, '\n')
+        .split('\n')
+        .map((line) => line.replace(/[^\S\r\n]+/g, ' ').trim())
+        .join('\n')
+        .trim();
+    if (!normalizedText) return;
+
+    drone.printBubbleText = normalizedText.slice(0, PRINT_BUBBLE_MAX_LENGTH);
+    drone.printBubbleUntil = performance.now() + PRINT_BUBBLE_LIFETIME_MS;
+    getPrintBubbleElement(id);
+}
+
 export function init3D(container: HTMLElement) {
     try {
         initScene(container);
+        ensurePrintBubbleOverlay();
         setupTransformControlListeners();
 
         transformControl.addEventListener('mouseDown', () => setIsHittingGizmo(true));
@@ -165,6 +259,8 @@ export function updateDrone3D(dt: number) {
     if (droneMeshes[currentDroneId]) {
         updateCamera(camera, droneMeshes[currentDroneId], controls, cameraMode);
     }
+
+    syncDronePrintBubbles();
 
     try {
         renderer.render(scene, camera);

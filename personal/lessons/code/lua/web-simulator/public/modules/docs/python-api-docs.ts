@@ -1,4 +1,4 @@
-﻿import type { ApiDoc } from './api-docs-types.js';
+import type { ApiDoc } from './api-docs-types.js';
 
 export const pythonApiDocs: Record<string, ApiDoc> = {
     'Pioneer.arm': {
@@ -155,5 +155,32 @@ export const pythonApiDocs: Record<string, ApiDoc> = {
         example: 'img = camera.get_cv_frame()',
         kind: 'Method',
         insertText: 'get_cv_frame()'
+    },
+    'Camera.connect': {
+        desc: 'Connect camera to the nearest video tower in simulator range.',
+        syntax: 'camera.connect() -> bool',
+        params: 'none',
+        returns: 'bool',
+        example: 'camera.connect()',
+        kind: 'Method',
+        insertText: 'connect()'
+    },
+    'Camera.disconnect': {
+        desc: 'Disconnect camera from the current video tower.',
+        syntax: 'camera.disconnect() -> bool',
+        params: 'none',
+        returns: 'bool',
+        example: 'camera.disconnect()',
+        kind: 'Method',
+        insertText: 'disconnect()'
+    },
+    'Camera.connected': {
+        desc: 'Check whether camera is currently connected to a video tower.',
+        syntax: 'camera.connected() -> bool',
+        params: 'none',
+        returns: 'bool',
+        example: 'camera.connected()',
+        kind: 'Method',
+        insertText: 'connected()'
     }
 };

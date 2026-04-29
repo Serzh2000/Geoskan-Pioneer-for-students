@@ -64,19 +64,34 @@ class Pioneer:
 
 class Camera:
     def __init__(self, timeout=0.5, ip='192.168.4.1', port=8888, video_buffer_size=65000, log_connection=True):
-        pass
+        self._id = js.SIM_DRONE_ID
+        self._ip = ip
+        self._port = port
+
+    def connected(self):
+        return bool(js.pioneer_camera_connected(self._id))
 
     def connect(self):
-        return True
+        return bool(js.pioneer_camera_connect(self._id))
 
     def disconnect(self):
-        return True
+        return bool(js.pioneer_camera_disconnect(self._id))
 
     def get_frame(self):
-        return js.pioneer_camera_get_frame(js.SIM_DRONE_ID)
+        frame = js.pioneer_camera_get_frame(self._id)
+        if frame is None:
+            return None
+        if hasattr(frame, 'to_py'):
+            frame = frame.to_py()
+        return bytes(frame)
 
     def get_cv_frame(self):
-        return js.pioneer_camera_get_cv_frame(js.SIM_DRONE_ID)
+        frame = js.pioneer_camera_get_cv_frame(self._id)
+        if frame is None:
+            return None
+        if hasattr(frame, 'to_py'):
+            return frame.to_py()
+        return frame
 
 m.Pioneer = Pioneer
 m.Camera = Camera

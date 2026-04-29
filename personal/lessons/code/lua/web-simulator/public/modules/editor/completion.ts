@@ -1,6 +1,21 @@
 import { apiDocs, evConstants, pythonApiDocs } from '../docs/api-docs.js';
 
+let completionProvidersRegistered = false;
+
+function dedupeSuggestions(suggestions: any[]) {
+    const seen = new Set<string>();
+    return suggestions.filter((item) => {
+        const key = `${String(item.label)}|${String(item.insertText ?? '')}|${String(item.kind ?? '')}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+    });
+}
+
 export function setupCompletionProvider(monaco: any) {
+    if (completionProvidersRegistered) return;
+    completionProvidersRegistered = true;
+
     monaco.languages.registerCompletionItemProvider('lua', {
         provideCompletionItems: function(model: any, position: any) {
             const word = model.getWordUntilPosition(position);
@@ -71,7 +86,7 @@ export function setupCompletionProvider(monaco: any) {
                 });
             }
 
-            return { suggestions: suggestions };
+            return { suggestions: dedupeSuggestions(suggestions) };
         },
         triggerCharacters: ['.']
     });
@@ -135,7 +150,7 @@ export function setupCompletionProvider(monaco: any) {
                 }
             }
 
-            return { suggestions: suggestions };
+            return { suggestions: dedupeSuggestions(suggestions) };
         },
         triggerCharacters: ['.']
     });

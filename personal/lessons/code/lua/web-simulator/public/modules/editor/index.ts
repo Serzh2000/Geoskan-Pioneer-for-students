@@ -63,6 +63,7 @@ function createEditor() {
         language: initialMonacoLang,
         theme: 'pioneer-dark',
         automaticLayout: true,
+        wordBasedSuggestions: false,
         fontSize: 14,
         fontFamily: "'Fira Code', monospace",
         minimap: { enabled: false },

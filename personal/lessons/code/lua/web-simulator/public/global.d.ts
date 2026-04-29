@@ -135,7 +135,17 @@ declare global {
         switchTab: (tabId: string) => void;
         getEditorValueFallback: () => string;
         setEditorValueFallback: (val: string) => void;
-        showContextMenu: (x: number, y: number, onTransform: (mode: string) => void, onDelete: () => void, onDuplicate: () => void, onResetOrigin?: () => void) => void;
+        showContextMenu: (
+            x: number,
+            y: number,
+            onTransform: (mode: string) => void,
+            onDelete: () => void,
+            onDuplicate: () => void,
+            onShowCoords?: () => void,
+            onResetOrigin?: () => void,
+            objectActionsTitle?: string,
+            objectActions?: { label: string; icon: string; action: () => void; active?: boolean; danger?: boolean }[]
+        ) => void;
         hideContextMenu: () => void;
     }
 }

@@ -34,6 +34,39 @@ const CONTEXT_MENU_STYLES = `
         text-transform: uppercase;
         letter-spacing: 0.05em;
     }
+    #object-context-menu .ctx-section-label {
+        font-size: 11px;
+        color: #94a3b8;
+        padding: 8px 10px 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    #object-context-menu .ctx-info-card {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        margin: 2px 4px 4px;
+        padding: 8px 10px;
+        border-radius: 8px;
+        background: rgba(30, 41, 59, 0.72);
+        border: 1px solid rgba(71, 85, 105, 0.6);
+    }
+    #object-context-menu .ctx-info-title {
+        font-size: 12px;
+        font-weight: 600;
+        color: #e2e8f0;
+    }
+    #object-context-menu .ctx-info-text {
+        font-size: 12px;
+        line-height: 1.45;
+        color: #cbd5e1;
+        white-space: pre-line;
+    }
+    #object-context-menu .ctx-separator {
+        height: 1px;
+        margin: 4px 2px;
+        background: rgba(51, 65, 85, 0.9);
+    }
     #object-context-menu .ctx-btn {
         background: transparent;
         border: none;
@@ -52,6 +85,11 @@ const CONTEXT_MENU_STYLES = `
         background: rgba(56, 189, 248, 0.12);
         color: #38bdf8;
         outline: none;
+    }
+    #object-context-menu .ctx-btn.active {
+        background: rgba(56, 189, 248, 0.16);
+        color: #38bdf8;
+        box-shadow: inset 0 0 0 1px rgba(56, 189, 248, 0.18);
     }
     #object-context-menu .ctx-btn.danger {
         color: #f87171;

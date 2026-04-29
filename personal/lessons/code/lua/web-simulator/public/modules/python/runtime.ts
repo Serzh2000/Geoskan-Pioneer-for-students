@@ -85,7 +85,20 @@ export async function runPythonScript(droneId: string, code: string): Promise<vo
 
     // Исполняем в async контексте, чтобы await asyncio.sleep(...) работал.
     const wrapped = `
-import asyncio, js
+import asyncio, builtins, js
+
+__sim_original_print = builtins.print
+
+def __sim_print(*args, **kwargs):
+    sep = kwargs.get("sep", " ")
+    end = kwargs.get("end", "\\n")
+    text = sep.join(str(arg) for arg in args)
+    if end and end != "\\n":
+        text += end.rstrip("\\n")
+    js.pioneer_print(js.SIM_DRONE_ID, text)
+    return __sim_original_print(*args, **kwargs)
+
+builtins.print = __sim_print
 
 async def __user_main():
 ${indentedUserCode}

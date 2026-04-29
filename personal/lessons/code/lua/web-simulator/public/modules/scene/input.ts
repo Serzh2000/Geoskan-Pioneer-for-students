@@ -43,6 +43,26 @@ import {
     traceClick
 } from './input-helpers.js';
 
+type ObjectContextMenuAction = {
+    label: string;
+    icon: string;
+    action: () => void;
+    active?: boolean;
+    danger?: boolean;
+};
+
+type ObjectContextMenuInfoItem = {
+    title?: string;
+    text: string;
+};
+
+type ObjectContextMenuConfig = {
+    infoTitle?: string;
+    infoItems?: ObjectContextMenuInfoItem[];
+    title?: string;
+    actions?: ObjectContextMenuAction[];
+};
+
 function showTransformUi(obj: THREE.Object3D, preferredMode?: 'translate' | 'rotate' | 'scale') {
     if (!transformControl || !isTransformableObject(obj) || simState.running) return;
     const activeMode = preferredMode || (transformControl.object === obj ? transformControl.getMode() : 'translate');
@@ -208,13 +228,14 @@ export function updateObjectSelectionVisuals(obj: THREE.Object3D, selected: bool
                 if (mat.emissive) {
                     if (mat.userData.originalEmissive === undefined) {
                         mat.userData.originalEmissive = mat.emissive.getHex();
+                        mat.userData.originalEmissiveIntensity = mat.emissiveIntensity || 0;
                     }
                     if (selected) {
                         mat.emissive.copy(emissiveColor);
-                        mat.emissiveIntensity = 0.6;
+                        mat.emissiveIntensity = Math.max(0.6, mat.userData.originalEmissiveIntensity);
                     } else {
                         mat.emissive.setHex(mat.userData.originalEmissive);
-                        mat.emissiveIntensity = 0;
+                        mat.emissiveIntensity = mat.userData.originalEmissiveIntensity;
                     }
                 }
             });
@@ -255,7 +276,27 @@ export function handleSelection(obj: THREE.Object3D | null, x: number, y: number
         const isDrone = obj ? isDroneObject(obj) : false;
         traceClick(`showContextMenu for ${obj ? getObjectDisplayName(obj) : 'ground'} at x=${x} y=${y} isDrone=${String(isDrone)}`);
 
-        (window as any).showContextMenu(x, y, 
+        let objectActionsTitle: string | undefined;
+        let objectActions: ObjectContextMenuAction[] | undefined;
+        let objectInfoTitle: string | undefined;
+        let objectInfoItems: ObjectContextMenuInfoItem[] | undefined;
+        if (obj && typeof obj.userData.getContextMenuActions === 'function') {
+            try {
+                const config = obj.userData.getContextMenuActions(obj) as ObjectContextMenuConfig | undefined;
+                if (config?.infoItems?.length) {
+                    objectInfoTitle = config.infoTitle;
+                    objectInfoItems = config.infoItems;
+                }
+                if (config?.actions?.length) {
+                    objectActionsTitle = config.title;
+                    objectActions = config.actions;
+                }
+            } catch (error) {
+                console.warn('[3D] Failed to build object context actions:', error);
+            }
+        }
+
+        (window as any).showContextMenu(x, y,
             (mode: string) => {
                 const target = selectedObject;
                 if (!target || !target.parent) return;
@@ -269,7 +310,11 @@ export function handleSelection(obj: THREE.Object3D | null, x: number, y: number
                     (window as any).updateSceneObjectClickCoords(clickPoint);
                 }
             } : undefined,
-            isDrone ? () => resetDroneToOrigin() : undefined
+            isDrone ? () => resetDroneToOrigin() : undefined,
+            objectInfoTitle,
+            objectInfoItems,
+            objectActionsTitle,
+            objectActions
         );
     } else if (showMenu) {
         traceClick('showMenu requested but window.showContextMenu is unavailable', 'warn');

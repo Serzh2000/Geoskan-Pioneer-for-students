@@ -65,7 +65,7 @@ export function createRaceTrackPreset() {
 
     for (let i = 0; i < 6; i++) {
         const pylon = createPylonMesh();
-        pylon.position.set(-5 + i * 2, -2 + (i % 2 === 0 ? 1.2 : -1.2), 1);
+        pylon.position.set(-5 + i * 2, -2 + (i % 2 === 0 ? 1.2 : -1.2), 0);
         group.add(pylon);
     }
 
