@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import type { DroneState } from '../core/state.js';
+import { completePointReached, completeTakeoff, isMovementReached } from '../autopilot/fsm.js';
 import { triggerLuaCallback } from '../lua/index.js';
 import { getObstacles } from '../drone/index.js';
 import { log } from '../shared/logging/logger.js';
@@ -14,8 +15,10 @@ export function beginDisarmedFall(simState: DroneState, id: string, reason: stri
     if (simState.status === 'CRASHED' || simState.status === 'DISARMED_FALL') return;
 
     simState.status = 'DISARMED_FALL';
+    simState.fsmState = 'IDLE';
     simState.running = false;
     simState.pendingLocalPoint = false;
+    simState.pendingLocalPointSource = null;
     simState.pointReachedFlag = false;
     simState.command_queue = [];
     simState.target_pos = { ...simState.pos };
@@ -45,8 +48,10 @@ export function applyCrashState(simState: DroneState, id: string, reason: string
     simState.vel.z = Math.abs(simState.vel.z) * 0.5 + 2.5;
 
     simState.status = 'CRASHED';
+    simState.fsmState = 'IDLE';
     simState.running = false;
     simState.pendingLocalPoint = false;
+    simState.pendingLocalPointSource = null;
     simState.pointReachedFlag = false;
     simState.command_queue = [];
     simState.target_pos = { ...simState.pos };
@@ -66,9 +71,9 @@ export function checkPhysicsEvents(simState: DroneState, prevPos: { x: number; y
     if (
         simState.status === 'CRASHED'
         || simState.status === 'IDLE'
-        || simState.status === 'ГОТОВ'
-        || simState.status === 'ВЗВЕДЕН'
-        || simState.status === 'ПРИЗЕМЛЕН'
+        || simState.status === 'PREFLIGHT'
+        || simState.status === 'ОШИБКА'
+        || simState.status === 'DISARMED_FALL'
     ) {
         return;
     }
@@ -89,31 +94,14 @@ export function checkPhysicsEvents(simState: DroneState, prevPos: { x: number; y
         }
     }
 
-    if (simState.status === 'ВЗЛЕТ' && Math.abs(simState.pos.z - simState.target_pos.z) < 0.1) {
-        simState.status = 'ПОЛЕТ';
+    if (simState.fsmState === 'TAKEOFF_PROCESS' && Math.abs(simState.pos.z - simState.target_pos.z) < 0.1) {
+        completeTakeoff(simState);
         triggerLuaCallback(id, 6);
-
-        if (simState.pendingLocalPoint) {
-            simState.pendingLocalPoint = false;
-            simState.status = 'ПОЛЕТ_К_ТОЧКЕ';
-        }
     }
 
-    if (simState.status === 'ПОСАДКА' && simState.pos.z < 0.05) {
-        simState.status = 'ПРИЗЕМЛЕН';
-        triggerLuaCallback(id, 7);
-    }
-
-    if (simState.status === 'ПОЛЕТ_К_ТОЧКЕ') {
-        const dist = Math.sqrt(
-            (simState.target_pos.x - simState.pos.x) ** 2
-            + (simState.target_pos.y - simState.pos.y) ** 2
-            + (simState.target_pos.z - simState.pos.z) ** 2
-        );
-        if (dist < 0.15) {
-            simState.status = 'ПОЛЕТ';
+    if (simState.fsmState === 'FLYING_MOVING' && isMovementReached(simState)) {
+        if (completePointReached(simState)) {
             triggerLuaCallback(id, 10);
-            simState.pointReachedFlag = true;
         }
     }
 }

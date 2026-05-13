@@ -3,6 +3,7 @@
  * Собирает итоговую модель из составных частей (рама, моторы, LED, камера).
  */
 import * as THREE from 'three';
+import { shouldSpinRotors } from '../autopilot/fsm.js';
 import { createFrame } from './frame.js';
 import { createLEDs } from './leds.js';
 import { createCameraAndAntenna } from './camera-antenna.js';
@@ -83,19 +84,12 @@ export function updateLEDs(droneMesh: THREE.Object3D, droneState: any) {
 }
 
 export function animateRotors(droneMesh: THREE.Object3D, dt: number, droneState: any) {
-    const isArmed = droneState.status !== 'ГОТОВ'
-        && droneState.status !== 'IDLE'
-        && droneState.status !== 'ПРИЗЕМЛЕН'
-        && droneState.status !== 'ОСТАНОВЛЕН'
-        && droneState.status !== 'ЗАПУСК'
-        && droneState.status !== 'ОШИБКА'
-        && droneState.status !== 'CRASHED';
-    if (isArmed) {
+    if (shouldSpinRotors(droneState)) {
         for (let i = 0; i < 4; i++) {
             const rotor = droneMesh.getObjectByName(`rotor_${i}`);
             if (rotor) {
                 const dir = (i === 0 || i === 1) ? 1 : -1; 
-                const speed = (droneState.status === 'ВЗВЕДЕН') ? 15 : 40; // Rad/s
+                const speed = (droneState.fsmState === 'PREFLIGHT') ? 15 : 40; // Rad/s
                 rotor.rotation.z += speed * dir * dt;
             }
         }

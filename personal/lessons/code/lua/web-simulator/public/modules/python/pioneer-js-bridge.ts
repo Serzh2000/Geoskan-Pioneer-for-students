@@ -1,5 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { drones } from '../core/state.js';
+import {
+    applyGoToLocalPointRequest,
+    enterLandingProcess,
+    enterPreflight,
+    enterTakeoffProcess,
+    isDroneMovingState,
+    setDroneFsmState,
+    withCommandSource
+} from '../autopilot/fsm.js';
 import { showDronePrintBubble } from '../drone/index.js';
 import { envGroup } from '../environment/index.js';
 import { beginDisarmedFall, AIRBORNE_ALTITUDE_EPSILON } from '../physics/events.js';
@@ -88,14 +97,13 @@ export function installJsRuntimeAPI() {
     w.pioneer_arm = (id: string) => {
         if (w.py_is_cancelled(id)) throw new Error('PYTHON_CANCELLED');
         const d = getDroneOrDefault(id);
-        if (d.status === 'ГОТОВ' || d.status === 'ПРИЗЕМЛЕН' || d.status === 'DISARMED_FALL') {
-            d.status = 'ВЗВЕДЕН';
-            d.pendingLocalPoint = false;
-            d.pointReachedFlag = false;
-            triggerLuaCallback(id, 11);
-            return true;
-        }
-        return false;
+        return withCommandSource(d, 'python', () => {
+            const ok = enterPreflight(d);
+            if (ok) {
+                triggerLuaCallback(id, 11);
+            }
+            return ok;
+        });
     };
 
     w.pioneer_disarm = (id: string) => {
@@ -104,8 +112,9 @@ export function installJsRuntimeAPI() {
         if (d.pos.z > AIRBORNE_ALTITUDE_EPSILON) {
             beginDisarmedFall(d, id, 'pioneer.disarm() в воздухе');
         } else {
-            d.status = 'ГОТОВ';
+            setDroneFsmState(d, 'IDLE');
             d.pendingLocalPoint = false;
+            d.pendingLocalPointSource = null;
             d.pointReachedFlag = false;
             d.vel = { x: 0, y: 0, z: 0 };
             d.target_pos = { ...d.pos, z: 0 };
@@ -117,26 +126,13 @@ export function installJsRuntimeAPI() {
     w.pioneer_takeoff = (id: string) => {
         if (w.py_is_cancelled(id)) throw new Error('PYTHON_CANCELLED');
         const d = getDroneOrDefault(id);
-        const takeoffAlt = 1.0;
-        d.target_pos.x = d.pos.x;
-        d.target_pos.y = d.pos.y;
-        d.target_pos.z = Math.max(d.pos.z, d.pos.z + takeoffAlt);
-        d.target_alt = d.target_pos.z;
-        d.pointReachedFlag = false;
-        d.status = 'ВЗЛЕТ';
-        return true;
+        return withCommandSource(d, 'python', () => enterTakeoffProcess(d));
     };
 
     w.pioneer_land = (id: string) => {
         if (w.py_is_cancelled(id)) throw new Error('PYTHON_CANCELLED');
         const d = getDroneOrDefault(id);
-        d.target_pos.x = d.pos.x;
-        d.target_pos.y = d.pos.y;
-        d.target_pos.z = 0;
-        d.pendingLocalPoint = false;
-        d.pointReachedFlag = false;
-        d.status = 'ПОСАДКА';
-        return true;
+        return withCommandSource(d, 'python', () => enterLandingProcess(d));
     };
 
     w.pioneer_go_to_local_point = (id: string, x: any, y: any, z: any, yaw: any) => {
@@ -148,19 +144,7 @@ export function installJsRuntimeAPI() {
         const tz = z == null ? d.pos.z : origin.z + Number(z);
         const yawm = yaw == null ? d.target_yaw : Number(yaw);
 
-        d.target_pos = { x: tx, y: ty, z: tz };
-        d.target_yaw = yawm;
-        d.pointReachedFlag = false;
-
-        if (d.status === 'ВЗВЕДЕН') {
-            d.pendingLocalPoint = true;
-        } else if (d.status === 'ВЗЛЕТ' || d.status === 'ПОЛЕТ' || d.status === 'ПОЛЕТ_К_ТОЧКЕ') {
-            d.pendingLocalPoint = false;
-            d.status = 'ПОЛЕТ_К_ТОЧКЕ';
-        } else {
-            d.pendingLocalPoint = true;
-        }
-        return true;
+        return withCommandSource(d, 'python', () => applyGoToLocalPointRequest(d, { x: tx, y: ty, z: tz }, { yaw: yawm }));
     };
 
     w.pioneer_go_to_local_point_body_fixed = (id: string, x: any, y: any, z: any, yaw: any) => {
@@ -189,8 +173,13 @@ export function installJsRuntimeAPI() {
         const vzn = Number(vz);
         const yrn = Number(yaw_rate);
 
-        d.status = 'ПОЛЕТ';
+        if (d.fsmState === 'IDLE' || d.fsmState === 'PREFLIGHT') {
+            return false;
+        }
+
+        setDroneFsmState(d, isDroneMovingState(d) ? 'FLYING_MOVING' : 'FLYING_HOVER');
         d.pendingLocalPoint = false;
+        d.pendingLocalPointSource = null;
         d.target_pos = {
             x: d.pos.x + vxn * dt,
             y: d.pos.y + vyn * dt,
@@ -227,17 +216,14 @@ export function installJsRuntimeAPI() {
     w.pioneer_get_autopilot_state = (id: string) => {
         if (w.py_is_cancelled(id)) throw new Error('PYTHON_CANCELLED');
         const d = getDroneOrDefault(id);
-        switch (d.status) {
-            case 'ВЗВЕДЕН': return 'ARMED';
-            case 'ВЗЛЕТ': return 'TAKEOFF';
-            case 'ПОЛЕТ':
-            case 'ПОЛЕТ_К_ТОЧКЕ': return 'MISSION';
-            case 'ПОСАДКА': return 'LANDING';
-            case 'ПРИЗЕМЛЕН': return 'LANDED';
-            case 'ГОТОВ':
+        switch (d.fsmState) {
+            case 'PREFLIGHT': return 'ARMED';
+            case 'TAKEOFF_PROCESS': return 'TAKEOFF';
+            case 'FLYING_HOVER':
+            case 'FLYING_MOVING': return 'MISSION';
+            case 'LANDING_PROCESS': return 'LANDING';
             case 'IDLE': return 'DISARMED';
-            case 'CRASHED': return 'ROOT';
-            default: return d.status;
+            default: return d.status === 'CRASHED' ? 'ROOT' : d.status;
         }
     };
 

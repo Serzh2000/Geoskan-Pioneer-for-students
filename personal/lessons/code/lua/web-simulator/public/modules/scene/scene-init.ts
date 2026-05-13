@@ -1,9 +1,6 @@
 import * as THREE from 'three';
 import { DroneOrbitControls } from './DroneOrbitControls.js';
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls.js';
-import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
-import { Line2 } from 'three/examples/jsm/lines/Line2.js';
-import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
 import { log } from '../shared/logging/logger.js';
 import { setupEnvironment, envGroup } from '../environment/index.js';
 
@@ -21,9 +18,9 @@ export let selectionHelper: THREE.BoxHelper;
 export let canvasContainer: HTMLElement;
 export let droneMeshes: Record<string, THREE.Object3D> = {};
 export interface DroneTrailVisuals {
-    path: Line2;
+    path: THREE.Line;
     particles: THREE.Points;
-    lineGeometry: LineGeometry;
+    lineGeometry: THREE.BufferGeometry;
     pointsGeometry: THREE.BufferGeometry;
 }
 export let droneTrails: Record<string, DroneTrailVisuals> = {};
@@ -114,11 +111,6 @@ function configureTransformHelperVisuals(helper: THREE.Object3D) {
 
 export function syncViewportDependentSceneVisuals() {
     if (!renderer) return;
-    const size = renderer.getSize(new THREE.Vector2());
-    for (const trail of Object.values(droneTrails)) {
-        const material = trail.path.material as LineMaterial;
-        material.resolution.set(size.x, size.y);
-    }
 }
 
 export function initScene(container: HTMLElement) {

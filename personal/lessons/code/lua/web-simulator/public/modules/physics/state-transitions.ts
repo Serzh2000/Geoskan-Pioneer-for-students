@@ -1,4 +1,5 @@
 import type { DroneState, Vector3 } from '../core/state.js';
+import { completeLanding, setDroneFsmState } from '../autopilot/fsm.js';
 import { triggerLuaCallback } from '../lua/index.js';
 import { log } from '../shared/logging/logger.js';
 import {
@@ -6,8 +7,8 @@ import {
     shouldCrashOnGroundImpact
 } from './events.js';
 
-function stopDroneAtGround(simState: DroneState, status: 'ГОТОВ' | 'ПРИЗЕМЛЕН') {
-    simState.status = status;
+function stopDroneAtGround(simState: DroneState) {
+    setDroneFsmState(simState, 'IDLE');
     simState.vel = { x: 0, y: 0, z: 0 };
     simState.target_pos = { ...simState.pos, z: 0 };
     simState.target_alt = 0;
@@ -34,13 +35,14 @@ export function resolveGroundContact(simState: DroneState, id: string, prevPos: 
         return;
     }
 
-    if (simState.status === 'ПОСАДКА') {
-        stopDroneAtGround(simState, 'ПРИЗЕМЛЕН');
+    if (simState.fsmState === 'LANDING_PROCESS') {
+        completeLanding(simState);
+        stopDroneAtGround(simState);
         triggerLuaCallback(id, 7);
         return;
     }
 
-    stopDroneAtGround(simState, 'ГОТОВ');
+    stopDroneAtGround(simState);
 }
 
 export function updateDisarmedFallState(simState: DroneState, id: string, dt: number, prevPos: Vector3) {
@@ -74,7 +76,7 @@ export function updateDisarmedFallState(simState: DroneState, id: string, dt: nu
         return;
     }
 
-    stopDroneAtGround(simState, 'ГОТОВ');
+    stopDroneAtGround(simState);
     log(
         `[Physics] Дрон ${id} безопасно отключен после падения: h=${prevPos.z.toFixed(2)}м, vz=${verticalImpactSpeed.toFixed(2)}м/с.`,
         'info'

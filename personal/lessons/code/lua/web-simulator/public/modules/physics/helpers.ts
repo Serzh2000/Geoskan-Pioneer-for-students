@@ -1,4 +1,5 @@
 import type { DroneState } from '../core/state.js';
+import { isDroneAirborneState } from '../autopilot/fsm.js';
 
 export const PHYSICS_TUNING = {
     STABILIZE_MAX_TILT: 0.8,
@@ -41,15 +42,5 @@ export function approach(current: number, target: number, maxDelta: number) {
 }
 
 export function isDroneFlying(simState: DroneState) {
-    return (
-        simState.status !== 'ГОТОВ'
-        && simState.status !== 'ПРИЗЕМЛЕН'
-        && simState.status !== 'ВЗВЕДЕН'
-        && simState.status !== 'IDLE'
-        && simState.status !== 'ЗАПУСК'
-        && simState.status !== 'ОСТАНОВЛЕН'
-        && simState.status !== 'ОШИБКА'
-        && simState.status !== 'DISARMED_FALL'
-        && simState.status !== 'CRASHED'
-    );
+    return isDroneAirborneState(simState);
 }

@@ -21,9 +21,14 @@ export function updateStats() {
     if (stateStatus) {
         stateStatus.textContent = simState.status;
         // Color coding for status
-        if (simState.status.includes('ПОЛЕТ') || simState.status.includes('ВЗЛЕТ') || simState.status.includes('ПОСАДКА')) {
+        if (
+            simState.fsmState === 'TAKEOFF_PROCESS'
+            || simState.fsmState === 'FLYING_HOVER'
+            || simState.fsmState === 'FLYING_MOVING'
+            || simState.fsmState === 'LANDING_PROCESS'
+        ) {
             stateStatus.style.color = '#4ade80'; // Green
-        } else if (simState.status === 'ВЗВЕДЕН') {
+        } else if (simState.fsmState === 'PREFLIGHT') {
             stateStatus.style.color = '#facc15'; // Yellow
         } else if (simState.status === 'ОШИБКА' || simState.status === 'CRASHED') {
             stateStatus.style.color = '#f87171'; // Red

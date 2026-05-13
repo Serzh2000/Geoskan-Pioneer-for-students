@@ -12,7 +12,8 @@ export const timer_callLater = function(L: any) {
         trigger_time: simState.current_time + delay,
         callback_ref: func_ref,
         one_shot: true,
-        running: true
+        running: true,
+        sourceState: simState.fsmState
     });
     log(`[Lua Timer] callLater(${delay}s) зарегистрирован`, 'info');
     return 0;
@@ -31,7 +32,8 @@ export const timer_new = function(L: any) {
         next_trigger: simState.current_time + period,
         trigger_time: simState.current_time + period,
         one_shot: false,
-        running: false
+        running: false,
+        sourceState: simState.fsmState
     };
     
     simState.timers.push(timer_obj);
@@ -47,6 +49,7 @@ export const timer_new = function(L: any) {
         ptr.running = true;
         ptr.next_trigger = getDroneFromLua(L).current_time + ptr.period;
         ptr.trigger_time = ptr.next_trigger;
+        ptr.sourceState = getDroneFromLua(L).fsmState;
         log(`[Lua Timer] start()`, 'info');
         return 0;
     });

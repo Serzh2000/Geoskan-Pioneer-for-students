@@ -6,6 +6,7 @@
  * а также обработку столкновений с объектами сцены (препятствиями).
  */
 import { drones } from '../core/state.js';
+import { handlePreflightTimeout } from '../autopilot/fsm.js';
 import { updateTimers } from '../lua/index.js';
 import { getObstacles } from '../drone/index.js';
 import { checkPhysicsEvents } from './events.js';
@@ -28,6 +29,7 @@ export function updatePhysics(dt: number) {
     for (const id in drones) {
         const simState = drones[id];
         const prevPos = { ...simState.pos };
+        handlePreflightTimeout(simState);
         if (processCommandQueue(simState, id) === 'abortFrame') return;
 
         const isFlying = isDroneFlying(simState);

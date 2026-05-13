@@ -1,4 +1,5 @@
 export function log(msg: string, type: 'info'|'error'|'warn'|'success' = 'info') {
+    if (typeof document === 'undefined') return;
     const logs = document.getElementById('logs');
     if (logs) {
         const time = new Date().toLocaleTimeString('ru-RU', { hour12: false });

@@ -2,6 +2,29 @@
 export interface Vector3 { x: number; y: number; z: number; }
 export interface Orientation { roll: number; pitch: number; yaw: number; }
 export interface LedColor { r: number; g: number; b: number; w: number; }
+export type DroneFsmState =
+    | 'IDLE'
+    | 'PREFLIGHT'
+    | 'TAKEOFF_PROCESS'
+    | 'FLYING_HOVER'
+    | 'FLYING_MOVING'
+    | 'LANDING_PROCESS';
+
+export type CommandSource = 'direct' | 'timer' | 'python';
+
+export interface TickCommandSignature {
+    tickMs: number;
+    takeoff: boolean;
+    goToLocalPoint: boolean;
+    landing: boolean;
+}
+
+export interface QueuedMceCommand {
+    commandId: number;
+    issuedAtMs: number;
+    source: CommandSource;
+}
+
 export interface TimerTask {
     trigger_time: number;
     callback_ref: number;
@@ -9,6 +32,7 @@ export interface TimerTask {
     running: boolean;
     period?: number;
     next_trigger?: number;
+    sourceState?: DroneFsmState;
 }
 
 export type GamepadInputRef = `a${number}` | `b${number}`;
@@ -44,6 +68,7 @@ export interface DroneState {
     orientation: Orientation;
     battery: number;
     status: string;
+    fsmState: DroneFsmState;
     flightMode: FlightMode;
     rcChannels: number[]; // 0: Roll, 1: Pitch, 2: Throttle, 3: Yaw, 4..7: Switches
     magnetGripper: {
@@ -56,10 +81,15 @@ export interface DroneState {
     // Для команд вроде goToLocalPoint: разрешаем выставить target,
     // но статус "полёт к точке" включаем только после взлёта.
     pendingLocalPoint?: boolean;
+    pendingLocalPointSource?: CommandSource | null;
     // Python-совместимый latched flag: true один раз после прибытия.
     pointReachedFlag?: boolean;
     traceSampleAccumulator: number;
-    command_queue: number[];
+    command_queue: QueuedMceCommand[];
+    preflightDeadlineMs: number | null;
+    currentCommandSource: CommandSource | null;
+    lastAcceptedGoToTickMs: number | null;
+    tickCommandSignature: TickCommandSignature | null;
     timers: TimerTask[];
     leds: LedColor[];
     script: string;
@@ -119,6 +149,7 @@ export const simSettings = {
 const STORAGE_KEY = 'geoskan_sim_gamepad_settings';
 
 export function saveGamepadSettings() {
+    if (typeof localStorage === 'undefined') return;
     const data = {
         mapping: simSettings.gamepadMapping,
         inversion: simSettings.gamepadInversion,
@@ -130,6 +161,7 @@ export function saveGamepadSettings() {
 }
 
 export function loadGamepadSettings() {
+    if (typeof localStorage === 'undefined') return;
     try {
         const saved = localStorage.getItem(STORAGE_KEY);
         if (saved) {
@@ -165,7 +197,8 @@ export function createDroneState(id: string, name: string, x: number = 0, y: num
         gyro: { x: 0, y: 0, z: 0 },
         orientation: { roll: 0, pitch: 0, yaw: 0 },
         battery: 100,
-        status: 'ГОТОВ',
+        status: 'IDLE',
+        fsmState: 'IDLE',
         flightMode: 'AUTO',
         rcChannels: [1500, 1500, 1000, 1500, 1000, 1000, 1000, 1000],
         magnetGripper: {
@@ -176,12 +209,17 @@ export function createDroneState(id: string, name: string, x: number = 0, y: num
         target_pos: { x, y, z },
         target_yaw: 0,
         pendingLocalPoint: false,
+        pendingLocalPointSource: null,
         pointReachedFlag: false,
         traceSampleAccumulator: 0,
         command_queue: [],
+        preflightDeadlineMs: null,
+        currentCommandSource: null,
+        lastAcceptedGoToTickMs: null,
+        tickCommandSignature: null,
         timers: [],
         leds: Array.from({ length: 29 }, () => ({ r: 0, g: 0, b: 0, w: 0 })),
-        script: '-- Pioneer Lua Script\n\nap.push(Ev.MCE_TAKEOFF)',
+        script: '-- Pioneer Lua Script\n\nap.push(Ev.MCE_PREFLIGHT)\nTimer.callLater(0.5, function()\n    ap.push(Ev.MCE_TAKEOFF)\nend)',
         pythonScript: `# Pioneer Python Script\nfrom pioneer_sdk import Pioneer\nimport time\n\npioneer = Pioneer(simulator=True)\n\npioneer.arm()\npioneer.takeoff()\n\ntime.sleep(3)\n\npioneer.go_to_local_point(x=1, y=1, z=1)\nwhile not pioneer.point_reached():\n    time.sleep(0.05)\n\ntime.sleep(2)\n\npioneer.land()\npioneer.close_connection()`,
         printBubbleText: '',
         printBubbleUntil: 0,
@@ -215,11 +253,7 @@ export const MAX_PATH_POINTS = 2000;
 export const pathPoints: Record<string, Vector3[]> = { 'drone_1': [] };
 
 const DISARMED_STATUSES = new Set([
-    'ГОТОВ',
     'IDLE',
-    'ПРИЗЕМЛЕН',
-    'ОСТАНОВЛЕН',
-    'ЗАПУСК',
     'ОШИБКА',
     'CRASHED',
     'DISARMED_FALL'
@@ -265,14 +299,20 @@ export function resetState(id: string = currentDroneId) {
     drone.accel = { x: 0, y: 0, z: 9.81 };
     drone.gyro = { x: 0, y: 0, z: 0 };
     drone.battery = 100;
-    drone.status = 'ГОТОВ';
+    drone.status = 'IDLE';
+    drone.fsmState = 'IDLE';
     drone.command_queue = [];
+    drone.preflightDeadlineMs = null;
+    drone.currentCommandSource = null;
+    drone.lastAcceptedGoToTickMs = null;
+    drone.tickCommandSignature = null;
     drone.timers = [];
     drone.leds = Array.from({ length: 29 }, () => ({ r: 0, g: 0, b: 0, w: 0 }));
     drone.rcChannels = [1500, 1500, 1000, 1500, 1000, 1000, 1000, 1000];
     drone.magnetGripper.active = false;
     drone.magnetGripper.attachedObjectId = null;
     drone.pendingLocalPoint = false;
+    drone.pendingLocalPointSource = null;
     drone.pointReachedFlag = false;
     drone.traceSampleAccumulator = 0;
     drone.printBubbleText = '';

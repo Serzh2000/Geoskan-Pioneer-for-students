@@ -1,3 +1,10 @@
+type SimulationNoticePayload = string | {
+    title?: string;
+    message: string;
+    detailsHtml?: string;
+    level?: 'warn' | 'info';
+};
+
 export function initSimulationNotice() {
     const sceneContainer = document.querySelector('.scene-container') as HTMLElement | null;
     if (!sceneContainer) return;
@@ -10,13 +17,16 @@ export function initSimulationNotice() {
         notice.innerHTML = `
             <div class="simulation-notice__title">Предупреждение по таймингам</div>
             <div class="simulation-notice__message"></div>
+            <div class="simulation-notice__details"></div>
             <button type="button" class="simulation-notice__close" aria-label="Скрыть">Понятно</button>
         `;
         sceneContainer.appendChild(notice);
     }
 
     const messageEl = notice.querySelector('.simulation-notice__message') as HTMLDivElement | null;
+    const detailsEl = notice.querySelector('.simulation-notice__details') as HTMLDivElement | null;
     const closeBtn = notice.querySelector('.simulation-notice__close') as HTMLButtonElement | null;
+    const titleEl = notice.querySelector('.simulation-notice__title') as HTMLDivElement | null;
     let hideTimer = 0;
 
     const hideNotice = () => {
@@ -24,12 +34,29 @@ export function initSimulationNotice() {
     };
 
     closeBtn?.addEventListener('click', hideNotice);
-    (window as any).showSimulationNotice = (message: string, level: 'warn' | 'info' = 'warn') => {
-        if (!notice || !messageEl) return;
+    notice.addEventListener('click', (event) => {
+        const target = event.target as HTMLElement | null;
+        if (target?.closest('[data-simulation-action="open-mission-guide"]')) {
+            (window as any).openMissionGuideModal?.();
+        }
+    });
+    (window as any).showSimulationNotice = (payload: SimulationNoticePayload, fallbackLevel: 'warn' | 'info' = 'warn') => {
+        if (!notice || !messageEl || !titleEl || !detailsEl) return;
         window.clearTimeout(hideTimer);
-        notice.dataset.level = level;
-        messageEl.textContent = message;
+        const resolved = typeof payload === 'string'
+            ? { title: 'Предупреждение по таймингам', message: payload, detailsHtml: '', level: fallbackLevel }
+            : {
+                title: payload.title || 'Предупреждение по таймингам',
+                message: payload.message,
+                detailsHtml: payload.detailsHtml || '',
+                level: payload.level || fallbackLevel
+            };
+        notice.dataset.level = resolved.level;
+        titleEl.textContent = resolved.title;
+        messageEl.textContent = resolved.message;
+        detailsEl.innerHTML = resolved.detailsHtml;
+        detailsEl.style.display = resolved.detailsHtml ? 'block' : 'none';
         notice.classList.add('visible');
-        hideTimer = window.setTimeout(hideNotice, 6500);
+        hideTimer = window.setTimeout(hideNotice, resolved.detailsHtml ? 12000 : 6500);
     };
 }

@@ -1,5 +1,6 @@
 import type * as THREE from 'three';
 import type { DroneState } from '../core/state.js';
+import { enterPreflight, enterTakeoffProcess, setDroneFsmState } from '../autopilot/fsm.js';
 import { matchesAuxRange, simSettings } from '../core/state.js';
 import { triggerLuaCallback } from '../lua/index.js';
 import {
@@ -32,14 +33,15 @@ function updateFlightModeFromRc(simState: DroneState, id: string, isFlying: bool
     const ch6 = simState.rcChannels[5];
     const armActive = matchesAuxRange(ch6, simSettings.gamepadAuxRanges.arm);
     const isAirborne = simState.pos.z > AIRBORNE_ALTITUDE_EPSILON;
-    if (armActive && (simState.status === 'ГОТОВ' || simState.status === 'ПРИЗЕМЛЕН' || simState.status === 'DISARMED_FALL')) {
-        simState.status = 'ВЗВЕДЕН';
-        triggerLuaCallback(id, 11);
-    } else if (!armActive && (simState.status === 'ВЗВЕДЕН' || isFlying)) {
+    if (armActive && simState.fsmState === 'IDLE' && simState.status !== 'DISARMED_FALL') {
+        if (enterPreflight(simState)) {
+            triggerLuaCallback(id, 11);
+        }
+    } else if (!armActive && (simState.fsmState === 'PREFLIGHT' || isFlying)) {
         if (isAirborne) {
             beginDisarmedFall(simState, id, 'DISARM в воздухе: двигатели отключены, начинается свободное падение.');
         } else {
-            simState.status = 'ГОТОВ';
+            setDroneFsmState(simState, 'IDLE');
             simState.vel = { x: 0, y: 0, z: 0 };
             simState.target_pos = { ...simState.pos, z: 0 };
             simState.target_alt = 0;
@@ -47,11 +49,8 @@ function updateFlightModeFromRc(simState: DroneState, id: string, isFlying: bool
     }
 
     const throttle = simState.rcChannels[2];
-    if (armActive && simState.status === 'ВЗВЕДЕН' && throttle >= MANUAL_TAKEOFF_THROTTLE) {
-        simState.target_pos.x = simState.pos.x;
-        simState.target_pos.y = simState.pos.y;
-        simState.target_pos.z = Math.max(simState.pos.z + MANUAL_TAKEOFF_ALTITUDE, MANUAL_TAKEOFF_ALTITUDE);
-        simState.status = 'ВЗЛЕТ';
+    if (armActive && simState.fsmState === 'PREFLIGHT' && throttle >= MANUAL_TAKEOFF_THROTTLE) {
+        enterTakeoffProcess(simState);
     }
 }
 

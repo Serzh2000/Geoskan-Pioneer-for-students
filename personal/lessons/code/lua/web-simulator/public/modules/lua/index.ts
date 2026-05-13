@@ -1,6 +1,7 @@
 import { drones, currentDroneId, getDroneFromLua } from '../core/state.js';
 import { showDronePrintBubble } from '../drone/index.js';
 import { log } from '../shared/logging/logger.js';
+import { withCommandSource } from '../autopilot/fsm.js';
 import { luaToStr } from './utils.js';
 import { triggerEvent } from '../autopilot/mce-events.js';
 import { runCoroutine } from './runner.js';
@@ -214,7 +215,9 @@ export function updateTimers() {
                 lua.lua_xmove(L, T, 1);
                 
                 if (lua.lua_isfunction(T, -1)) {
-                    runCoroutine(L, T, 0, id);
+                    withCommandSource(drone, 'timer', () => {
+                        runCoroutine(L, T, 0, id);
+                    });
                 } else {
                     lua.lua_pop(T, 1);
                 }

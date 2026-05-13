@@ -7,7 +7,7 @@ describe('Simulation State', () => {
 
     test('should have default values after reset', () => {
         expect(simState.running).toBe(false);
-        expect(simState.status).toBe('ГОТОВ');
+        expect(simState.status).toBe('IDLE');
         expect(simState.pos).toEqual({ x: 0, y: 0, z: 0 });
         expect(simState.orientation.yaw).toBe(0);
         expect(simState.battery).toBe(100);

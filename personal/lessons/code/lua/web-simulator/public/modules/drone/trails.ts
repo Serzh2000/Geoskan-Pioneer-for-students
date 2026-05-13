@@ -1,7 +1,4 @@
 import * as THREE from 'three';
-import { Line2 } from 'three/examples/jsm/lines/Line2.js';
-import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
-import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 import { MAX_PATH_POINTS, pathPoints, simSettings } from '../core/state.js';
 import { scene, droneTrails, is3DActive } from '../scene/scene-init.js';
 import { log } from '../shared/logging/logger.js';
@@ -28,7 +25,7 @@ function shouldShowTracerPoints() {
 }
 
 export function initTrailForDrone(id: string) {
-    const lineGeometry = new LineGeometry();
+    const lineGeometry = new THREE.BufferGeometry();
     log(`[3D-INIT] Инициализация трейла для ${id}`, 'info');
 
     const pointsGeometry = new THREE.BufferGeometry();
@@ -37,17 +34,15 @@ export function initTrailForDrone(id: string) {
     pointsGeometry.setDrawRange(0, 0);
 
     const colorHex = getTracerColorHex();
-    const tracerWidth = getTracerWidthPx();
-
-    const pathMat = new LineMaterial({
+    const pathMat = new THREE.LineBasicMaterial({
         color: colorHex,
-        linewidth: tracerWidth,
         transparent: true,
         opacity: 0.9,
         depthTest: false,
-        depthWrite: false
+        depthWrite: false,
+        toneMapped: false
     });
-    const path = new Line2(lineGeometry, pathMat);
+    const path = new THREE.Line(lineGeometry, pathMat);
     path.frustumCulled = false;
     path.renderOrder = 9000;
     path.visible = false;
@@ -58,7 +53,8 @@ export function initTrailForDrone(id: string) {
         sizeAttenuation: true,
         transparent: true,
         opacity: 0.9,
-        depthWrite: false
+        depthWrite: false,
+        toneMapped: false
     });
     const particles = new THREE.Points(pointsGeometry, particleMat);
     particles.frustumCulled = false;
@@ -78,9 +74,17 @@ export function disposeTrailForDrone(id: string) {
     scene.remove(droneTrails[id].particles);
     droneTrails[id].lineGeometry.dispose();
     droneTrails[id].pointsGeometry.dispose();
-    (droneTrails[id].path.material as LineMaterial).dispose();
+    (droneTrails[id].path.material as THREE.LineBasicMaterial).dispose();
     (droneTrails[id].particles.material as THREE.PointsMaterial).dispose();
     delete droneTrails[id];
+}
+
+function writePositions(target: Float32Array, pts: typeof pathPoints[string]) {
+    for (let i = 0; i < pts.length; i++) {
+        target[i * 3] = pts[i].x;
+        target[i * 3 + 1] = pts[i].y;
+        target[i * 3 + 2] = pts[i].z;
+    }
 }
 
 export function updateTrailForDrone(id: string) {
@@ -91,38 +95,31 @@ export function updateTrailForDrone(id: string) {
 
     if (simSettings.showTracer && pts.length > 1) {
         const pointPositions = trail.pointsGeometry.attributes.position.array as Float32Array;
-        const linePositions = new Float32Array(pts.length * 3);
-        for (let i = 0; i < pts.length; i++) {
-            pointPositions[i * 3] = pts[i].x;
-            pointPositions[i * 3 + 1] = pts[i].y;
-            pointPositions[i * 3 + 2] = pts[i].z;
-
-            linePositions[i * 3] = pts[i].x;
-            linePositions[i * 3 + 1] = pts[i].y;
-            linePositions[i * 3 + 2] = pts[i].z;
-        }
-        trail.pointsGeometry.setDrawRange(0, pts.length);
-        trail.pointsGeometry.attributes.position.needsUpdate = true;
-        trail.lineGeometry.setPositions(linePositions);
+        writePositions(pointPositions, pts);
+        trail.lineGeometry.setAttribute(
+            'position',
+            new THREE.Float32BufferAttribute(pts.flatMap((pt) => [pt.x, pt.y, pt.z]), 3)
+        );
+        trail.lineGeometry.setDrawRange(0, pts.length);
         trail.lineGeometry.computeBoundingSphere();
 
-        const pathMat = trail.path.material as LineMaterial;
-        const particleMat = trail.particles.material as THREE.PointsMaterial;
+        trail.pointsGeometry.setDrawRange(0, pts.length);
+        trail.pointsGeometry.attributes.position.needsUpdate = true;
 
+        const pathMat = trail.path.material as THREE.LineBasicMaterial;
+        const particleMat = trail.particles.material as THREE.PointsMaterial;
         const colorHex = getTracerColorHex();
-        const tracerWidth = getTracerWidthPx();
         pathMat.color.setHex(colorHex);
-        pathMat.linewidth = tracerWidth;
+        pathMat.needsUpdate = true;
         particleMat.color.setHex(colorHex);
         particleMat.size = getTracerPointSize();
+        particleMat.needsUpdate = true;
 
         trail.path.visible = shouldShowTracerLine();
         trail.particles.visible = shouldShowTracerPoints();
-
-        if (linePositions.length >= 6) {
-            trail.path.computeLineDistances();
-        }
+        trail.pointsGeometry.computeBoundingSphere();
         trail.path.updateMatrixWorld(true);
+        trail.particles.updateMatrixWorld(true);
         return;
     }
 
