@@ -1,9 +1,9 @@
 import { log } from '../shared/logging/logger.js';
-import { renderer, selectedObject, transformControl } from '../scene/scene-init.js';
-import { onPointerDown, onPointerUp } from '../scene/input.js';
-import { handleLinearEditingKeyDown, handleLinearEditingPointerMove } from '../scene/linear-editing.js';
-import { handleDeselection } from '../scene/selection.js';
-import { activateTransformMode, deleteSelectedObject } from '../scene/object-manager.js';
+import { renderer, selectedObject, transformControl } from '../scene/core/scene-init.js';
+import { onPointerDown, onPointerUp } from '../scene/interaction/input.js';
+import { handleLinearEditingKeyDown, handleLinearEditingPointerMove } from '../scene/interaction/linear-editing.js';
+import { handleDeselection } from '../scene/interaction/selection.js';
+import { activateTransformMode, deleteSelectedObject } from '../scene/objects/object-manager.js';
 
 let scenePointerDownCaptureHandler: ((event: PointerEvent) => void) | null = null;
 let scenePointerUpCaptureHandler: ((event: PointerEvent) => void) | null = null;

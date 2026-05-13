@@ -5,18 +5,18 @@
  * вкладок (редактор, справочник API, настройки и др.), а также настройку
  * загрузки файлов с сервера и локально.
  */
-import { initContextMenu } from './context-menu.js';
-import { initSceneManager } from './scene-manager.js';
-import { initDroneManager } from './drone-manager.js';
-import { renderApiDocs } from './api-docs-ui.js';
-import { initLEDMatrixUI } from './led-matrix.js';
-import { initSettingsUI } from './settings.js';
-import { initSimulationNotice } from './simulation-notice.js';
-import { initMissionGuideModal } from './mission-guide-modal.js';
-import { initHudControls } from './hud-controls.js';
-import { initSidebar } from './sidebar.js';
-import { initCameraModeUI } from './camera-mode.js';
-import { initFileControls } from './file-controls.js';
+import { initContextMenu } from './context-menu/index.js';
+import { initSceneManager } from './scene-manager/index.js';
+import { initDroneManager } from './managers/drone-manager.js';
+import { renderApiDocs } from './api-docs/index.js';
+import { initLEDMatrixUI } from './panels/led-matrix.js';
+import { initSettingsUI } from './settings/index.js';
+import { initSimulationNotice } from './panels/simulation-notice.js';
+import { initMissionGuideModal } from './mission-guide/modal.js';
+import { initHudControls } from './controls/hud-controls.js';
+import { initSidebar } from './panels/sidebar.js';
+import { initCameraModeUI } from './controls/camera-mode.js';
+import { initFileControls } from './controls/file-controls.js';
 import type { MarkerMapOptions } from '../environment/obstacles.js';
 
 export interface UICallbacks {

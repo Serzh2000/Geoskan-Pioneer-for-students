@@ -2,7 +2,7 @@ import type { ApiDoc } from './api-docs-types.js';
 
 export const pythonApiDocs: Record<string, ApiDoc> = {
     'Pioneer.arm': {
-        desc: 'Р—Р°РїСѓСЃРє РјРѕС‚РѕСЂРѕРІ РєРІР°РґСЂРѕРєРѕРїС‚РµСЂР°.',
+        desc: 'Запуск моторов квадрокоптера.',
         syntax: 'pioneer.arm() -> bool',
         params: 'none',
         returns: 'bool',
@@ -11,7 +11,7 @@ export const pythonApiDocs: Record<string, ApiDoc> = {
         insertText: 'arm()'
     },
     'Pioneer.disarm': {
-        desc: 'РћС‚РєР»СЋС‡РµРЅРёРµ РјРѕС‚РѕСЂРѕРІ РєРІР°РґСЂРѕРєРѕРїС‚РµСЂР°.',
+        desc: 'Отключение моторов квадрокоптера.',
         syntax: 'pioneer.disarm() -> bool',
         params: 'none',
         returns: 'bool',
@@ -20,7 +20,7 @@ export const pythonApiDocs: Record<string, ApiDoc> = {
         insertText: 'disarm()'
     },
     'Pioneer.takeoff': {
-        desc: 'РљРѕРјР°РЅРґР° РІР·Р»С‘С‚Р° РЅР° РІС‹СЃРѕС‚Сѓ takeoffAlt (РїР°СЂР°РјРµС‚СЂ Р°РІС‚РѕРїРёР»РѕС‚Р°).',
+        desc: 'Команда взлета на высоту takeoffAlt, заданную в параметрах автопилота.',
         syntax: 'pioneer.takeoff() -> bool',
         params: 'none',
         returns: 'bool',
@@ -29,7 +29,7 @@ export const pythonApiDocs: Record<string, ApiDoc> = {
         insertText: 'takeoff()'
     },
     'Pioneer.land': {
-        desc: 'РљРѕРјР°РЅРґР° РїРѕСЃР°РґРєРё.',
+        desc: 'Команда посадки.',
         syntax: 'pioneer.land() -> bool',
         params: 'none',
         returns: 'bool',
@@ -38,7 +38,7 @@ export const pythonApiDocs: Record<string, ApiDoc> = {
         insertText: 'land()'
     },
     'Pioneer.close_connection': {
-        desc: 'Р—Р°РєСЂС‹С‚СЊ MAVLink СЃРѕРµРґРёРЅРµРЅРёРµ (РІ СЃРёРјСѓР»СЏС‚РѕСЂРµ РјРѕР¶РµС‚ Р±С‹С‚СЊ Р·Р°РіР»СѓС€РєРѕР№).',
+        desc: 'Закрыть MAVLink-соединение. В симуляторе может быть заглушкой.',
         syntax: 'pioneer.close_connection()',
         params: 'none',
         returns: 'nil',
@@ -47,25 +47,25 @@ export const pythonApiDocs: Record<string, ApiDoc> = {
         insertText: 'close_connection()'
     },
     'Pioneer.go_to_local_point': {
-        desc: 'РџРѕР»С‘С‚ РІ С‚РѕС‡РєСѓ РІ Р»РѕРєР°Р»СЊРЅРѕР№ СЃРёСЃС‚РµРјРµ РєРѕРѕСЂРґРёРЅР°С‚ (РјРµС‚СЂС‹).',
+        desc: 'Полет в точку в локальной системе координат сцены, в метрах.',
         syntax: 'pioneer.go_to_local_point(x=None, y=None, z=None, yaw=None) -> bool',
-        params: 'x,y,z (Рј), yaw (СЂР°РґРёР°РЅС‹, РѕРїС†РёРѕРЅР°Р»СЊРЅРѕ)',
+        params: 'x, y, z (м), yaw (радианы, опционально)',
         returns: 'bool',
         example: 'pioneer.go_to_local_point(x=1, y=1, z=1, yaw=0)',
         kind: 'Method',
         insertText: 'go_to_local_point(x=${1:x}, y=${2:y}, z=${3:z}, yaw=${4:yaw})'
     },
     'Pioneer.go_to_local_point_body_fixed': {
-        desc: 'РџРѕР»С‘С‚ РІ С‚РѕС‡РєСѓ РІ СЃРёСЃС‚РµРјРµ РєРѕРѕСЂРґРёРЅР°С‚ РґСЂРѕРЅР° (body-fixed).',
+        desc: 'Полет в точку в системе координат самого дрона, body-fixed.',
         syntax: 'pioneer.go_to_local_point_body_fixed(x, y, z, yaw) -> bool',
-        params: 'x,y,z (Рј), yaw (СЂР°РґРёР°РЅС‹)',
+        params: 'x, y, z (м), yaw (радианы)',
         returns: 'bool',
         example: 'pioneer.go_to_local_point_body_fixed(x=0, y=0, z=1, yaw=0)',
         kind: 'Method',
         insertText: 'go_to_local_point_body_fixed(x=${1:x}, y=${2:y}, z=${3:z}, yaw=${4:yaw})'
     },
     'Pioneer.point_reached': {
-        desc: 'Р›Р°С‚С‡-С„Р»Р°Рі РґРѕСЃС‚РёР¶РµРЅРёСЏ РЅРѕРІРѕР№ С‚РѕС‡РєРё (СЃР±СЂР°СЃС‹РІР°РµС‚СЃСЏ РїРѕСЃР»Рµ РІС‹Р·РѕРІР°).',
+        desc: 'Latch-флаг достижения новой точки. Сбрасывается после вызова.',
         syntax: 'pioneer.point_reached() -> bool',
         params: 'none',
         returns: 'bool',
@@ -74,43 +74,43 @@ export const pythonApiDocs: Record<string, ApiDoc> = {
         insertText: 'point_reached()'
     },
     'Pioneer.set_manual_speed': {
-        desc: 'РџРѕР»С‘С‚ СЃ Р·Р°РґР°РЅРЅРѕР№ СЃРєРѕСЂРѕСЃС‚СЊСЋ. РљРѕРјР°РЅРґСѓ РЅСѓР¶РЅРѕ РѕС‚РїСЂР°РІР»СЏС‚СЊ РїРѕСЃС‚РѕСЏРЅРЅРѕ.',
+        desc: 'Полет с заданной скоростью. Команду нужно отправлять постоянно.',
         syntax: 'pioneer.set_manual_speed(vx, vy, vz, yaw_rate) -> bool',
-        params: 'vx,vy,vz (Рј/СЃ), yaw_rate (СЂР°Рґ/СЃ)',
+        params: 'vx, vy, vz (м/с), yaw_rate (рад/с)',
         returns: 'bool',
         example: 'pioneer.set_manual_speed(vx=0, vy=1, vz=0, yaw_rate=0)',
         kind: 'Method',
         insertText: 'set_manual_speed(vx=${1:vx}, vy=${2:vy}, vz=${3:vz}, yaw_rate=${4:yaw_rate})'
     },
     'Pioneer.get_local_position_lps': {
-        desc: 'РўРµРєСѓС‰РёРµ РєРѕРѕСЂРґРёРЅР°С‚С‹ РІ Р»РѕРєР°Р»СЊРЅРѕР№ СЃРёСЃС‚РµРјРµ (LPS).',
+        desc: 'Текущие координаты в локальной системе позиционирования LPS.',
         syntax: 'pioneer.get_local_position_lps(get_last_received=True) -> list|None',
         params: 'get_last_received (bool)',
-        returns: '[x, y, z] РёР»Рё None',
+        returns: '[x, y, z] или None',
         example: 'pos = pioneer.get_local_position_lps()',
         kind: 'Method',
         insertText: 'get_local_position_lps(get_last_received=${1:True})'
     },
     'Pioneer.get_dist_sensor_data': {
-        desc: 'Р”Р°РЅРЅС‹Рµ РґР°Р»СЊРЅРѕРјРµСЂР° (TOF/Rangefinder).',
+        desc: 'Данные дальномера, TOF или rangefinder.',
         syntax: 'pioneer.get_dist_sensor_data(get_last_received=True) -> float|None',
         params: 'get_last_received (bool)',
-        returns: 'meters РёР»Рё None',
+        returns: 'meters или None',
         example: 'd = pioneer.get_dist_sensor_data()',
         kind: 'Method',
         insertText: 'get_dist_sensor_data(get_last_received=${1:True})'
     },
     'Pioneer.get_battery_status': {
-        desc: 'РЎС‚Р°С‚СѓСЃ Р±Р°С‚Р°СЂРµРё (РЅР°РїСЂСЏР¶РµРЅРёРµ).',
+        desc: 'Статус батареи, обычно напряжение.',
         syntax: 'pioneer.get_battery_status(get_last_received=True) -> float|None',
         params: 'get_last_received (bool)',
-        returns: 'voltage РёР»Рё None',
+        returns: 'voltage или None',
         example: 'v = pioneer.get_battery_status()',
         kind: 'Method',
         insertText: 'get_battery_status(get_last_received=${1:True})'
     },
     'Pioneer.get_autopilot_state': {
-        desc: 'РўРµРєСѓС‰РµРµ СЃРѕСЃС‚РѕСЏРЅРёРµ Р°РІС‚РѕРїРёР»РѕС‚Р°.',
+        desc: 'Текущее состояние автопилота.',
         syntax: 'pioneer.get_autopilot_state() -> str',
         params: 'none',
         returns: 'str',
@@ -119,7 +119,7 @@ export const pythonApiDocs: Record<string, ApiDoc> = {
         insertText: 'get_autopilot_state()'
     },
     'Pioneer.led_control': {
-        desc: 'РЈРїСЂР°РІР»РµРЅРёРµ RGB СЃРІРµС‚РѕРґРёРѕРґР°РјРё.',
+        desc: 'Управление RGB-светодиодами.',
         syntax: 'pioneer.led_control(r=0, g=0, b=0) -> bool',
         params: 'r,g,b (0..255)',
         returns: 'bool',
@@ -128,7 +128,7 @@ export const pythonApiDocs: Record<string, ApiDoc> = {
         insertText: 'led_control(r=${1:r}, g=${2:g}, b=${3:b})'
     },
     'Pioneer.send_rc_channels': {
-        desc: 'РРјРёС‚Р°С†РёСЏ РїСЂРёС‘РјР° Р·РЅР°С‡РµРЅРёР№ РїРѕ РєР°РЅР°Р»Р°Рј РїСѓР»СЊС‚Р°.',
+        desc: 'Имитация приема значений по каналам пульта управления.',
         syntax: 'pioneer.send_rc_channels(channel_1..channel_8) -> bool',
         params: 'channel_1..channel_8 (int)',
         returns: 'bool',
@@ -139,16 +139,16 @@ export const pythonApiDocs: Record<string, ApiDoc> = {
 
     // Camera
     'Camera.get_frame': {
-        desc: 'РџРѕР»СѓС‡РёС‚СЊ РєР°РґСЂ (РєР°Рє РјР°СЃСЃРёРІ Р±Р°Р№С‚РѕРІ).',
+        desc: 'Получить кадр как массив байтов.',
         syntax: 'camera.get_frame() -> bytes|None',
         params: 'none',
-        returns: 'bytes РёР»Рё None',
+        returns: 'bytes или None',
         example: 'frame = camera.get_frame()',
         kind: 'Method',
         insertText: 'get_frame()'
     },
     'Camera.get_cv_frame': {
-        desc: 'РџРѕР»СѓС‡РёС‚СЊ РїСЂРµРґРІР°СЂРёС‚РµР»СЊРЅРѕ РґРµРєРѕРґРёСЂРѕРІР°РЅРЅС‹Р№ OpenCV-РєР°РґСЂ.',
+        desc: 'Получить предварительно декодированный кадр в формате OpenCV.',
         syntax: 'camera.get_cv_frame() -> frame',
         params: 'none',
         returns: 'frame',
@@ -157,7 +157,7 @@ export const pythonApiDocs: Record<string, ApiDoc> = {
         insertText: 'get_cv_frame()'
     },
     'Camera.connect': {
-        desc: 'Connect camera to the nearest video tower in simulator range.',
+        desc: 'Подключить камеру к ближайшей видеовышке в зоне действия симулятора.',
         syntax: 'camera.connect() -> bool',
         params: 'none',
         returns: 'bool',
@@ -166,7 +166,7 @@ export const pythonApiDocs: Record<string, ApiDoc> = {
         insertText: 'connect()'
     },
     'Camera.disconnect': {
-        desc: 'Disconnect camera from the current video tower.',
+        desc: 'Отключить камеру от текущей видеовышки.',
         syntax: 'camera.disconnect() -> bool',
         params: 'none',
         returns: 'bool',
@@ -175,7 +175,7 @@ export const pythonApiDocs: Record<string, ApiDoc> = {
         insertText: 'disconnect()'
     },
     'Camera.connected': {
-        desc: 'Check whether camera is currently connected to a video tower.',
+        desc: 'Проверить, подключена ли камера к видеовышке в данный момент.',
         syntax: 'camera.connected() -> bool',
         params: 'none',
         returns: 'bool',

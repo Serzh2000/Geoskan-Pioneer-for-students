@@ -7,15 +7,15 @@ import { drones, simState, currentDroneId, simSettings } from '../core/state.js'
 import { log } from '../shared/logging/logger.js';
 import { envGroup } from '../environment/index.js';
 import { createDroneModel, updateLEDs, animateRotors } from '../drone-model/index.js';
-import { updateCamera } from '../scene/camera.js';
+import { updateCamera } from '../scene/core/camera.js';
 import { 
     initScene, scene, camera, renderer, controls, transformControl, 
     transformHelper, selectionHelper, 
     droneMeshes, is3DActive, selectedObject, canvasContainer,
     setSelectedObject, setIsHittingGizmo,
     onWindowResize, syncViewportDependentSceneVisuals
-} from '../scene/scene-init.js';
-import { setupTransformControlListeners } from '../scene/transform.js';
+} from '../scene/core/scene-init.js';
+import { setupTransformControlListeners } from '../scene/interaction/transform.js';
 import { explodeDrone, resetDroneVisuals, updateDebrisVisuals } from './crash-visuals.js';
 import { registerScenePointerHandlers, handleSceneKeyDown } from './scene-events.js';
 import { initTrailForDrone, disposeTrailForDrone, updateTrailForDrone } from './trails.js';
@@ -32,8 +32,8 @@ export {
     setSceneObjectTransformMode, getSelectedSceneObjectId,
     startSelectedLinearObjectEditing, finishSelectedLinearObjectEditing,
     isSelectedLinearObjectEditingActive, getSelectedLinearObjectEditingTargetId
-} from '../scene/object-manager.js';
-export type { TransformMode } from '../scene/object-manager.js';
+} from '../scene/objects/object-manager.js';
+export type { TransformMode } from '../scene/objects/object-manager.js';
 
 export interface SceneObjectInfo {
     id: string;

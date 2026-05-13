@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { MAX_PATH_POINTS, pathPoints, simSettings } from '../core/state.js';
-import { scene, droneTrails, is3DActive } from '../scene/scene-init.js';
+import { scene, droneTrails, is3DActive } from '../scene/core/scene-init.js';
 import { log } from '../shared/logging/logger.js';
 
 function getTracerColorHex() {
