@@ -7,7 +7,11 @@ const activeLessonByLanguage: Record<ScriptLanguage, string> = {
 };
 
 const lessonSequences = new Map<string, string[]>();
+const lessonWorkspaceXml = new Map<string, string>();
 const lessonBanners = new Map<string, RuntimeBanner>();
+const lessonChecks = new Map<string, boolean>();
+const lessonSolutionVisibility = new Map<string, boolean>();
+const lessonGeneratedCodeVisibility = new Map<string, boolean>();
 
 function getStateKey(language: ScriptLanguage, lessonId: string): string {
     return `${language}:${lessonId}`;
@@ -40,8 +44,19 @@ export function setLessonSequence(language: ScriptLanguage, lessonId: string, se
     lessonSequences.set(getStateKey(language, lessonId), [...sequence]);
 }
 
+export function setLessonWorkspaceState(language: ScriptLanguage, lessonId: string, xml: string | null): void {
+    const key = getStateKey(language, lessonId);
+    if (xml) lessonWorkspaceXml.set(key, xml);
+    else lessonWorkspaceXml.delete(key);
+}
+
+export function getLessonWorkspaceState(language: ScriptLanguage, lessonId: string): string | null {
+    return lessonWorkspaceXml.get(getStateKey(language, lessonId)) || null;
+}
+
 export function clearLessonSequence(language: ScriptLanguage, lessonId: string): void {
     lessonSequences.set(getStateKey(language, lessonId), []);
+    lessonWorkspaceXml.delete(getStateKey(language, lessonId));
 }
 
 export function setLessonBanner(language: ScriptLanguage, lessonId: string, banner: RuntimeBanner | null): void {
@@ -52,4 +67,28 @@ export function setLessonBanner(language: ScriptLanguage, lessonId: string, bann
 
 export function getLessonBanner(language: ScriptLanguage, lessonId: string): RuntimeBanner | null {
     return lessonBanners.get(getStateKey(language, lessonId)) || null;
+}
+
+export function setLessonChecked(language: ScriptLanguage, lessonId: string, checked: boolean): void {
+    lessonChecks.set(getStateKey(language, lessonId), checked);
+}
+
+export function isLessonChecked(language: ScriptLanguage, lessonId: string): boolean {
+    return lessonChecks.get(getStateKey(language, lessonId)) || false;
+}
+
+export function setLessonSolutionVisible(language: ScriptLanguage, lessonId: string, visible: boolean): void {
+    lessonSolutionVisibility.set(getStateKey(language, lessonId), visible);
+}
+
+export function isLessonSolutionVisible(language: ScriptLanguage, lessonId: string): boolean {
+    return lessonSolutionVisibility.get(getStateKey(language, lessonId)) || false;
+}
+
+export function setLessonGeneratedCodeVisible(language: ScriptLanguage, lessonId: string, visible: boolean): void {
+    lessonGeneratedCodeVisibility.set(getStateKey(language, lessonId), visible);
+}
+
+export function isLessonGeneratedCodeVisible(language: ScriptLanguage, lessonId: string): boolean {
+    return lessonGeneratedCodeVisibility.get(getStateKey(language, lessonId)) || false;
 }

@@ -6,6 +6,12 @@ export type GuideMethodLink = {
     previewKey?: string;
 };
 
+export type GuideApiFocusItem = {
+    title: string;
+    summary: string;
+    example?: string;
+};
+
 export type GuideDiagnosticKind = 'error' | 'warning' | 'success' | 'info';
 
 export type GuideDiagnostic = {
@@ -45,8 +51,10 @@ export type GuideLesson = {
     title: string;
     goal: string;
     summary: string;
+    lessonIntro: string;
     expectedOutcome: string;
     builderHint: string;
+    apiFocus: GuideApiFocusItem[];
     targetBlockIds: string[];
     blocks: GuideBlock[];
     links: GuideMethodLink[];

@@ -3,9 +3,8 @@
 /// <reference path="./shims.d.ts" />
 import * as THREE from 'three';
 import * as fengari from 'fengari-web';
-import { simState, resetState, resetRuntimeStatePreservePose, drones, currentDroneId, currentScriptLanguage, setCurrentScriptLanguage, ScriptLanguage } from './modules/core/state.js';
+import { simState, resetState, resetRuntimeStatePreservePose, drones, currentDroneId, currentScriptLanguage } from './modules/core/state.js';
 import { init3D, updateDrone3D, is3DActive, addObject, appendPointToSelectedLinearObject, deleteSelectedObject, finishSelectedLinearObjectEditing, getSelectedSceneObjectId, isSelectedLinearObjectEditingActive, listSceneObjects, resetDroneToOrigin, selectSceneObjectById, setSceneObjectTransformMode, startSelectedLinearObjectEditing, updateSelectedSceneObject, deleteSceneObjectById } from './modules/drone/index.js';
-import { updatePhysics } from './modules/physics/index.js';
 import { runLuaScript, stopLuaScript, triggerLuaCallback } from './modules/lua/index.js';
 import { setLocalFrameOrigin } from './modules/lua/autopilot.js';
 import { runPythonScript, stopPythonScript } from './modules/python/index.js';
@@ -16,35 +15,31 @@ import { runPythonScript, stopPythonScript } from './modules/python/index.js';
  * Управляет главным циклом обновления (requestAnimationFrame), 
  * запуском/остановкой Lua-скриптов и связью между UI и логикой симуляции.
  */
-import { initEditor, getEditorValue, setEditorValue, layoutEditor, setEditorLanguage } from './modules/editor/index.js';
+import { initEditor, getEditorValue, setEditorValue, layoutEditor } from './modules/editor/index.js';
 import { initUI } from './modules/ui/index.js';
 import { log } from './modules/shared/logging/logger.js';
-import { updateStats } from './modules/ui/panels/stats.js';
-import { renderApiDocs } from './modules/ui/api-docs/index.js';
-import { renderMissionGuidePanel } from './modules/ui/mission-guide/panel.js';
 import type { MarkerMapOptions } from './modules/environment/obstacles.js';
 import { showScenarioValidationNotice } from './modules/app/script-execution-notice.js';
+import { configureSimulationControls } from './modules/app/simulation-controls.js';
+import { initScriptLanguageSelector } from './modules/app/language-selector.js';
+import { registerGlobalErrorHandler } from './modules/app/global-error.js';
+import { startAnimationLoop } from './modules/app/animation-loop.js';
 
 // Global assignments for legacy/Lua support
 (window as any).THREE = THREE;
 (window as any).fengari = fengari;
 
 // Global Loop
-import { simSettings } from './modules/core/state.js';
-
-let animationFrameId: number;
-let lastTime = 0;
-
-// Global error handler for debugging
-window.onerror = function(message, source, lineno, colno, error) {
-    const errorMsg = `[Global Error] ${message} at ${source}:${lineno}:${colno}`;
-    console.error(errorMsg, error);
-    log(errorMsg, 'error');
-    return false;
-};
 
 function init() {
     log('Инициализация системы...', 'info');
+    registerGlobalErrorHandler();
+
+    configureSimulationControls({
+        start: startSimulation,
+        stop: stopSimulation,
+        reset: resetSimulation
+    });
 
     // Initialize UI with callbacks
     initUI({
@@ -82,42 +77,17 @@ function init() {
 
     // Initialize Editor
     initEditor();
-
-    // Initialize script language selector (Lua/Python)
-    const langSelect = document.getElementById('script-language-select') as HTMLSelectElement | null;
-    if (langSelect) {
-        // Ensure selector reflects current state
-        langSelect.value = currentScriptLanguage;
-        // Load appropriate buffer into editor
-        const drone = drones[currentDroneId];
-        if (drone) {
-            setEditorLanguage(currentScriptLanguage);
-            const initialCode = currentScriptLanguage === 'lua' ? drone.script : drone.pythonScript;
-            setEditorValue(initialCode);
-            renderApiDocs(currentScriptLanguage);
-            renderMissionGuidePanel(currentScriptLanguage);
-        }
-
-        langSelect.addEventListener('change', () => {
-            const lang = langSelect.value as ScriptLanguage;
-            setCurrentScriptLanguage(lang);
-            const selectedDrone = drones[currentDroneId];
-            if (!selectedDrone) return;
-            setEditorLanguage(lang);
-            const code = lang === 'lua' ? selectedDrone.script : selectedDrone.pythonScript;
-            setEditorValue(code);
-            renderApiDocs(lang);
-            renderMissionGuidePanel(lang);
-            log(`Язык скрипта: ${lang.toUpperCase()}`, 'info');
-        });
-    }
+    initScriptLanguageSelector();
 
     // Initialize 3D Scene
     const container = document.getElementById('canvas-container');
     if (container) init3D(container);
 
     // Start Loop
-    animate(0);
+    startAnimationLoop({
+        updateDrone3D,
+        is3DActive: () => is3DActive
+    });
 }
 
 function startSimulation() {
@@ -265,25 +235,6 @@ async function loadFileContent(path: string) {
     } catch (e) {
         log('Ошибка загрузки файла', 'error');
     }
-}
-
-function animate(time: number) {
-    animationFrameId = requestAnimationFrame(animate);
-
-    if (!lastTime) lastTime = time;
-    let dt = (time - lastTime) / 1000;
-    if (dt > 0.1) dt = 0.1; // Cap dt
-    lastTime = time;
-
-    dt *= simSettings.simSpeed;
-
-    updatePhysics(dt);
-
-    if (is3DActive) {
-        updateDrone3D(dt);
-    }
-    
-    updateStats();
 }
 
 // Make sure global functions are accessible for HTML events

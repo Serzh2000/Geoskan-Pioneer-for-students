@@ -119,8 +119,8 @@
 .guide-lesson-page {
     display: flex;
     flex-direction: column;
-    gap: 16px;
-    padding: 20px;
+    gap: 18px;
+    padding: 22px;
 }
 
 .guide-lesson-page__header,
@@ -163,6 +163,32 @@
     line-height: 1.7;
 }
 
+.guide-lesson-page__meta {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.guide-lesson-page__meta-item {
+    padding: 16px;
+    border-radius: 16px;
+    border: 1px solid rgba(56, 189, 248, 0.14);
+    background: rgba(2, 6, 23, 0.4);
+}
+
+.guide-lesson-page__meta-item--wide {
+    grid-column: 1 / -1;
+}
+
+.guide-lesson-page__meta-label {
+    margin-bottom: 10px;
+    color: #7dd3fc;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
 .guide-lesson-page__nav,
 .guide-actions,
 .guide-methods,
@@ -185,24 +211,15 @@
     line-height: 1.4;
 }
 
-.guide-page-layout {
-    display: grid;
-    grid-template-columns: minmax(360px, 0.95fr) minmax(480px, 1.05fr);
-    gap: 18px;
-    align-items: start;
-}
-
-.guide-page-column {
-    display: flex;
-    flex-direction: column;
-    gap: 18px;
-}
-
 .guide-panel-card {
     display: flex;
     flex-direction: column;
     gap: 14px;
     padding: 18px;
+}
+
+.guide-panel-card--lesson {
+    gap: 16px;
 }
 
 .guide-panel-card__title {
@@ -212,60 +229,75 @@
     line-height: 1.3;
 }
 
-.guide-scene-preview-host {
-    position: relative;
-    min-height: 320px;
-    border-radius: 16px;
-    border: 1px dashed rgba(56, 189, 248, 0.24);
-    background:
-        radial-gradient(circle at top, rgba(14, 165, 233, 0.14), transparent 48%),
-        rgba(2, 6, 23, 0.62);
-    overflow: hidden;
+.guide-panel-card__badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 7px 12px;
+    border-radius: 999px;
+    background: rgba(14, 165, 233, 0.12);
+    border: 1px solid rgba(56, 189, 248, 0.22);
+    color: #7dd3fc;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
 }
 
-.guide-scene-preview-host.is-active {
-    border-style: solid;
-    border-color: rgba(125, 211, 252, 0.3);
-}
-
-.guide-scene-preview-host > .scene-container {
-    min-height: 320px;
-}
-
-.guide-scene-preview__placeholder {
-    display: grid;
-    place-items: center;
-    min-height: 320px;
-    padding: 20px;
+.guide-panel-note {
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: rgba(15, 23, 42, 0.54);
+    border: 1px solid rgba(148, 163, 184, 0.16);
     color: #cbd5e1;
+    font-size: 13px;
+    line-height: 1.65;
+}
+
+.guide-api-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 12px;
+}
+
+.guide-api-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 16px;
+    border-radius: 16px;
+    border: 1px solid rgba(56, 189, 248, 0.14);
+    background: rgba(2, 6, 23, 0.44);
+}
+
+.guide-api-card__title {
+    color: #f8fafc;
     font-size: 14px;
-    line-height: 1.7;
-    text-align: center;
+    font-weight: 800;
+    line-height: 1.45;
+    font-family: var(--font-mono);
 }
 
-@media (max-width: 1380px) {
-    .guide-page-layout {
-        grid-template-columns: 1fr;
-    }
+.guide-api-card__summary {
+    color: #cbd5e1;
+    font-size: 13px;
+    line-height: 1.65;
 }
 
-@media (max-width: 1100px) {
-    .guide-page-tabs {
-        grid-template-columns: 1fr;
-    }
+.guide-api-card__example {
+    margin: 0;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.88);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: #d4d4d4;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.6;
+    white-space: pre-wrap;
 }
 
-@media (max-width: 860px) {
-    .guide-hero__title,
-    .guide-lesson-page__title {
-        font-size: 24px;
-    }
-
-    .guide-lesson-page__header,
-    .guide-panel-card__top {
-        grid-template-columns: 1fr;
-        display: flex;
-        flex-direction: column;
-        align-items: stretch;
-    }
+.guide-actions--primary {
+    justify-content: flex-start;
 }
+

@@ -13,8 +13,8 @@ export function initMissionGuideModal() {
             <div class="modal-content guide-modal" role="dialog" aria-modal="true" aria-labelledby="mission-guide-title">
                 <div class="guide-modal__header">
                     <div class="guide-modal__title-wrap">
-                        <div id="mission-guide-title" class="guide-modal__title">Краткое руководство</div>
-                        <div class="guide-modal__subtitle">5 интерактивных учебных страниц с drag-and-drop паззлами и реальными командами Pioneer API</div>
+                        <div id="mission-guide-title" class="guide-modal__title">Практикум по Pioneer API</div>
+                        <div class="guide-modal__subtitle">Пошаговые уроки по управлению дроном в симуляторе</div>
                     </div>
                     <button type="button" id="mission-guide-close" class="modal-close-btn guide-modal__close" aria-label="Закрыть">✕</button>
                 </div>
@@ -39,9 +39,12 @@ export function initMissionGuideModal() {
 
     const show = () => {
         if (!overlay) return;
-        renderMissionGuidePanel(currentScriptLanguage);
         overlay.style.display = 'flex';
-        syncGuideButtonState(true);
+        // Need to give the browser a moment to apply display: flex before rendering Blockly
+        setTimeout(() => {
+            renderMissionGuidePanel(currentScriptLanguage);
+            syncGuideButtonState(true);
+        }, 150);
     };
 
     overlay.addEventListener('click', (event) => {

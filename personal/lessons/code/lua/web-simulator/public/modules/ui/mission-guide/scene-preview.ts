@@ -3,9 +3,15 @@ import { onWindowResize } from '../../scene/core/scene-init.js';
 let previewActive = false;
 let originalParent: ParentNode | null = null;
 let originalNextSibling: ChildNode | null = null;
+let cachedSceneContainer: HTMLDivElement | null = null;
 
 function getSceneContainer(): HTMLDivElement | null {
-    return document.querySelector('.scene-container') as HTMLDivElement | null;
+    if (cachedSceneContainer) {
+        return cachedSceneContainer;
+    }
+
+    cachedSceneContainer = document.querySelector('.scene-container') as HTMLDivElement | null;
+    return cachedSceneContainer;
 }
 
 function getPreviewHost(): HTMLDivElement | null {
@@ -59,6 +65,7 @@ export function restoreMissionGuideScenePreview(): void {
 
     originalParent = null;
     originalNextSibling = null;
+    cachedSceneContainer = sceneContainer;
     previewActive = false;
     resizeSceneSoon();
 }

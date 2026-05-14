@@ -1,113 +1,156 @@
-import { setCurrentScriptLanguage } from '../../core/state.js';
-import { setEditorLanguage, setEditorValue } from '../../editor/index.js';
-import { openApiDocsCatalog, renderApiDocs } from '../api-docs/index.js';
+import { openApiDocsCatalog } from '../api-docs/index.js';
 import type { ScriptLanguage } from '../api-docs/sections.js';
-import { evaluateLesson, getLessonCode } from './lesson-evaluation.js';
 import { getGuideLessonState } from './lessons.js';
-import { setMissionGuideScenePreviewActive } from './scene-preview.js';
 import {
-    clearLessonSequence,
     getActiveLesson,
-    getLessonSequence,
     setActiveLessonId,
     setLessonBanner,
-    setLessonSequence
+    setLessonSequence,
+    getLessonSequence,
+    getLessonWorkspaceState,
+    setLessonChecked,
+    isLessonGeneratedCodeVisible,
+    isLessonSolutionVisible,
+    setLessonGeneratedCodeVisible,
+    setLessonSolutionVisible,
+    setLessonWorkspaceState
 } from './state.js';
-import type { DragPayload, GuideLesson, RenderMissionGuidePanel } from './types.js';
+import type { RenderMissionGuidePanel } from './types.js';
+import { Blockly, extractMissionGuideSequence, initBlocklyDefinitions } from './blockly.js';
+import { evaluateLesson } from './lesson-evaluation.js';
+import {
+    canLaunchLesson,
+    launchLesson,
+    renderUncheckedDiagnostics,
+    renderUncheckedSummary,
+    updateGeneratedCodePreview
+} from './interactions-launch.js';
 
-function parseDragPayload(event: DragEvent): DragPayload | null {
-    const raw = event.dataTransfer?.getData('text/plain');
-    if (!raw) return null;
-
-    try {
-        const parsed = JSON.parse(raw) as DragPayload;
-        if (!parsed?.blockId || !parsed?.origin) return null;
-        return parsed;
-    } catch {
-        return null;
+let workspace: Blockly.WorkspaceSvg | null = null;
+let blocklyInitialized = false;
+const blocklyTheme = Blockly.Theme.defineTheme('pioneer-dark-blockly', {
+    name: 'pioneer-dark-blockly',
+    base: Blockly.Themes.Classic,
+    componentStyles: {
+        workspaceBackgroundColour: '#0f172a',
+        toolboxBackgroundColour: '#1e293b',
+        flyoutBackgroundColour: '#1e293b'
     }
-}
-
-function updateSequenceFromDrop(
-    language: ScriptLanguage,
-    lesson: GuideLesson,
-    payload: DragPayload,
-    dropIndex: number,
-    rerender: RenderMissionGuidePanel
-): void {
-    const sequence = getLessonSequence(language, lesson.id);
-    const nextSequence = [...sequence];
-
-    if (payload.origin === 'workspace') {
-        if (payload.index < 0 || payload.index >= nextSequence.length) return;
-        nextSequence.splice(payload.index, 1);
-        if (payload.index < dropIndex) {
-            dropIndex -= 1;
-        }
-    }
-
-    if (payload.origin === 'library' && nextSequence.includes(payload.blockId)) {
-        return;
-    }
-
-    nextSequence.splice(Math.max(0, Math.min(dropIndex, nextSequence.length)), 0, payload.blockId);
-    setLessonSequence(language, lesson.id, nextSequence);
-    setLessonBanner(language, lesson.id, null);
-    rerender(language);
-}
-
-function appendBlockToSequence(language: ScriptLanguage, lesson: GuideLesson, blockId: string, rerender: RenderMissionGuidePanel): void {
-    const sequence = getLessonSequence(language, lesson.id);
-    if (sequence.includes(blockId)) return;
-    sequence.push(blockId);
-    setLessonSequence(language, lesson.id, sequence);
-    setLessonBanner(language, lesson.id, null);
-    rerender(language);
-}
-
-function removeBlockFromSequence(language: ScriptLanguage, lesson: GuideLesson, blockId: string, rerender: RenderMissionGuidePanel): void {
-    const nextSequence = getLessonSequence(language, lesson.id).filter((item) => item !== blockId);
-    setLessonSequence(language, lesson.id, nextSequence);
-    setLessonBanner(language, lesson.id, null);
-    rerender(language);
-}
-
-function launchLesson(language: ScriptLanguage, lesson: GuideLesson, rerender: RenderMissionGuidePanel): void {
-    const sequence = getLessonSequence(language, lesson.id);
-    if (!sequence.length) return;
-
-    const evaluation = evaluateLesson(lesson, sequence);
-    const code = getLessonCode(lesson, sequence);
-    const languageSelect = document.getElementById('script-language-select') as HTMLSelectElement | null;
-
-    setCurrentScriptLanguage(language);
-    if (languageSelect) languageSelect.value = language;
-    setEditorLanguage(language);
-    setEditorValue(code);
-    renderApiDocs(language);
-
-    setLessonBanner(language, lesson.id, evaluation.solved
-        ? {
-            kind: 'success',
-            message: 'Эталонная последовательность запущена. Живой просмотр сцены открыт прямо в этом окне.'
-        }
-        : {
-            kind: 'warning',
-            message: 'Сценарий запущен. Сверьте живую сцену и диагностику: в коде еще есть логические замечания.'
-        });
-
-    setMissionGuideScenePreviewActive(true);
-    rerender(language);
-    (document.getElementById('run-btn') as HTMLButtonElement | null)?.click();
-}
+});
 
 export function attachGuideInteractions(
     container: HTMLElement,
     language: ScriptLanguage,
     rerender: RenderMissionGuidePanel
 ): void {
+    if (!blocklyInitialized) {
+        initBlocklyDefinitions();
+        blocklyInitialized = true;
+    }
     const state = getGuideLessonState(language);
     const lesson = getActiveLesson(state, language);
+
+    const blocklyDiv = document.getElementById('blocklyDiv');
+    console.log('blocklyDiv found:', !!blocklyDiv);
+    if (blocklyDiv) {
+        if (workspace) {
+            try {
+                workspace.dispose();
+            } catch (e) {
+                console.warn('Failed to dispose workspace', e);
+            }
+            workspace = null;
+        }
+        
+        // Define toolbox dynamically based on lesson
+        const toolboxMap: Record<string, string[]> = {
+            'lua-led-single': ['lua_ledbar_new', 'lua_led_set', 'lua_timer_calllater', 'lua_print'],
+            'lua-led-sequence': ['lua_ledbar_new', 'lua_led_set', 'lua_timer_calllater', 'lua_print'],
+            'lua-preflight': ['lua_ap_push', 'lua_event_callback', 'lua_print'],
+            'lua-takeoff': ['lua_ap_push', 'lua_event_callback'],
+            'lua-mission': ['lua_ap_push', 'lua_event_callback', 'lua_goto_local_point', 'lua_print'],
+            'py-led-single': ['py_led_control', 'py_time_sleep', 'py_takeoff'],
+            'py-led-sequence': ['py_led_control', 'py_time_sleep', 'py_takeoff'],
+            'py-arm': ['py_arm', 'py_print', 'py_takeoff', 'py_land'],
+            'py-takeoff': ['py_arm', 'py_time_sleep', 'py_takeoff', 'py_goto_local_point'],
+            'py-mission': ['py_arm', 'py_time_sleep', 'py_takeoff', 'py_goto_local_point', 'py_wait_point_reached', 'py_land', 'py_led_control']
+        };
+
+        const blockTypes = toolboxMap[lesson.id] || [];
+        const toolboxXml = `
+            <xml xmlns="https://developers.google.com/blockly/xml">
+                ${blockTypes.map(type => `<block type="${type}"></block>`).join('')}
+            </xml>
+        `;
+        
+        console.log('Injecting Blockly with toolbox:', toolboxXml);
+
+        setTimeout(() => {
+            console.log('blocklyDiv dimensions:', blocklyDiv.clientWidth, blocklyDiv.clientHeight);
+            const activeWorkspace = Blockly.inject(blocklyDiv, {
+                toolbox: toolboxXml,
+                scrollbars: true,
+                trashcan: true,
+                theme: blocklyTheme
+            });
+            workspace = activeWorkspace;
+            console.log('Workspace injected:', !!workspace);
+
+            // Resize Blockly workspace on window resize
+            window.addEventListener('resize', () => Blockly.svgResize(activeWorkspace), false);
+            Blockly.svgResize(activeWorkspace);
+
+            // Load existing blocks from state
+            const savedWorkspaceXml = getLessonWorkspaceState(language, lesson.id);
+            const savedSequence = getLessonSequence(language, lesson.id);
+            if (savedWorkspaceXml) {
+                try {
+                    Blockly.Xml.domToWorkspace(Blockly.utils.xml.textToDom(savedWorkspaceXml), activeWorkspace);
+                } catch (e) {}
+            } else if (savedSequence && savedSequence.length > 0) {
+                let xml = '<xml>';
+                let blockStr = '';
+                for (let i = savedSequence.length - 1; i >= 0; i--) {
+                    const blockId = savedSequence[i];
+                    if (blockStr === '') {
+                        blockStr = `<block type="${blockId}"></block>`;
+                    } else {
+                        blockStr = `<block type="${blockId}"><next>${blockStr}</next></block>`;
+                    }
+                }
+                xml += blockStr + '</xml>';
+                try {
+                    Blockly.Xml.domToWorkspace(Blockly.utils.xml.textToDom(xml), activeWorkspace);
+                } catch (e) {}
+            }
+
+            updateGeneratedCodePreview(language, activeWorkspace);
+
+            activeWorkspace.addChangeListener(() => {
+                updateGeneratedCodePreview(language, activeWorkspace);
+
+                const sequenceIds = extractMissionGuideSequence(activeWorkspace);
+                setLessonSequence(language, lesson.id, sequenceIds);
+                setLessonWorkspaceState(language, lesson.id, Blockly.Xml.domToText(Blockly.Xml.workspaceToDom(activeWorkspace)));
+                setLessonChecked(language, lesson.id, false);
+                setLessonBanner(language, lesson.id, null);
+
+                const checkSummary = document.getElementById('guide-check-summary');
+                if (checkSummary) {
+                    checkSummary.innerHTML = renderUncheckedSummary();
+                }
+
+                const diagnosticsContainer = document.getElementById('diagnostics-container');
+                if (diagnosticsContainer) {
+                    diagnosticsContainer.innerHTML = renderUncheckedDiagnostics();
+                }
+
+                container.querySelectorAll<HTMLButtonElement>('[data-guide-toggle-solution]').forEach((button) => {
+                    button.disabled = true;
+                });
+            });
+        }, 10);
+    }
 
     container.querySelectorAll<HTMLElement>('[data-guide-query]').forEach((element) => {
         element.addEventListener('click', () => {
@@ -139,17 +182,13 @@ export function attachGuideInteractions(
         });
     });
 
-    container.querySelectorAll<HTMLElement>('[data-guide-remove]').forEach((element) => {
-        element.addEventListener('click', () => {
-            const blockId = element.dataset.guideRemove;
-            if (!blockId) return;
-            removeBlockFromSequence(language, lesson, blockId, rerender);
-        });
-    });
-
     container.querySelectorAll<HTMLElement>('[data-guide-reset]').forEach((element) => {
         element.addEventListener('click', () => {
-            clearLessonSequence(language, lesson.id);
+            if (workspace) {
+                workspace.clear();
+            }
+            setLessonWorkspaceState(language, lesson.id, null);
+            setLessonChecked(language, lesson.id, false);
             setLessonBanner(language, lesson.id, null);
             rerender(language);
         });
@@ -157,59 +196,77 @@ export function attachGuideInteractions(
 
     container.querySelectorAll<HTMLElement>('[data-guide-fill]').forEach((element) => {
         element.addEventListener('click', () => {
-            setLessonSequence(language, lesson.id, lesson.targetBlockIds);
+            if (workspace) {
+                workspace.clear();
+                let xml = '<xml>';
+                // Construct a linear stack of blocks
+                let blockStr = '';
+                for (let i = lesson.targetBlockIds.length - 1; i >= 0; i--) {
+                    const blockId = lesson.targetBlockIds[i];
+                    if (blockStr === '') {
+                        blockStr = `<block type="${blockId}"></block>`;
+                    } else {
+                        blockStr = `<block type="${blockId}"><next>${blockStr}</next></block>`;
+                    }
+                }
+                xml += blockStr + '</xml>';
+                try {
+                    Blockly.Xml.domToWorkspace(Blockly.utils.xml.textToDom(xml), workspace);
+                } catch (e) {
+                    console.error("Failed to load target workspace", e);
+                }
+            }
+            setLessonChecked(language, lesson.id, true);
             setLessonBanner(language, lesson.id, {
                 kind: 'info',
-                message: 'В рабочую область подставлена эталонная последовательность. Ее можно запустить или использовать как образец.'
+                message: 'В рабочую область подставлена эталонная последовательность.'
             });
             rerender(language);
         });
     });
 
-    container.querySelectorAll<HTMLElement>('[data-guide-run]').forEach((element) => {
+    container.querySelectorAll<HTMLElement>('[data-guide-check]').forEach((element) => {
         element.addEventListener('click', () => {
-            launchLesson(language, lesson, rerender);
-        });
-    });
+            const sequenceIds = getLessonSequence(language, lesson.id);
+            const evaluation = evaluateLesson(lesson, sequenceIds, getLessonWorkspaceState(language, lesson.id));
+            setLessonChecked(language, lesson.id, true);
 
-    container.querySelectorAll<HTMLElement>('[data-guide-block-id]').forEach((element) => {
-        element.addEventListener('dragstart', (event) => {
-            const blockId = element.dataset.guideBlockId;
-            const origin = element.dataset.guideOrigin as 'library' | 'workspace' | undefined;
-            const index = Number(element.dataset.guideIndex || '-1');
-            if (!blockId || !origin) return;
-
-            const payload: DragPayload = { blockId, origin, index };
-            event.dataTransfer?.setData('text/plain', JSON.stringify(payload));
-            if (event.dataTransfer) {
-                event.dataTransfer.effectAllowed = 'move';
+            if (evaluation.solved) {
+                launchLesson(language, lesson, rerender, workspace, {
+                    kind: 'info',
+                    message: 'Сценарий запущен. Сверьте живую сцену с ожидаемым результатом.'
+                });
+                return;
             }
-        });
 
-        if (element.dataset.guideOrigin === 'library') {
-            element.addEventListener('click', () => {
-                const blockId = element.dataset.guideBlockId;
-                if (!blockId) return;
-                appendBlockToSequence(language, lesson, blockId, rerender);
+            if (canLaunchLesson(sequenceIds, evaluation.diagnostics)) {
+                launchLesson(language, lesson, rerender, workspace, {
+                    kind: 'warning',
+                    message: 'Сценарий запущен, но решение не прошло учебную проверку. Живая сцена открыта, замечания показаны справа.'
+                });
+                return;
+            }
+
+            setLessonBanner(language, lesson.id, {
+                kind: 'warning',
+                message: 'Проверка завершена. В коде есть критичные замечания, поэтому сценарий не запускается. Исправьте их и проверьте еще раз.'
             });
-        }
+            rerender(language);
+        });
     });
 
-    container.querySelectorAll<HTMLElement>('[data-guide-drop-index]').forEach((element) => {
-        element.addEventListener('dragover', (event) => {
-            event.preventDefault();
-            element.classList.add('is-hovered');
-        });
-        element.addEventListener('dragleave', () => {
-            element.classList.remove('is-hovered');
-        });
-        element.addEventListener('drop', (event) => {
-            event.preventDefault();
-            element.classList.remove('is-hovered');
-            const payload = parseDragPayload(event);
-            if (!payload) return;
-            const dropIndex = Number(element.dataset.guideDropIndex || '0');
-            updateSequenceFromDrop(language, lesson, payload, dropIndex, rerender);
+    container.querySelectorAll<HTMLElement>('[data-guide-toggle-code]').forEach((element) => {
+        element.addEventListener('click', () => {
+            setLessonGeneratedCodeVisible(language, lesson.id, !isLessonGeneratedCodeVisible(language, lesson.id));
+            rerender(language);
         });
     });
+
+    container.querySelectorAll<HTMLElement>('[data-guide-toggle-solution]').forEach((element) => {
+        element.addEventListener('click', () => {
+            setLessonSolutionVisible(language, lesson.id, !isLessonSolutionVisible(language, lesson.id));
+            rerender(language);
+        });
+    });
+
 }

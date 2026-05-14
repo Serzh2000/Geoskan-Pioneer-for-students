@@ -1,10 +1,12 @@
-
 /**
  * Модуль интеграции редактора кода Monaco Editor.
  * Настраивает окружение для написания Lua-скриптов, добавляет
  * автодополнение (IntelliSense) и hover-подсказки для специфичных
  * API-функций дрона Pioneer. Управляет получением и установкой кода в редакторе.
  */
+import 'monaco-editor/min/vs/editor/editor.main.css';
+import * as monaco from 'monaco-editor/esm/vs/editor/editor.api.js';
+import editorWorker from 'monaco-editor/esm/vs/editor/editor.worker.js?worker';
 import { setupSyntaxHighlighting } from './syntax.js';
 import { setupHoverProvider } from './hover.js';
 import { setupCompletionProvider } from './completion.js';
@@ -14,25 +16,21 @@ let editorInstance: any;
 let pendingValue: string | null = null;
 let pendingLanguage: ScriptLanguage | null = null;
 
-declare let require: any;
-declare let monaco: any;
-
 export function initEditor() {
-    if (typeof monaco !== 'undefined') {
-        createEditor();
-        return;
-    }
+    try {
+        (self as typeof globalThis & {
+            MonacoEnvironment?: { getWorker: () => Worker };
+        }).MonacoEnvironment = {
+            getWorker() {
+                return new editorWorker();
+            }
+        };
 
-    require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs' }});
-    
-    require.onError = function(err: any) {
+        createEditor();
+    } catch (err) {
         console.error('Monaco Editor load error:', err);
         fallbackEditor();
-    };
-
-    require(['vs/editor/editor.main'], function() {
-        createEditor();
-    });
+    }
 }
 
 function fallbackEditor() {
@@ -58,12 +56,18 @@ function createEditor() {
         pendingValue ||
         '-- Pioneer Lua Script\n\nap.push(Ev.MCE_TAKEOFF)\n\nTimer.callLater(3, function()\n    ap.push(Ev.MCE_LANDING)\nend)';
 
-    editorInstance = monaco.editor.create(document.getElementById('editor'), {
+    const editorElement = document.getElementById('editor');
+    if (!editorElement) {
+        fallbackEditor();
+        return;
+    }
+
+    editorInstance = monaco.editor.create(editorElement, {
         value: initialValue,
         language: initialMonacoLang,
         theme: 'pioneer-dark',
         automaticLayout: true,
-        wordBasedSuggestions: false,
+        wordBasedSuggestions: 'off',
         fontSize: 14,
         fontFamily: "'Fira Code', monospace",
         minimap: { enabled: false },
@@ -91,7 +95,7 @@ export function setEditorValue(val: string) {
 
 export function setEditorLanguage(language: ScriptLanguage) {
     if ((window as any).getEditorValueFallback) return;
-    if (!editorInstance || !monaco) {
+    if (!editorInstance) {
         pendingLanguage = language;
         return;
     }
