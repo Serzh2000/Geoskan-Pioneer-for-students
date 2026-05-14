@@ -158,6 +158,7 @@ export function init3D(container: HTMLElement) {
         syncDrones();
         syncViewportDependentSceneVisuals();
 
+        container.addEventListener('contextmenu', e => e.preventDefault());
         renderer.domElement.addEventListener('contextmenu', e => e.preventDefault());
         registerScenePointerHandlers();
         window.addEventListener('resize', onWindowResize);

@@ -13,12 +13,14 @@ import {
     PYTHON_TAKEOFF_EXAMPLE
 } from './snippets.js';
 import type { GuideLesson, GuideLessonState } from './types.js';
+import { GUIDE_CHAPTER_IDS } from './curriculum.js';
 import { apiFocus } from './lesson-state-helpers.js';
 
 export function getPythonMissionLessons(): GuideLesson[] {
     return [
         {
             id: 'py-mission',
+            chapterId: GUIDE_CHAPTER_IDS.mission,
             badge: 'Задание 5',
             title: 'Маршрут с ожиданием точки и посадкой',
             goal: 'Соберите полноценную Python-миссию: `arm()`, `takeoff()`, ожидание, `go_to_local_point(...)`, цикл `point_reached()` и `land()`.',

@@ -13,12 +13,14 @@ import {
     PYTHON_TAKEOFF_EXAMPLE
 } from './snippets.js';
 import type { GuideLesson, GuideLessonState } from './types.js';
+import { GUIDE_CHAPTER_IDS } from './curriculum.js';
 import { apiFocus } from './lesson-state-helpers.js';
 
 export function getLuaMissionLessons(): GuideLesson[] {
     return [
         {
             id: 'lua-mission',
+            chapterId: GUIDE_CHAPTER_IDS.mission,
             badge: 'Задание 5',
             title: 'Полная миссия: взлет, точка, посадка',
             goal: 'Соберите полную FSM-цепочку: подготовка, взлет, переход к точке по событию `TAKEOFF_COMPLETE`, затем посадка после `POINT_REACHED`.',

@@ -1,4 +1,5 @@
 import type { GuideLessonState } from './types.js';
+import { getGuideChapters } from './curriculum.js';
 import { getLuaLedLessons } from './lua-lessons-led.js';
 import { getLuaFlightLessons } from './lua-lessons-flight.js';
 
@@ -11,6 +12,7 @@ export function getLuaLessonState(): GuideLessonState {
         heroTitle: 'Пошаговые уроки по Lua API Pioneer',
         heroText: 'Каждый урок сочетает краткий разбор методов Pioneer API, сборку сценария в Blockly и мгновенную проверку результата в симуляторе.',
         heroFlow: 'От LED-команд к полной миссии автопилота',
+        chapters: getGuideChapters('lua'),
         lessons
     };
 }

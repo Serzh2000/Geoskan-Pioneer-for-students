@@ -13,12 +13,14 @@ import {
     PYTHON_TAKEOFF_EXAMPLE
 } from './snippets.js';
 import type { GuideLesson, GuideLessonState } from './types.js';
+import { GUIDE_CHAPTER_IDS } from './curriculum.js';
 import { apiFocus } from './lesson-state-helpers.js';
 
 export function getLuaCoreFlightLessons(): GuideLesson[] {
     return [
         {
             id: 'lua-preflight',
+            chapterId: GUIDE_CHAPTER_IDS.flight,
             badge: 'Задание 3',
             title: 'Предполетная подготовка',
             goal: 'Соберите событийну цепочку: отправьте `PREFLIGHT`, дождитесь `ENGINES_STARTED` и только затем сообщите об успехе.',
@@ -121,6 +123,7 @@ export function getLuaCoreFlightLessons(): GuideLesson[] {
         },
         {
             id: 'lua-takeoff',
+            chapterId: GUIDE_CHAPTER_IDS.flight,
             badge: 'Задание 4',
             title: 'Правильный взлет',
             goal: 'Добавьте к `PREFLIGHT` вторую ключевую команду: `TAKEOFF` должен отправляться только после `ENGINES_STARTED`.',

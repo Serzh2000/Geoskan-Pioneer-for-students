@@ -13,12 +13,14 @@ import {
     PYTHON_TAKEOFF_EXAMPLE
 } from './snippets.js';
 import type { GuideLesson, GuideLessonState } from './types.js';
+import { GUIDE_CHAPTER_IDS } from './curriculum.js';
 import { apiFocus } from './lesson-state-helpers.js';
 
 export function getLuaLedLessons(): GuideLesson[] {
     return [
         {
             id: 'lua-led-single',
+            chapterId: GUIDE_CHAPTER_IDS.foundations,
             badge: 'Задание 1',
             title: 'Зажечь один светодиод',
             goal: 'Соберите минимальный Lua-сценарий: сначала создайте `Ledbar`, затем задайте красный цвет первому диоду.',
@@ -112,6 +114,7 @@ export function getLuaLedLessons(): GuideLesson[] {
         },
         {
             id: 'lua-led-sequence',
+            chapterId: GUIDE_CHAPTER_IDS.foundations,
             badge: 'Задание 2',
             title: 'Световая анимация с таймерами',
             goal: 'Соберите анимацию из трех состояний: синий, затем зеленый, затем красный, разделяя шаги таймерами.',

@@ -2,8 +2,11 @@ import { openApiDocsCatalog } from '../api-docs/index.js';
 import type { ScriptLanguage } from '../api-docs/sections.js';
 import { getGuideLessonState } from './lessons.js';
 import {
+    getActiveChapter,
     getActiveLesson,
+    setActiveChapterId,
     setActiveLessonId,
+    setActiveTab,
     setLessonBanner,
     setLessonSequence,
     getLessonSequence,
@@ -17,6 +20,7 @@ import {
 } from './state.js';
 import type { RenderMissionGuidePanel } from './types.js';
 import { Blockly, extractMissionGuideSequence, initBlocklyDefinitions } from './blockly.js';
+import { buildGuideToolbox } from './blockly-toolbox.js';
 import { evaluateLesson } from './lesson-evaluation.js';
 import {
     canLaunchLesson,
@@ -49,6 +53,7 @@ export function attachGuideInteractions(
     }
     const state = getGuideLessonState(language);
     const lesson = getActiveLesson(state, language);
+    const activeChapter = getActiveChapter(state, language);
 
     const blocklyDiv = document.getElementById('blocklyDiv');
     console.log('blocklyDiv found:', !!blocklyDiv);
@@ -62,26 +67,7 @@ export function attachGuideInteractions(
             workspace = null;
         }
         
-        // Define toolbox dynamically based on lesson
-        const toolboxMap: Record<string, string[]> = {
-            'lua-led-single': ['lua_ledbar_new', 'lua_led_set', 'lua_timer_calllater', 'lua_print'],
-            'lua-led-sequence': ['lua_ledbar_new', 'lua_led_set', 'lua_timer_calllater', 'lua_print'],
-            'lua-preflight': ['lua_ap_push', 'lua_event_callback', 'lua_print'],
-            'lua-takeoff': ['lua_ap_push', 'lua_event_callback'],
-            'lua-mission': ['lua_ap_push', 'lua_event_callback', 'lua_goto_local_point', 'lua_print'],
-            'py-led-single': ['py_led_control', 'py_time_sleep', 'py_takeoff'],
-            'py-led-sequence': ['py_led_control', 'py_time_sleep', 'py_takeoff'],
-            'py-arm': ['py_arm', 'py_print', 'py_takeoff', 'py_land'],
-            'py-takeoff': ['py_arm', 'py_time_sleep', 'py_takeoff', 'py_goto_local_point'],
-            'py-mission': ['py_arm', 'py_time_sleep', 'py_takeoff', 'py_goto_local_point', 'py_wait_point_reached', 'py_land', 'py_led_control']
-        };
-
-        const blockTypes = toolboxMap[lesson.id] || [];
-        const toolboxXml = `
-            <xml xmlns="https://developers.google.com/blockly/xml">
-                ${blockTypes.map(type => `<block type="${type}"></block>`).join('')}
-            </xml>
-        `;
+        const toolboxXml = buildGuideToolbox(language, lesson.id);
         
         console.log('Injecting Blockly with toolbox:', toolboxXml);
 
@@ -91,7 +77,8 @@ export function attachGuideInteractions(
                 toolbox: toolboxXml,
                 scrollbars: true,
                 trashcan: true,
-                theme: blocklyTheme
+                theme: blocklyTheme,
+                toolboxPosition: 'start'
             });
             workspace = activeWorkspace;
             console.log('Workspace injected:', !!workspace);
@@ -160,11 +147,50 @@ export function attachGuideInteractions(
         });
     });
 
+    container.querySelectorAll<HTMLElement>('[data-guide-mode]').forEach((element) => {
+        element.addEventListener('click', () => {
+            const mode = element.dataset.guideMode;
+            if (mode !== 'tutorial' && mode !== 'trainer') return;
+            setActiveTab(language, mode);
+            rerender(language);
+        });
+    });
+
+    container.querySelectorAll<HTMLElement>('[data-guide-chapter]').forEach((element) => {
+        element.addEventListener('click', () => {
+            const chapterId = element.dataset.guideChapter;
+            if (!chapterId) return;
+            setActiveChapterId(language, chapterId);
+            const nextChapter = state.chapters.find((chapter) => chapter.id === chapterId);
+            if (nextChapter) {
+                setActiveLessonId(language, nextChapter.primaryLessonId);
+            }
+            rerender(language);
+        });
+    });
+
+    container.querySelectorAll<HTMLElement>('[data-guide-go-practice]').forEach((element) => {
+        element.addEventListener('click', () => {
+            const chapterId = element.dataset.guideGoPractice;
+            const lessonId = element.dataset.guideLesson;
+            if (!chapterId || !lessonId) return;
+            setActiveChapterId(language, chapterId);
+            setActiveLessonId(language, lessonId);
+            setActiveTab(language, 'trainer');
+            rerender(language);
+        });
+    });
+
     container.querySelectorAll<HTMLElement>('[data-guide-lesson]').forEach((element) => {
         element.addEventListener('click', () => {
             const lessonId = element.dataset.guideLesson;
             if (!lessonId) return;
+            const selectedLesson = state.lessons.find((item) => item.id === lessonId);
+            if (selectedLesson) {
+                setActiveChapterId(language, selectedLesson.chapterId);
+            }
             setActiveLessonId(language, lessonId);
+            setActiveTab(language, 'trainer');
             rerender(language);
         });
     });
@@ -177,7 +203,9 @@ export function attachGuideInteractions(
             const nextIndex = direction === 'next' ? currentIndex + 1 : currentIndex - 1;
             const nextLesson = state.lessons[nextIndex];
             if (!nextLesson) return;
+            setActiveChapterId(language, nextLesson.chapterId);
             setActiveLessonId(language, nextLesson.id);
+            setActiveTab(language, 'trainer');
             rerender(language);
         });
     });

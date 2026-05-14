@@ -13,12 +13,14 @@ import {
     PYTHON_TAKEOFF_EXAMPLE
 } from './snippets.js';
 import type { GuideLesson, GuideLessonState } from './types.js';
+import { GUIDE_CHAPTER_IDS } from './curriculum.js';
 import { apiFocus } from './lesson-state-helpers.js';
 
 export function getPythonCoreFlightLessons(): GuideLesson[] {
     return [
         {
             id: 'py-arm',
+            chapterId: GUIDE_CHAPTER_IDS.flight,
             badge: 'Задание 3',
             title: 'Подготовить двигатели',
             goal: 'Соберите шаг подготовки в Python: вызовите `arm()` и выведите сообщение о готовности.',
@@ -99,6 +101,7 @@ export function getPythonCoreFlightLessons(): GuideLesson[] {
         },
         {
             id: 'py-takeoff',
+            chapterId: GUIDE_CHAPTER_IDS.flight,
             badge: 'Задание 4',
             title: 'Взлет с паузой',
             goal: 'Соберите базовый сценарий взлета: `arm()` -> пауза -> `takeoff()`.',

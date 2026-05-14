@@ -13,12 +13,14 @@ import {
     PYTHON_TAKEOFF_EXAMPLE
 } from './snippets.js';
 import type { GuideLesson, GuideLessonState } from './types.js';
+import { GUIDE_CHAPTER_IDS } from './curriculum.js';
 import { apiFocus } from './lesson-state-helpers.js';
 
 export function getPythonLedLessons(): GuideLesson[] {
     return [
         {
             id: 'py-led-single',
+            chapterId: GUIDE_CHAPTER_IDS.foundations,
             badge: 'Задание 1',
             title: 'Включить красную подсветку',
             goal: 'Соберите минимальный Python-сценарий, который использует `pioneer.led_control(...)` для включения красного цвета.',
@@ -88,6 +90,7 @@ export function getPythonLedLessons(): GuideLesson[] {
         },
         {
             id: 'py-led-sequence',
+            chapterId: GUIDE_CHAPTER_IDS.foundations,
             badge: 'Задание 2',
             title: 'Мигание с паузами',
             goal: 'Соберите Python-последовательность из трех цветов, разделенных паузами `time.sleep(...)`.',

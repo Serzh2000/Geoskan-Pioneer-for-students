@@ -45,8 +45,40 @@ export type GuideOrderRule = {
     fix: string;
 };
 
+export type GuideTabId = 'tutorial' | 'trainer';
+
+export type GuideThemeId = 'dark' | 'light';
+
+export type GuideTheorySection = {
+    title: string;
+    paragraphs: string[];
+    bullets?: string[];
+    takeaway?: string;
+};
+
+export type GuidePracticeTask = {
+    lessonId: string;
+    title: string;
+    summary: string;
+    difficulty: 'basic' | 'intermediate' | 'advanced';
+};
+
+export type GuideChapter = {
+    id: string;
+    badge: string;
+    title: string;
+    summary: string;
+    theoryIntro: string;
+    theorySections: GuideTheorySection[];
+    practiceHeading: string;
+    practiceIntro: string;
+    practiceTasks: GuidePracticeTask[];
+    primaryLessonId: string;
+};
+
 export type GuideLesson = {
     id: string;
+    chapterId: string;
     badge: string;
     title: string;
     goal: string;
@@ -75,6 +107,7 @@ export type GuideLessonState = {
     heroTitle: string;
     heroText: string;
     heroFlow: string;
+    chapters: GuideChapter[];
     lessons: GuideLesson[];
 };
 

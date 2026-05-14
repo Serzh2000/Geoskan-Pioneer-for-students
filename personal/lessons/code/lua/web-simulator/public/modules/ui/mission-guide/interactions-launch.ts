@@ -35,7 +35,7 @@ const blocklyTheme = Blockly.Theme.defineTheme('pioneer-dark-blockly', {
     }
 });
 
-function updateGeneratedCodePreview(language: ScriptLanguage, activeWorkspace: Blockly.WorkspaceSvg): void {
+export function updateGeneratedCodePreview(language: ScriptLanguage, activeWorkspace: Blockly.WorkspaceSvg): void {
     const codePreview = document.getElementById('blockly-generated-code');
     if (!codePreview) return;
 
@@ -43,7 +43,7 @@ function updateGeneratedCodePreview(language: ScriptLanguage, activeWorkspace: B
     codePreview.textContent = code || '-- Пусто --';
 }
 
-function renderUncheckedSummary(): string {
+export function renderUncheckedSummary(): string {
     return `
         <div class="guide-check-status guide-check-status--info">
             Цепочка изменилась. Нажмите «Проверить и запустить», чтобы заново проверить решение.
@@ -51,22 +51,23 @@ function renderUncheckedSummary(): string {
     `;
 }
 
-function renderUncheckedDiagnostics(): string {
+export function renderUncheckedDiagnostics(): string {
     return '<div class="guide-empty-state">После изменений старая проверка скрыта. Запустите новую проверку, когда закончите правки.</div>';
 }
 
-function canLaunchLesson(sequenceIds: string[], diagnostics: Array<{ kind: string }>): boolean {
+export function canLaunchLesson(sequenceIds: string[], diagnostics: Array<{ kind: string }>): boolean {
     return sequenceIds.length > 0 && !diagnostics.some((diagnostic) => diagnostic.kind === 'error');
 }
 
-function launchLesson(
+export function launchLesson(
     language: ScriptLanguage,
     lesson: GuideLesson,
     rerender: RenderMissionGuidePanel,
+    activeWorkspace: Blockly.WorkspaceSvg | null,
     banner: { kind: 'info' | 'warning'; message: string }
 ): void {
-    if (!workspace) return;
-    const code = compileMissionGuideWorkspace(language, workspace);
+    if (!activeWorkspace) return;
+    const code = compileMissionGuideWorkspace(language, activeWorkspace);
 
     const languageSelect = document.getElementById('script-language-select') as HTMLSelectElement | null;
 

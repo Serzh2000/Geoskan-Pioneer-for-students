@@ -1,10 +1,19 @@
 import type { ScriptLanguage } from '../api-docs/sections.js';
-import type { GuideLesson, GuideLessonState, RuntimeBanner } from './types.js';
+import type { GuideChapter, GuideLesson, GuideLessonState, GuideTabId, GuideThemeId, RuntimeBanner } from './types.js';
 
 const activeLessonByLanguage: Record<ScriptLanguage, string> = {
     lua: '',
     python: ''
 };
+const activeChapterByLanguage: Record<ScriptLanguage, string> = {
+    lua: '',
+    python: ''
+};
+const activeTabByLanguage: Record<ScriptLanguage, GuideTabId> = {
+    lua: 'tutorial',
+    python: 'tutorial'
+};
+let activeGuideTheme: GuideThemeId = 'dark';
 
 const lessonSequences = new Map<string, string[]>();
 const lessonWorkspaceXml = new Map<string, string>();
@@ -23,13 +32,51 @@ export function ensureActiveLessonId(language: ScriptLanguage, lessonId: string)
     }
 }
 
+export function ensureActiveChapterId(language: ScriptLanguage, chapterId: string): void {
+    if (!activeChapterByLanguage[language]) {
+        activeChapterByLanguage[language] = chapterId;
+    }
+}
+
 export function setActiveLessonId(language: ScriptLanguage, lessonId: string): void {
     activeLessonByLanguage[language] = lessonId;
+}
+
+export function setActiveChapterId(language: ScriptLanguage, chapterId: string): void {
+    activeChapterByLanguage[language] = chapterId;
+}
+
+export function getActiveTab(language: ScriptLanguage): GuideTabId {
+    return activeTabByLanguage[language];
+}
+
+export function setActiveTab(language: ScriptLanguage, tab: GuideTabId): void {
+    activeTabByLanguage[language] = tab;
+}
+
+export function getActiveGuideTheme(): GuideThemeId {
+    return activeGuideTheme;
+}
+
+export function setActiveGuideTheme(theme: GuideThemeId): void {
+    activeGuideTheme = theme;
 }
 
 export function getActiveLesson(state: GuideLessonState, language: ScriptLanguage): GuideLesson {
     const desiredId = activeLessonByLanguage[language] || state.activeLessonId;
     return state.lessons.find((lesson) => lesson.id === desiredId) || state.lessons[0];
+}
+
+export function getLessonsForChapter(state: GuideLessonState, chapterId: string): GuideLesson[] {
+    return state.lessons.filter((lesson) => lesson.chapterId === chapterId);
+}
+
+export function getActiveChapter(state: GuideLessonState, language: ScriptLanguage): GuideChapter {
+    const lesson = getActiveLesson(state, language);
+    const desiredId = activeChapterByLanguage[language] || lesson.chapterId || state.chapters[0]?.id || '';
+    return state.chapters.find((chapter) => chapter.id === desiredId)
+        || state.chapters.find((chapter) => chapter.id === lesson.chapterId)
+        || state.chapters[0];
 }
 
 export function getLessonSequence(language: ScriptLanguage, lessonId: string): string[] {

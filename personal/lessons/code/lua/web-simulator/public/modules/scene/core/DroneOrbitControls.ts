@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { log } from '../../shared/logging/logger.js';
 
 export class DroneOrbitControls {
     camera: THREE.PerspectiveCamera;
@@ -24,6 +25,16 @@ export class DroneOrbitControls {
     private pendingObjectBounds: THREE.Box3 = new THREE.Box3();
     private pendingObjectCenter: THREE.Vector3 = new THREE.Vector3();
     private projectedCenter: THREE.Vector3 = new THREE.Vector3();
+    private lastZoomDebugAt = 0;
+    private skippedZoomDebugCount = 0;
+
+    private debugZoom(message: string, force = false) {
+        const now = Date.now();
+        if (!force && now - this.lastZoomDebugAt < 250) return;
+        this.lastZoomDebugAt = now;
+        log(`[GUIDE-ZOOM] ${message}`, 'info');
+        console.info('[GUIDE-ZOOM]', message);
+    }
 
     private clampTargetToSceneBounds() {
         // Ограничиваем высоту таргета, чтобы он не улетал в небо при панорамировании.
@@ -174,8 +185,16 @@ export class DroneOrbitControls {
     }
     
     onWheel(e: WheelEvent) {
-        if (!this.enabled || this.isTransformInteractionActive()) return;
+        const transformInteractionActive = this.isTransformInteractionActive();
+        if (!this.enabled || transformInteractionActive) {
+            this.skippedZoomDebugCount += 1;
+            this.debugZoom(
+                `wheel ignored enabled=${String(this.enabled)} transform=${String(transformInteractionActive)} mode=${String((window as any).cameraMode)} ctrl=${String(e.ctrlKey)} deltaY=${e.deltaY.toFixed(2)} skipped=${this.skippedZoomDebugCount}`
+            );
+            return;
+        }
         e.preventDefault();
+        e.stopPropagation();
 
         // Убрана автоматическая перепривязка зума к объекту (syncTargetToPendingObjectIfInView),
         // так как это приводило к скачкам радиуса при панорамировании.
@@ -184,6 +203,7 @@ export class DroneOrbitControls {
         // чтобы приближение было быстрее.
         const zoomFactor = Math.pow(0.85, this.zoomSpeed);
         
+        const previousRadius = this.radius;
         if (e.deltaY > 0) {
             this.radius /= zoomFactor;
         } else {
@@ -191,6 +211,10 @@ export class DroneOrbitControls {
         }
         
         this.radius = Math.max(this.minRadius, this.radius);
+        this.debugZoom(
+            `wheel applied mode=${String((window as any).cameraMode)} ctrl=${String(e.ctrlKey)} deltaY=${e.deltaY.toFixed(2)} radius=${previousRadius.toFixed(3)}->${this.radius.toFixed(3)}`,
+            true
+        );
         this.update();
     }
     
