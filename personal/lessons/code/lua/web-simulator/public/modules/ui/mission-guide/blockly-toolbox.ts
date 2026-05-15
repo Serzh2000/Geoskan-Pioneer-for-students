@@ -9,14 +9,24 @@ type ToolboxCategory = {
 const lessonBlockMap: Record<string, string[]> = {
     'lua-led-single': ['lua_ledbar_new', 'lua_led_set', 'lua_print', 'lua_timer_calllater'],
     'lua-led-sequence': ['lua_ledbar_new', 'lua_led_set', 'lua_timer_calllater', 'lua_print'],
+    'lua-led-confirm': ['lua_ledbar_new', 'lua_led_set', 'lua_print', 'lua_timer_calllater'],
+    'lua-led-delayed': ['lua_ledbar_new', 'lua_led_set', 'lua_timer_calllater', 'lua_print'],
     'lua-preflight': ['lua_ap_push', 'lua_event_callback', 'lua_print'],
     'lua-takeoff': ['lua_ap_push', 'lua_event_callback', 'lua_goto_local_point', 'lua_print'],
+    'lua-route': ['lua_ap_push', 'lua_event_callback', 'lua_goto_local_point', 'lua_print'],
+    'lua-point-confirm': ['lua_ap_push', 'lua_event_callback', 'lua_goto_local_point', 'lua_print'],
     'lua-mission': ['lua_ap_push', 'lua_event_callback', 'lua_goto_local_point', 'lua_print'],
+    'lua-landing': ['lua_ap_push', 'lua_event_callback', 'lua_goto_local_point', 'lua_print'],
     'py-led-single': ['py_led_control', 'py_time_sleep', 'py_print', 'py_takeoff'],
     'py-led-sequence': ['py_led_control', 'py_time_sleep', 'py_print', 'py_takeoff'],
+    'py-led-confirm': ['py_led_control', 'py_time_sleep', 'py_print'],
+    'py-led-delayed': ['py_led_control', 'py_time_sleep', 'py_print'],
     'py-arm': ['py_arm', 'py_print', 'py_takeoff', 'py_land'],
     'py-takeoff': ['py_arm', 'py_time_sleep', 'py_takeoff', 'py_goto_local_point'],
-    'py-mission': ['py_arm', 'py_time_sleep', 'py_takeoff', 'py_goto_local_point', 'py_wait_point_reached', 'py_land', 'py_led_control']
+    'py-route': ['py_arm', 'py_time_sleep', 'py_takeoff', 'py_goto_local_point'],
+    'py-point-wait': ['py_arm', 'py_time_sleep', 'py_takeoff', 'py_goto_local_point', 'py_wait_point_reached', 'py_print'],
+    'py-mission': ['py_arm', 'py_time_sleep', 'py_takeoff', 'py_goto_local_point', 'py_wait_point_reached', 'py_land', 'py_led_control'],
+    'py-land': ['py_arm', 'py_time_sleep', 'py_takeoff', 'py_goto_local_point', 'py_wait_point_reached', 'py_land']
 };
 
 function getLuaCategories(): ToolboxCategory[] {
@@ -70,7 +80,9 @@ function getPythonCategories(): ToolboxCategory[] {
 }
 
 export function buildGuideToolbox(language: ScriptLanguage, lessonId: string): string {
-    const allowed = new Set(lessonBlockMap[lessonId] || []);
+    const fallbackBlockTypes = (language === 'python' ? getPythonCategories() : getLuaCategories())
+        .flatMap((category) => category.blockTypes);
+    const allowed = new Set(lessonBlockMap[lessonId] || fallbackBlockTypes);
     const categories = (language === 'python' ? getPythonCategories() : getLuaCategories())
         .map((category) => ({
             ...category,

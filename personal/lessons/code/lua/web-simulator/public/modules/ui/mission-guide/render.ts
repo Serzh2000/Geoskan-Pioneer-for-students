@@ -15,11 +15,10 @@ import type { GuideLessonState } from './types.js';
 import {
     escapeHtml,
     renderApiFocusItem,
-    renderChapterTabs,
     renderCheckSummary,
     renderDocLink,
+    renderGuideSelectors,
     renderGuideTopTabs,
-    renderPageTabs,
     renderResultHero,
     renderRunBanner,
     renderTargetRoute,
@@ -62,13 +61,12 @@ export function renderGuide(state: GuideLessonState, language: ScriptLanguage): 
             </section>
 
             ${renderGuideTopTabs(language)}
-            ${renderChapterTabs(state, language)}
+            ${renderGuideSelectors(state, language)}
 
             ${activeTab === 'tutorial'
             ? renderTheoryView(state, language)
             : `
                 ${renderTrainerIntro(state, language)}
-                ${renderPageTabs(state, language)}
 
                 <section class="guide-lesson-page">
                     <div class="guide-lesson-page__header">

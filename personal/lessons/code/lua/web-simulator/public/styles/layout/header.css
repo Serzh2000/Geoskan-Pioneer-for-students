@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Шапка приложения.
  * Файл выделен из `public/style.css` при декомпозиции общего CSS.
  */
@@ -136,6 +136,28 @@
     background: rgba(239, 68, 68, 0.12);
     border-color: rgba(248, 113, 113, 0.4);
     color: #fecdd3;
+}
+
+.header-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 34px;
+    padding: 0 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    background: rgba(15, 23, 42, 0.55);
+    color: var(--text-color);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+}
+
+.header-check input {
+    margin: 0;
+    cursor: pointer;
 }
 
 

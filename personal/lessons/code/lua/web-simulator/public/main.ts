@@ -15,7 +15,7 @@ import { runPythonScript, stopPythonScript } from './modules/python/index.js';
  * Управляет главным циклом обновления (requestAnimationFrame), 
  * запуском/остановкой Lua-скриптов и связью между UI и логикой симуляции.
  */
-import { initEditor, getEditorValue, setEditorValue, layoutEditor } from './modules/editor/index.js';
+import { initEditor, getEditorValue, initBlocklyEditorToggle, layoutEditor, setEditorValue } from './modules/editor/index.js';
 import { initUI } from './modules/ui/index.js';
 import { log } from './modules/shared/logging/logger.js';
 import type { MarkerMapOptions } from './modules/environment/obstacles.js';
@@ -77,6 +77,7 @@ function init() {
 
     // Initialize Editor
     initEditor();
+    initBlocklyEditorToggle();
     initScriptLanguageSelector();
 
     // Initialize 3D Scene

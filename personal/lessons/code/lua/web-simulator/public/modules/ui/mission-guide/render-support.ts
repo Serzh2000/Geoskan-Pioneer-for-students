@@ -21,7 +21,6 @@ import type {
     GuideLesson,
     GuideLessonState,
     GuideMethodLink,
-    GuidePracticeTask,
     GuideTabId
 } from './types.js';
 
@@ -153,19 +152,6 @@ export function renderApiFocusItem(item: GuideApiFocusItem): string {
     `;
 }
 
-function getDifficultyLabel(task: GuidePracticeTask): string {
-    switch (task.difficulty) {
-        case 'basic':
-            return 'Базовый';
-        case 'intermediate':
-            return 'Средний';
-        case 'advanced':
-            return 'Продвинутый';
-        default:
-            return 'Практика';
-    }
-}
-
 export function renderGuideTopTabs(language: ScriptLanguage): string {
     const activeTab = getActiveTab(language);
     return `
@@ -188,24 +174,47 @@ export function renderGuideTopTabs(language: ScriptLanguage): string {
     `;
 }
 
-export function renderChapterTabs(state: GuideLessonState, language: ScriptLanguage): string {
+export function renderGuideSelectors(state: GuideLessonState, language: ScriptLanguage): string {
     const activeChapter = getActiveChapter(state, language);
+    const activeLesson = getActiveLesson(state, language);
+    const activeTab = getActiveTab(language);
+    const chapterLessons = getLessonsForChapter(state, activeChapter.id);
+
     return `
-        <div class="guide-chapter-tabs">
-            ${state.chapters.map((chapter, index) => `
-                <button
-                    type="button"
-                    class="guide-chapter-tab ${chapter.id === activeChapter.id ? 'is-active' : ''}"
-                    data-guide-chapter="${escapeHtml(chapter.id)}"
-                >
-                    <span class="guide-chapter-tab__step">${index + 1}</span>
-                    <span class="guide-chapter-tab__body">
-                        <span class="guide-chapter-tab__badge">${escapeHtml(chapter.badge)}</span>
-                        <span class="guide-chapter-tab__title">${escapeHtml(chapter.title)}</span>
-                    </span>
-                </button>
-            `).join('')}
-        </div>
+        <section class="guide-selector-bar">
+            <label class="guide-selector-field">
+                <span class="guide-selector-field__label">Язык</span>
+                <select class="guide-selector" data-guide-language-select aria-label="Выбор языка практикума">
+                    <option value="lua" ${language === 'lua' ? 'selected' : ''}>Lua</option>
+                    <option value="python" ${language === 'python' ? 'selected' : ''}>Python</option>
+                </select>
+            </label>
+            <label class="guide-selector-field">
+                <span class="guide-selector-field__label">Тема учебника</span>
+                <select class="guide-selector" data-guide-chapter-select aria-label="Выбор темы">
+                    ${state.chapters.map((chapter, index) => `
+                        <option value="${escapeHtml(chapter.id)}" ${chapter.id === activeChapter.id ? 'selected' : ''}>
+                            ${index + 1}. ${escapeHtml(chapter.title)}
+                        </option>
+                    `).join('')}
+                </select>
+            </label>
+            <label class="guide-selector-field">
+                <span class="guide-selector-field__label">Задание практикума</span>
+                <select class="guide-selector" data-guide-lesson-select aria-label="Выбор задания">
+                    ${chapterLessons.map((lesson, index) => `
+                        <option value="${escapeHtml(lesson.id)}" ${lesson.id === activeLesson.id ? 'selected' : ''}>
+                            ${index + 1}. ${escapeHtml(lesson.title)}
+                        </option>
+                    `).join('')}
+                </select>
+            </label>
+            <div class="guide-selector-meta">
+                <span class="guide-selector-meta__item">Тем: ${state.chapters.length}</span>
+                <span class="guide-selector-meta__item">Уроков: ${state.lessons.length}</span>
+                <span class="guide-selector-meta__item">${activeTab === 'tutorial' ? 'Открыт учебник' : 'Открыт задачник'}</span>
+            </div>
+        </section>
     `;
 }
 
@@ -217,6 +226,8 @@ export function renderTheoryView(state: GuideLessonState, language: ScriptLangua
         getLessonSequence(language, lesson.id),
         getLessonWorkspaceState(language, lesson.id)
     ).solved).length;
+
+    const practiceLessonId = chapterLessons[0]?.id || activeChapter.primaryLessonId;
 
     return `
         <section class="guide-theory-page">
@@ -266,11 +277,11 @@ export function renderTheoryView(state: GuideLessonState, language: ScriptLangua
                     </div>
                 </div>
                 <div class="guide-practice-grid">
-                    ${activeChapter.practiceTasks.map((task) => `
+                    ${chapterLessons.map((lesson) => `
                         <article class="guide-practice-card">
-                            <div class="guide-practice-card__difficulty">${getDifficultyLabel(task)}</div>
-                            <div class="guide-practice-card__title">${escapeHtml(task.title)}</div>
-                            <div class="guide-panel-card__text">${escapeHtml(task.summary)}</div>
+                            <div class="guide-practice-card__difficulty">${escapeHtml(lesson.badge)}</div>
+                            <div class="guide-practice-card__title">${escapeHtml(lesson.title)}</div>
+                            <div class="guide-panel-card__text">${escapeHtml(lesson.summary)}</div>
                         </article>
                     `).join('')}
                 </div>
@@ -279,7 +290,7 @@ export function renderTheoryView(state: GuideLessonState, language: ScriptLangua
                         type="button"
                         class="guide-primary-action"
                         data-guide-go-practice="${escapeHtml(activeChapter.id)}"
-                        data-guide-lesson="${escapeHtml(activeChapter.primaryLessonId)}"
+                        data-guide-lesson="${escapeHtml(practiceLessonId)}"
                     >
                         Перейти к практике
                     </button>
@@ -293,34 +304,34 @@ export function renderTrainerIntro(state: GuideLessonState, language: ScriptLang
     const activeChapter = getActiveChapter(state, language);
     const activeLesson = getActiveLesson(state, language);
     const chapterLessons = getLessonsForChapter(state, activeChapter.id);
+    const solvedCount = chapterLessons.filter((lesson) => evaluateLesson(
+        lesson,
+        getLessonSequence(language, lesson.id),
+        getLessonWorkspaceState(language, lesson.id)
+    ).solved).length;
 
     return `
         <section class="guide-panel-card guide-panel-card--trainer-intro">
             <div class="guide-panel-card__top">
                 <div>
-                    <div class="guide-panel-card__title">Тренажер главы: ${escapeHtml(activeChapter.title)}</div>
-                    <div class="guide-panel-card__text">${escapeHtml(activeChapter.practiceIntro)}</div>
+                    <div class="guide-panel-card__title">Задачник: ${escapeHtml(activeLesson.title)}</div>
+                    <div class="guide-panel-card__text">${escapeHtml(activeLesson.summary)}</div>
                 </div>
                 <div class="guide-panel-card__badge">${escapeHtml(activeChapter.badge)}</div>
             </div>
-            <div class="guide-practice-grid">
-                ${activeChapter.practiceTasks.map((task) => {
-                    const lesson = chapterLessons.find((item) => item.id === task.lessonId);
-                    const solved = lesson
-                        ? evaluateLesson(lesson, getLessonSequence(language, lesson.id), getLessonWorkspaceState(language, lesson.id)).solved
-                        : false;
-                    return `
-                        <button
-                            type="button"
-                            class="guide-practice-card guide-practice-card--selectable ${activeLesson.id === task.lessonId ? 'is-active' : ''} ${solved ? 'is-solved' : ''}"
-                            data-guide-lesson="${escapeHtml(task.lessonId)}"
-                        >
-                            <span class="guide-practice-card__difficulty">${getDifficultyLabel(task)}</span>
-                            <span class="guide-practice-card__title">${escapeHtml(task.title)}</span>
-                            <span class="guide-panel-card__text">${escapeHtml(task.summary)}</span>
-                        </button>
-                    `;
-                }).join('')}
+            <div class="guide-selector-summary">
+                <div class="guide-selector-summary__item">
+                    <div class="guide-lesson-page__meta-label">Тема</div>
+                    <div class="guide-lesson-page__goal">${escapeHtml(activeChapter.title)}</div>
+                </div>
+                <div class="guide-selector-summary__item">
+                    <div class="guide-lesson-page__meta-label">Прогресс по теме</div>
+                    <div class="guide-lesson-page__goal">Решено ${solvedCount} из ${chapterLessons.length} заданий</div>
+                </div>
+                <div class="guide-selector-summary__item guide-selector-summary__item--wide">
+                    <div class="guide-lesson-page__meta-label">Как переключать</div>
+                    <div class="guide-lesson-page__goal">Используйте выпадающие списки сверху, чтобы быстро менять язык, тему учебника и конкретное задание.</div>
+                </div>
             </div>
         </section>
     `;

@@ -17,6 +17,8 @@ describe('Mission Guide Curriculum', () => {
 
         expect(luaState.chapters).toHaveLength(3);
         expect(pythonState.chapters).toHaveLength(3);
+        expect(luaState.lessons).toHaveLength(10);
+        expect(pythonState.lessons).toHaveLength(10);
         expect(luaState.chapters.every((chapter) => chapter.practiceTasks.length > 0)).toBe(true);
         expect(pythonState.chapters.every((chapter) => chapter.theorySections.length > 0)).toBe(true);
     });
@@ -29,7 +31,12 @@ describe('Mission Guide Curriculum', () => {
         const chapterLessons = getLessonsForChapter(luaState, activeChapter.id);
 
         expect(activeChapter.id).toBe('flight');
-        expect(chapterLessons.map((lesson) => lesson.id)).toEqual(['lua-preflight', 'lua-takeoff']);
+        expect(chapterLessons.map((lesson) => lesson.id)).toEqual([
+            'lua-preflight',
+            'lua-takeoff',
+            'lua-route',
+            'lua-point-confirm'
+        ]);
     });
 
     test('stores top-level guide tab state per language', () => {

@@ -1,5 +1,6 @@
 import { openApiDocsCatalog } from '../api-docs/index.js';
 import type { ScriptLanguage } from '../api-docs/sections.js';
+import { setCurrentScriptLanguage } from '../../core/state.js';
 import { getGuideLessonState } from './lessons.js';
 import {
     getActiveChapter,
@@ -32,6 +33,9 @@ import {
 
 let workspace: Blockly.WorkspaceSvg | null = null;
 let blocklyInitialized = false;
+let pendingBlocklyInitTimeout: number | null = null;
+let activeBlocklyInitToken = 0;
+let workspaceResizeHandler: (() => void) | null = null;
 const blocklyTheme = Blockly.Theme.defineTheme('pioneer-dark-blockly', {
     name: 'pioneer-dark-blockly',
     base: Blockly.Themes.Classic,
@@ -55,25 +59,37 @@ export function attachGuideInteractions(
     const lesson = getActiveLesson(state, language);
     const activeChapter = getActiveChapter(state, language);
 
-    const blocklyDiv = document.getElementById('blocklyDiv');
-    console.log('blocklyDiv found:', !!blocklyDiv);
-    if (blocklyDiv) {
-        if (workspace) {
-            try {
-                workspace.dispose();
-            } catch (e) {
-                console.warn('Failed to dispose workspace', e);
-            }
-            workspace = null;
-        }
-        
-        const toolboxXml = buildGuideToolbox(language, lesson.id);
-        
-        console.log('Injecting Blockly with toolbox:', toolboxXml);
+    if (pendingBlocklyInitTimeout !== null) {
+        window.clearTimeout(pendingBlocklyInitTimeout);
+        pendingBlocklyInitTimeout = null;
+    }
 
-        setTimeout(() => {
-            console.log('blocklyDiv dimensions:', blocklyDiv.clientWidth, blocklyDiv.clientHeight);
-            const activeWorkspace = Blockly.inject(blocklyDiv, {
+    const blocklyDiv = document.getElementById('blocklyDiv');
+    if (blocklyDiv) {
+        const toolboxXml = buildGuideToolbox(language, lesson.id);
+        const initToken = ++activeBlocklyInitToken;
+
+        pendingBlocklyInitTimeout = window.setTimeout(() => {
+            pendingBlocklyInitTimeout = null;
+            if (initToken !== activeBlocklyInitToken) return;
+
+            const currentBlocklyDiv = document.getElementById('blocklyDiv');
+            if (!(currentBlocklyDiv instanceof HTMLElement) || !currentBlocklyDiv.isConnected) return;
+
+            if (workspaceResizeHandler) {
+                window.removeEventListener('resize', workspaceResizeHandler);
+                workspaceResizeHandler = null;
+            }
+            if (workspace) {
+                try {
+                    workspace.dispose();
+                } catch (e) {
+                    console.warn('Failed to dispose workspace', e);
+                }
+                workspace = null;
+            }
+
+            const activeWorkspace = Blockly.inject(currentBlocklyDiv, {
                 toolbox: toolboxXml,
                 scrollbars: true,
                 trashcan: true,
@@ -81,13 +97,11 @@ export function attachGuideInteractions(
                 toolboxPosition: 'start'
             });
             workspace = activeWorkspace;
-            console.log('Workspace injected:', !!workspace);
 
-            // Resize Blockly workspace on window resize
-            window.addEventListener('resize', () => Blockly.svgResize(activeWorkspace), false);
+            workspaceResizeHandler = () => Blockly.svgResize(activeWorkspace);
+            window.addEventListener('resize', workspaceResizeHandler, false);
             Blockly.svgResize(activeWorkspace);
 
-            // Load existing blocks from state
             const savedWorkspaceXml = getLessonWorkspaceState(language, lesson.id);
             const savedSequence = getLessonSequence(language, lesson.id);
             if (savedWorkspaceXml) {
@@ -137,6 +151,20 @@ export function attachGuideInteractions(
                 });
             });
         }, 10);
+    } else {
+        activeBlocklyInitToken += 1;
+        if (workspaceResizeHandler) {
+            window.removeEventListener('resize', workspaceResizeHandler);
+            workspaceResizeHandler = null;
+        }
+        if (workspace) {
+            try {
+                workspace.dispose();
+            } catch (e) {
+                console.warn('Failed to dispose workspace', e);
+            }
+            workspace = null;
+        }
     }
 
     container.querySelectorAll<HTMLElement>('[data-guide-query]').forEach((element) => {
@@ -152,6 +180,45 @@ export function attachGuideInteractions(
             const mode = element.dataset.guideMode;
             if (mode !== 'tutorial' && mode !== 'trainer') return;
             setActiveTab(language, mode);
+            rerender(language);
+        });
+    });
+
+    container.querySelectorAll<HTMLSelectElement>('[data-guide-language-select]').forEach((element) => {
+        element.addEventListener('change', () => {
+            const nextLanguage = element.value as ScriptLanguage;
+            if (nextLanguage !== 'lua' && nextLanguage !== 'python') return;
+            setCurrentScriptLanguage(nextLanguage);
+            const appLanguageSelect = document.getElementById('script-language-select') as HTMLSelectElement | null;
+            if (appLanguageSelect) {
+                appLanguageSelect.value = nextLanguage;
+            }
+            rerender(nextLanguage);
+        });
+    });
+
+    container.querySelectorAll<HTMLSelectElement>('[data-guide-chapter-select]').forEach((element) => {
+        element.addEventListener('change', () => {
+            const chapterId = element.value;
+            if (!chapterId) return;
+            setActiveChapterId(language, chapterId);
+            const chapterLessons = state.lessons.filter((item) => item.chapterId === chapterId);
+            if (chapterLessons.length > 0) {
+                setActiveLessonId(language, chapterLessons[0].id);
+            }
+            rerender(language);
+        });
+    });
+
+    container.querySelectorAll<HTMLSelectElement>('[data-guide-lesson-select]').forEach((element) => {
+        element.addEventListener('change', () => {
+            const lessonId = element.value;
+            if (!lessonId) return;
+            const selectedLesson = state.lessons.find((item) => item.id === lessonId);
+            if (!selectedLesson) return;
+            setActiveChapterId(language, selectedLesson.chapterId);
+            setActiveLessonId(language, lessonId);
+            setActiveTab(language, 'trainer');
             rerender(language);
         });
     });

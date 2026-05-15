@@ -6,7 +6,7 @@
  * Сохраняет и восстанавливает скрипты в редакторе при переключении.
  */
 import { log } from '../../shared/logging/logger.js';
-import { drones, createDroneState, currentDroneId, setCurrentDrone } from '../../core/state.js';
+import { currentDroneId, currentScriptLanguage, drones, createDroneState, setCurrentDrone } from '../../core/state.js';
 import { getEditorValue, setEditorValue } from '../../editor/index.js';
 
 export function initDroneManager(onSceneUpdate?: () => void) {
@@ -28,10 +28,18 @@ export function initDroneManager(onSceneUpdate?: () => void) {
     list.addEventListener('change', () => {
         // Save current script before switching
         if (drones[currentDroneId]) {
-            drones[currentDroneId].script = getEditorValue();
+            const currentCode = getEditorValue();
+            if (currentScriptLanguage === 'lua') {
+                drones[currentDroneId].script = currentCode;
+            } else {
+                drones[currentDroneId].pythonScript = currentCode;
+            }
         }
         setCurrentDrone(list.value);
-        setEditorValue(drones[currentDroneId].script);
+        const nextCode = currentScriptLanguage === 'lua'
+            ? drones[currentDroneId].script
+            : drones[currentDroneId].pythonScript;
+        setEditorValue(nextCode);
         // Refresh scene
         if (onSceneUpdate) onSceneUpdate();
     });
@@ -58,7 +66,10 @@ export function initDroneManager(onSceneUpdate?: () => void) {
         if (id) {
             delete drones[id];
             setCurrentDrone(Object.keys(drones)[0]);
-            setEditorValue(drones[currentDroneId].script);
+            const nextCode = currentScriptLanguage === 'lua'
+                ? drones[currentDroneId].script
+                : drones[currentDroneId].pythonScript;
+            setEditorValue(nextCode);
             updateList();
             if (onSceneUpdate) onSceneUpdate();
             log(`Deleted drone: ${id}`);

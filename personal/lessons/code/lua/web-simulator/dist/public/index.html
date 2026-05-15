@@ -2,12 +2,13 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Pioneer Lua Web Simulator</title>
+    <title>Pioneer Lua Web Simulator</title>
+    <link rel="icon" href="data:,">
     <!-- Three.js and modules loaded via Vite -->
     <!-- Fengari for Lua in browser -->
     <script src="https://cdn.jsdelivr.net/npm/fengari-web@0.1.4/dist/fengari-web.js"></script>
-  <script type="module" crossorigin src="/assets/index-CA5fmkhk.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-BzjUiSAV.css">
+  <script type="module" crossorigin src="/assets/index-B-sNSLcU.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-C05_4KCC.css">
 </head>
 <body>
     <div class="container">
@@ -39,12 +40,21 @@
 
         <div class="sidebar-panels" style="width: 450px;">
                                     <div id="editor-panel" class="sidebar-panel active">
-                <div class="panel-header">
-                    <span class="panel-title">Редактор кода</span>
+                <div class="panel-header panel-header--editor">
+                    <div class="panel-header__lead">
+                        <span class="panel-title">Редактор кода</span>
+                        <label class="editor-header-toggle" for="blockly-code-overlay-toggle">
+                            <span class="editor-header-toggle__label">Показать код</span>
+                            <span class="editor-header-toggle__switch">
+                                <input type="checkbox" id="blockly-code-overlay-toggle" disabled>
+                                <span class="editor-header-toggle__slider"></span>
+                            </span>
+                        </label>
+                    </div>
                     <button class="panel-close-btn" onclick="closePanel()">✕</button>
                 </div>
-                <div class="panel-content">
-                    <div id="editor" style="height: 100%;"></div>
+                <div class="panel-content panel-content--editor">
+                    <div id="editor" class="editor-panel-host"></div>
                 </div>
             </div>
 
@@ -603,6 +613,10 @@
                             <option value="lua">Lua</option>
                             <option value="python">Python</option>
                         </select>
+                        <label class="header-check">
+                            <input type="checkbox" id="blockly-editor-toggle">
+                            <span>Использовать блоки Blockly</span>
+                        </label>
                     </div>
                     <div class="header-controls-group">
                         <button id="run-btn" class="btn-primary">ЗАПУСТИТЬ</button>

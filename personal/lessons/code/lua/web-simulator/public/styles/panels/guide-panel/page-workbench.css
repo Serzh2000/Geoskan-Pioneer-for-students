@@ -85,11 +85,13 @@
 }
 
 @media (max-width: 1100px) {
+    .guide-selector-bar,
     .guide-chapter-tabs,
     .guide-page-tabs {
         grid-template-columns: 1fr;
     }
 
+    .guide-selector-summary,
     .guide-theory-page__meta,
     .guide-lesson-page__meta {
         grid-template-columns: 1fr;
