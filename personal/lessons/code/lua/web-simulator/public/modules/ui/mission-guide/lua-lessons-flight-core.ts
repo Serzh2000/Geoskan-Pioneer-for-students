@@ -32,13 +32,15 @@ export function getLuaCoreFlightLessons(): GuideLesson[] {
                 apiFocus('ap.push(Ev.MCE_PREFLIGHT)', 'Отправляет автопилоту команду предполетной подготовки. Это стартовый шаг для FSM-сценария.', 'ap.push(Ev.MCE_PREFLIGHT)'),
                 apiFocus('Ev.ENGINES_STARTED', 'Событие, которое сигнализирует о запуске двигателей. Только после него уместно переходить к следующим действиям миссии.', 'if event == Ev.ENGINES_STARTED then ... end')
             ],
-            targetBlockIds: ['lua_ap_push', 'lua_event_callback', 'lua_print'],
+            targetBlockIds: ['lua_ap_push', 'lua_event_callback', 'lua_print', 'lua_callback_open', 'lua_callback_end'],
             blocks: [
                 createStatementBlock('lua3-preflight', 'отправить PREFLIGHT', 'ap.push(Ev.MCE_PREFLIGHT)', 'Обязательный старт для миссий Lua через FSM Pioneer.', 'setup', 'ap.push(Ev.MCE_PREFLIGHT)'),
                 createEventBlock('lua3-engines', 'ждать ENGINES_STARTED', 'if event == Ev.ENGINES_STARTED', 'С этого события начинается безопасный переход к следующим шагам миссии.', 'Ev.ENGINES_STARTED'),
                 createStatementBlock('lua3-print', 'показать сообщение', 'print("Двигатели запущены")', 'Сообщает, что предполетная подготовка завершилась успешно.', 'check', 'print("Двигатели запущены")'),
                 createStatementBlock('lua3-takeoff', 'отправить TAKEOFF', 'ap.push(Ev.MCE_TAKEOFF)', 'Рабочая команда API, но для текущего урока преждевременная.', 'action', 'ap.push(Ev.MCE_TAKEOFF)'),
-                createEventBlock('lua3-point', 'ждать POINT_REACHED', 'if event == Ev.POINT_REACHED', 'Полезно только после полета к точке, поэтому сейчас это лишняя логика.', 'Ev.POINT_REACHED')
+                createEventBlock('lua3-point', 'ждать POINT_REACHED', 'if event == Ev.POINT_REACHED', 'Полезно только после полета к точке, поэтому сейчас это лишняя логика.', 'Ev.POINT_REACHED'),
+                createStatementBlock('lua_callback_open', 'открыть callback', 'function callback(event)', 'Открывает обязательную событийную функцию Lua-сценария.', 'setup', 'function callback(event)'),
+                createStatementBlock('lua_callback_end', 'закрыть callback', 'end', 'Закрывает область function callback(event).', 'setup', 'end')
             ],
             links: [
                 { label: 'ap.push', query: 'ap.push', previewKey: 'ap.push' },
@@ -87,6 +89,18 @@ export function getLuaCoreFlightLessons(): GuideLesson[] {
                     title: 'Не показан результат подготовки',
                     reason: 'Технически миссия стартует, но ученик не видит подтверждение, что событие реально поймано.',
                     fix: 'Добавьте блок `показать сообщение` после ожидания события.'
+                },
+                'lua_callback_open': {
+                    kind: 'error',
+                    title: 'Не открыт callback',
+                    reason: 'В интерактивном учебнике `function callback(event)` должен быть отдельным открывающим блоком.',
+                    fix: 'Добавьте блок `открыть callback` перед событийной логикой.'
+                },
+                'lua_callback_end': {
+                    kind: 'error',
+                    title: 'Не закрыт callback',
+                    reason: 'Конструкция `function callback(event)` должна завершаться отдельным независимым блоком `end`.',
+                    fix: 'Добавьте блок `закрыть callback` после содержимого callback.'
                 }
             },
             extraBlockDiagnostics: {
@@ -135,13 +149,15 @@ export function getLuaCoreFlightLessons(): GuideLesson[] {
                 apiFocus('Ev.MCE_TAKEOFF', 'Команда взлета. Ее нельзя отправлять раньше, чем двигатели перейдут в состояние готовности.', 'ap.push(Ev.MCE_TAKEOFF)'),
                 apiFocus('Ev.ENGINES_STARTED', 'Контрольное событие, которое отделяет подготовку от безопасного взлета.', 'if event == Ev.ENGINES_STARTED then ... end')
             ],
-            targetBlockIds: ['lua_ap_push', 'lua_event_callback', 'lua_ap_push'],
+            targetBlockIds: ['lua_ap_push', 'lua_event_callback', 'lua_ap_push', 'lua_callback_open', 'lua_callback_end'],
             blocks: [
                 createStatementBlock('lua4-preflight', 'отправить PREFLIGHT', 'ap.push(Ev.MCE_PREFLIGHT)', 'Обязательная предполетная команда.', 'setup', 'ap.push(Ev.MCE_PREFLIGHT)'),
                 createEventBlock('lua4-engines', 'ждать ENGINES_STARTED', 'if event == Ev.ENGINES_STARTED', 'Открывает безопасный момент для команды взлета.', 'Ev.ENGINES_STARTED'),
                 createStatementBlock('lua4-takeoff', 'отправить TAKEOFF', 'ap.push(Ev.MCE_TAKEOFF)', 'Целевая команда взлета.', 'action', 'ap.push(Ev.MCE_TAKEOFF)'),
                 createEventBlock('lua4-point', 'ждать TAKEOFF_COMPLETE', 'if event == Ev.TAKEOFF_COMPLETE', 'Полезно для следующего урока, но здесь лишнее.', 'Ev.TAKEOFF_COMPLETE'),
-                createStatementBlock('lua4-land', 'отправить LANDING', 'ap.push(Ev.MCE_LANDING)', 'Команда посадки рабочая, но без маршрута преждевременна.', 'action', 'ap.push(Ev.MCE_LANDING)')
+                createStatementBlock('lua4-land', 'отправить LANDING', 'ap.push(Ev.MCE_LANDING)', 'Команда посадки рабочая, но без маршрута преждевременна.', 'action', 'ap.push(Ev.MCE_LANDING)'),
+                createStatementBlock('lua_callback_open', 'открыть callback', 'function callback(event)', 'Открывает обязательную событийную функцию Lua-сценария.', 'setup', 'function callback(event)'),
+                createStatementBlock('lua_callback_end', 'закрыть callback', 'end', 'Закрывает область function callback(event).', 'setup', 'end')
             ],
             links: [
                 { label: 'Ev.MCE_TAKEOFF', query: 'Ev.MCE_TAKEOFF' },
@@ -184,6 +200,18 @@ export function getLuaCoreFlightLessons(): GuideLesson[] {
                     title: 'Команда взлета отсутствует',
                     reason: 'Подготовка есть, но ключевой целевой шаг урока не выполняется.',
                     fix: 'Добавьте блок `отправить TAKEOFF` после ожидания события.'
+                },
+                'lua_callback_open': {
+                    kind: 'error',
+                    title: 'Не открыт callback',
+                    reason: 'В интерактивном учебнике `function callback(event)` должен быть отдельным открывающим блоком.',
+                    fix: 'Добавьте блок `открыть callback` перед событийной логикой.'
+                },
+                'lua_callback_end': {
+                    kind: 'error',
+                    title: 'Не закрыт callback',
+                    reason: 'Конструкция `function callback(event)` должна завершаться отдельным независимым блоком `end`.',
+                    fix: 'Добавьте блок `закрыть callback` после содержимого callback.'
                 }
             },
             extraBlockDiagnostics: {

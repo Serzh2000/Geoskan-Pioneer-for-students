@@ -60,21 +60,27 @@ export function setupSyntaxHighlighting(monaco: any) {
         }
     });
 
-    monaco.editor.defineTheme('pioneer-dark', {
-        base: 'vs-dark',
+    monaco.editor.defineTheme('pioneer-light', {
+        base: 'vs',
         inherit: true,
         rules: [
-            { token: 'keyword.class', foreground: '4ec9b0', fontStyle: 'bold' }, // Pioneer Modules (Greenish Cyan)
-            { token: 'function.call', foreground: 'dcdcaa' }, // Methods (Yellowish)
-            { token: 'constant', foreground: '569cd6', fontStyle: 'bold' }, // Constants (Blue)
-            { token: 'comment', foreground: '6a9955' }, // Comments (Green)
-            { token: 'string', foreground: 'ce9178' }, // Strings (Orange)
-            { token: 'number', foreground: 'b5cea8' }, // Numbers (Light Green)
-            { token: 'keyword', foreground: 'c586c0' } // Keywords (Purple)
+            { token: 'keyword.class', foreground: '1f2937', fontStyle: 'bold' },
+            { token: 'function.call', foreground: 'ff6b00', fontStyle: 'bold' },
+            { token: 'constant', foreground: '2563eb', fontStyle: 'bold' },
+            { token: 'comment', foreground: '6b7280' },
+            { token: 'string', foreground: 'b45309' },
+            { token: 'number', foreground: '0f766e' },
+            { token: 'keyword', foreground: '7c3aed', fontStyle: 'bold' }
         ],
         colors: {
-            'editor.background': '#1e1e1e',
-            'editor.foreground': '#d4d4d4'
+            'editor.background': '#f4f5f7',
+            'editor.foreground': '#151515',
+            'editor.lineHighlightBackground': '#eceff3',
+            'editorLineNumber.foreground': '#9ca3af',
+            'editorLineNumber.activeForeground': '#151515',
+            'editorCursor.foreground': '#ff6b00',
+            'editor.selectionBackground': '#ffd7bd',
+            'editor.inactiveSelectionBackground': '#f2e2d6'
         }
     });
 }

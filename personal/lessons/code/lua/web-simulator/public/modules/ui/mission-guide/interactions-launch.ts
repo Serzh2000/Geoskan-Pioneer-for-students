@@ -3,6 +3,7 @@ import { setEditorLanguage, setEditorValue } from '../../editor/index.js';
 import { restartAndRunSimulation } from '../../app/simulation-controls.js';
 import { openApiDocsCatalog, renderApiDocs } from '../api-docs/index.js';
 import type { ScriptLanguage } from '../api-docs/sections.js';
+import { logGuideEvent } from './guide-logging.js';
 import { getGuideLessonState } from './lessons.js';
 import { setMissionGuideScenePreviewActive } from './scene-preview.js';
 import {
@@ -25,13 +26,20 @@ import { evaluateLesson } from './lesson-evaluation.js';
 
 let workspace: Blockly.WorkspaceSvg | null = null;
 let blocklyInitialized = false;
-const blocklyTheme = Blockly.Theme.defineTheme('pioneer-dark-blockly', {
-    name: 'pioneer-dark-blockly',
+const blocklyTheme = Blockly.Theme.defineTheme('pioneer-light-blockly', {
+    name: 'pioneer-light-blockly',
     base: Blockly.Themes.Classic,
     componentStyles: {
-        workspaceBackgroundColour: '#0f172a',
-        toolboxBackgroundColour: '#1e293b',
-        flyoutBackgroundColour: '#1e293b'
+        workspaceBackgroundColour: 'transparent',
+        toolboxBackgroundColour: '#ffffff',
+        toolboxForegroundColour: '#1a1a1a',
+        flyoutBackgroundColour: '#f8f9fa',
+        flyoutForegroundColour: '#1a1a1a',
+        scrollbarColour: '#cbd5df',
+        insertionMarkerColour: '#ff6b00',
+        insertionMarkerOpacity: 0.28,
+        markerColour: '#ff6b00',
+        cursorColour: '#ff6b00'
     }
 });
 
@@ -56,7 +64,14 @@ export function renderUncheckedDiagnostics(): string {
 }
 
 export function canLaunchLesson(sequenceIds: string[], diagnostics: Array<{ kind: string }>): boolean {
-    return sequenceIds.length > 0 && !diagnostics.some((diagnostic) => diagnostic.kind === 'error');
+    const launchAllowed = sequenceIds.length > 0;
+    logGuideEvent('launch_gate_evaluated', {
+        sequenceLength: sequenceIds.length,
+        diagnostics: diagnostics.map((diagnostic) => diagnostic.kind),
+        launchAllowed,
+        reason: launchAllowed ? 'workspace_has_blocks' : 'workspace_is_empty'
+    }, launchAllowed ? 'info' : 'warn');
+    return launchAllowed;
 }
 
 export function launchLesson(
@@ -68,6 +83,13 @@ export function launchLesson(
 ): void {
     if (!activeWorkspace) return;
     const code = compileMissionGuideWorkspace(language, activeWorkspace);
+    logGuideEvent('launch_requested', {
+        language,
+        lessonId: lesson.id,
+        bannerKind: banner.kind,
+        codeLength: code.length,
+        code
+    }, banner.kind === 'warning' ? 'warn' : 'info');
 
     const languageSelect = document.getElementById('script-language-select') as HTMLSelectElement | null;
 
@@ -82,5 +104,10 @@ export function launchLesson(
     setMissionGuideScenePreviewActive(true);
     rerender(language);
     restartAndRunSimulation();
+    logGuideEvent('launch_started', {
+        language,
+        lessonId: lesson.id,
+        bannerKind: banner.kind
+    }, banner.kind === 'warning' ? 'warn' : 'success');
 }
 

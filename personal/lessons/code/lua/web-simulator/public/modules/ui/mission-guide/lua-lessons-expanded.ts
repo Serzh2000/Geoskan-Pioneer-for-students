@@ -11,31 +11,36 @@ export function getLuaExpandedLessons(): GuideLesson[] {
             chapterId: GUIDE_CHAPTER_IDS.foundations,
             badge: 'Задание 3',
             title: 'Световой сигнал с подтверждением',
-            goal: 'Соберите короткий сценарий индикации: создайте `Ledbar`, включите зеленый сигнал и выведите текстовое подтверждение.',
+            goal: 'Соберите короткий сценарий индикации: создайте `Ledbar(29)`, включите зеленый сигнал и выведите текстовое подтверждение.',
             summary: 'Урок связывает визуальную индикацию и простой лог, чтобы ученик видел и физический, и текстовый результат выполнения.',
             lessonIntro: 'Здесь вы тренируете полезную привычку: подтверждать важный шаг миссии сразу двумя каналами. Светодиод показывает состояние на модели дрона, а `print(...)` помогает отследить тот же этап в консоли симулятора.',
             expectedOutcome: 'Сценарий создает `Ledbar`, включает зеленый индикатор и выводит сообщение о готовности сигнала.',
             builderHint: 'Логика линейная: сначала инициализация периферии, затем управление цветом, затем текстовое подтверждение.',
             apiFocus: [
-                apiFocus('Ledbar.new(count)', 'Создает объект светодиодной ленты, который нужен для дальнейшего управления цветом.', 'local leds = Ledbar.new(4)'),
+                apiFocus('Ledbar.new(count)', 'Создает объект светодиодной ленты, который нужен для дальнейшего управления цветом. Для этих уроков используем `Ledbar.new(29)`.', 'local leds = Ledbar.new(29)'),
                 apiFocus('leds:set(index, r, g, b)', 'Меняет цвет светодиода и выступает визуальным индикатором состояния.', 'leds:set(0, 0, 1, 0)'),
                 apiFocus('print(...)', 'Не управляет дроном напрямую, но полезен как журнал шага миссии.', 'print("Сигнал готов")')
             ],
-            targetBlockIds: ['lua_ledbar_new', 'lua_led_set', 'lua_print'],
+            targetBlockIds: ['lua_ledbar_new', 'lua_led_set', 'lua_print', 'lua_callback_open', 'lua_callback_end'],
             blocks: [
-                createStatementBlock('lua6-ledbar', 'создать Ledbar', 'local leds = Ledbar.new(4)', 'Готовит объект светодиодной ленты.', 'setup', 'local leds = Ledbar.new(4)'),
+                createStatementBlock('lua6-ledbar', 'создать Ledbar', 'local leds = Ledbar.new(29)', 'Готовит объект светодиодной ленты через `Ledbar.new(29)`.', 'setup', 'local leds = Ledbar.new(29)'),
                 createStatementBlock('lua6-green', 'включить зеленый', 'leds:set(0, 0, 1, 0)', 'Целевой сигнал урока.', 'action', 'leds:set(0, 0, 1, 0)'),
                 createStatementBlock('lua6-print', 'сообщить о сигнале', 'print("Сигнал готов")', 'Текстовое подтверждение выполнения.', 'check', 'print("Сигнал готов")'),
-                createTimerBlock('lua6-wait', 'подождать 1 c', 'Timer.callLater(1.0, ...)', 'Таймер здесь не обязателен и только усложняет сценарий.', 1)
+                createTimerBlock('lua6-wait', 'подождать 1 c', 'Timer.callLater(1.0, ...)', 'Таймер здесь не обязателен и только усложняет сценарий.', 1),
+                createStatementBlock('lua_callback_open', 'открыть callback', 'function callback(event)', 'Открывает обязательную событийную функцию Lua-сценария.', 'setup', 'function callback(event)'),
+                createStatementBlock('lua_callback_end', 'закрыть callback', 'end', 'Закрывает область function callback(event).', 'setup', 'end')
             ],
             links: [
                 { label: 'Ledbar.new', query: 'Ledbar.new' },
                 { label: 'leds:set', query: 'leds:set Ledbar' },
                 { label: 'print', query: 'lua print' }
             ],
-            solutionCode: `local leds = Ledbar.new(4)
+            solutionCode: `local leds = Ledbar.new(29)
 leds:set(0, 0, 1, 0)
-print("Сигнал готов")`,
+print("Сигнал готов")
+
+function callback(event)
+end`,
             actionLabel: 'Открыть индикацию и лог',
             actionQuery: 'Ledbar.new leds:set print',
             errorCatalog: [
@@ -64,6 +69,18 @@ print("Сигнал готов")`,
                     title: 'Не выведено текстовое подтверждение',
                     reason: 'Свет загорается, но пользователь не видит сопутствующий лог выполнения.',
                     fix: 'Добавьте `print(...)` в конец цепочки.'
+                },
+                'lua_callback_open': {
+                    kind: 'error',
+                    title: 'Не открыт callback',
+                    reason: 'В интерактивном учебнике `function callback(event)` должен быть отдельным открывающим блоком.',
+                    fix: 'Добавьте блок `открыть callback` перед событийной логикой.'
+                },
+                'lua_callback_end': {
+                    kind: 'error',
+                    title: 'Не закрыт callback',
+                    reason: 'Конструкция `function callback(event)` должна завершаться отдельным независимым блоком `end`.',
+                    fix: 'Добавьте блок `закрыть callback` после содержимого callback.'
                 }
             },
             extraBlockDiagnostics: {
@@ -97,7 +114,7 @@ print("Сигнал готов")`,
             chapterId: GUIDE_CHAPTER_IDS.foundations,
             badge: 'Задание 4',
             title: 'Отложенный световой отклик',
-            goal: 'Соберите сценарий, где после создания `Ledbar` через таймер включается синий сигнал и печатается сообщение о срабатывании.',
+            goal: 'Соберите сценарий, где после создания `Ledbar(29)` через таймер включается синий сигнал и печатается сообщение о срабатывании.',
             summary: 'Урок показывает, как использовать `Timer.callLater(...)` для реакции с задержкой, не блокируя основной поток сценария.',
             lessonIntro: 'Задание моделирует типичную ситуацию: действие должно произойти не сразу, а после паузы. В Lua это удобно оформлять через таймер с вложенным callback, в который и помещаются полезные действия.',
             expectedOutcome: 'Сценарий создает `Ledbar`, а затем через `Timer.callLater(...)` включает синий LED и выводит сообщение о срабатывании.',
@@ -106,23 +123,28 @@ print("Сигнал готов")`,
                 apiFocus('Timer.callLater(seconds, callback)', 'Позволяет отложить выполнение блока действий без блокировки всего сценария.', 'Timer.callLater(1.0, function() ... end)'),
                 apiFocus('leds:set(...) и print(...)', 'В этом уроке оба действия должны быть вложены в callback таймера.', 'leds:set(1, 0, 0, 1)')
             ],
-            targetBlockIds: ['lua_ledbar_new', 'lua_timer_calllater', 'lua_led_set', 'lua_print'],
+            targetBlockIds: ['lua_ledbar_new', 'lua_timer_calllater', 'lua_led_set', 'lua_print', 'lua_callback_open', 'lua_callback_end'],
             blocks: [
-                createStatementBlock('lua7-ledbar', 'создать Ledbar', 'local leds = Ledbar.new(4)', 'Подготавливает периферию.', 'setup', 'local leds = Ledbar.new(4)'),
+                createStatementBlock('lua7-ledbar', 'создать Ledbar', 'local leds = Ledbar.new(29)', 'Подготавливает периферию через `Ledbar.new(29)`.', 'setup', 'local leds = Ledbar.new(29)'),
                 createTimerBlock('lua7-timer', 'сработать через 1 c', 'Timer.callLater(1.0, ...)', 'Контейнер для отложенных действий.', 1),
                 createStatementBlock('lua7-blue', 'включить синий', 'leds:set(1, 0, 0, 1)', 'LED-индикация внутри callback.', 'action', 'leds:set(1, 0, 0, 1)'),
-                createStatementBlock('lua7-print', 'сообщить о таймере', 'print("Таймер сработал")', 'Текстовое подтверждение события.', 'check', 'print("Таймер сработал")')
+                createStatementBlock('lua7-print', 'сообщить о таймере', 'print("Таймер сработал")', 'Текстовое подтверждение события.', 'check', 'print("Таймер сработал")'),
+                createStatementBlock('lua_callback_open', 'открыть callback', 'function callback(event)', 'Открывает обязательную событийную функцию Lua-сценария.', 'setup', 'function callback(event)'),
+                createStatementBlock('lua_callback_end', 'закрыть callback', 'end', 'Закрывает область function callback(event).', 'setup', 'end')
             ],
             links: [
                 { label: 'Timer.callLater', query: 'Timer.callLater' },
                 { label: 'leds:set', query: 'leds:set Ledbar' }
             ],
-            solutionCode: `local leds = Ledbar.new(4)
+            solutionCode: `local leds = Ledbar.new(29)
 
 Timer.callLater(1.0, function()
     leds:set(1, 0, 0, 1)
     print("Таймер сработал")
-end)`,
+end)
+
+function callback(event)
+end`,
             actionLabel: 'Открыть отложенные действия',
             actionQuery: 'Timer.callLater leds:set print',
             errorCatalog: [
@@ -157,6 +179,18 @@ end)`,
                     title: 'Нет текстового подтверждения таймера',
                     reason: 'Сигнал появится, но лог не покажет, что callback действительно был вызван.',
                     fix: 'Добавьте `print(...)` после LED-команды.'
+                },
+                'lua_callback_open': {
+                    kind: 'error',
+                    title: 'Не открыт callback',
+                    reason: 'В интерактивном учебнике `function callback(event)` должен быть отдельным открывающим блоком.',
+                    fix: 'Добавьте блок `открыть callback` перед событийной логикой.'
+                },
+                'lua_callback_end': {
+                    kind: 'error',
+                    title: 'Не закрыт callback',
+                    reason: 'Конструкция `function callback(event)` должна завершаться отдельным независимым блоком `end`.',
+                    fix: 'Добавьте блок `закрыть callback` после содержимого callback.'
                 }
             },
             extraBlockDiagnostics: {},
@@ -185,14 +219,16 @@ end)`,
                 apiFocus('Ev.TAKEOFF_COMPLETE', 'Это событие подтверждает, что взлет завершен и дрон может перейти к маршруту.', 'if event == Ev.TAKEOFF_COMPLETE then ... end'),
                 apiFocus('ap.goToLocalPoint(x, y, z)', 'Запускает реальное перемещение дрона к локальной координате.', 'ap.goToLocalPoint(1, 0, 1)')
             ],
-            targetBlockIds: ['lua_ap_push', 'lua_event_callback', 'lua_ap_push', 'lua_event_callback', 'lua_goto_local_point'],
+            targetBlockIds: ['lua_ap_push', 'lua_event_callback', 'lua_ap_push', 'lua_event_callback', 'lua_goto_local_point', 'lua_callback_open', 'lua_callback_end'],
             blocks: [
                 createStatementBlock('lua8-preflight', 'PREFLIGHT', 'ap.push(Ev.MCE_PREFLIGHT)', 'Старт миссии.', 'setup', 'ap.push(Ev.MCE_PREFLIGHT)'),
                 createEventBlock('lua8-engines', 'ждать ENGINES_STARTED', 'if event == Ev.ENGINES_STARTED', 'Открывает ветку взлета.', 'Ev.ENGINES_STARTED'),
                 createStatementBlock('lua8-takeoff', 'TAKEOFF', 'ap.push(Ev.MCE_TAKEOFF)', 'Поднимает дрон.', 'action', 'ap.push(Ev.MCE_TAKEOFF)'),
                 createEventBlock('lua8-complete', 'ждать TAKEOFF_COMPLETE', 'if event == Ev.TAKEOFF_COMPLETE', 'Только после него допустим маршрут.', 'Ev.TAKEOFF_COMPLETE'),
                 createStatementBlock('lua8-goto', 'лететь к точке', 'ap.goToLocalPoint(1, 0, 1)', 'Целевой навигационный шаг.', 'action', 'ap.goToLocalPoint(1, 0, 1)'),
-                createStatementBlock('lua8-print', 'сообщить о маршруте', 'print("Маршрут стартовал")', 'Допустимый лог, но не основной шаг.', 'check', 'print("Маршрут стартовал")')
+                createStatementBlock('lua8-print', 'сообщить о маршруте', 'print("Маршрут стартовал")', 'Допустимый лог, но не основной шаг.', 'check', 'print("Маршрут стартовал")'),
+                createStatementBlock('lua_callback_open', 'открыть callback', 'function callback(event)', 'Открывает обязательную событийную функцию Lua-сценария.', 'setup', 'function callback(event)'),
+                createStatementBlock('lua_callback_end', 'закрыть callback', 'end', 'Закрывает область function callback(event).', 'setup', 'end')
             ],
             links: [
                 { label: 'Ev.TAKEOFF_COMPLETE', query: 'Ev.TAKEOFF_COMPLETE' },
@@ -238,6 +274,18 @@ end`,
                     title: 'Не добавлен переход к точке',
                     reason: 'Сценарий доходит до взлета, но не выполняет навигационную часть.',
                     fix: 'Добавьте `ap.goToLocalPoint(...)` в ветку `TAKEOFF_COMPLETE`.'
+                },
+                'lua_callback_open': {
+                    kind: 'error',
+                    title: 'Не открыт callback',
+                    reason: 'В интерактивном учебнике `function callback(event)` должен быть отдельным открывающим блоком.',
+                    fix: 'Добавьте блок `открыть callback` перед событийной логикой.'
+                },
+                'lua_callback_end': {
+                    kind: 'error',
+                    title: 'Не закрыт callback',
+                    reason: 'Конструкция `function callback(event)` должна завершаться отдельным независимым блоком `end`.',
+                    fix: 'Добавьте блок `закрыть callback` после содержимого callback.'
                 }
             },
             extraBlockDiagnostics: {
@@ -273,7 +321,7 @@ end`,
                 apiFocus('Ev.POINT_REACHED', 'Подтверждает, что маршрут действительно выполнен.', 'if event == Ev.POINT_REACHED then ... end'),
                 apiFocus('print(...)', 'В этом уроке лог нужен как подтверждение достижения навигационной цели.', 'print("Точка достигнута")')
             ],
-            targetBlockIds: ['lua_ap_push', 'lua_event_callback', 'lua_ap_push', 'lua_event_callback', 'lua_goto_local_point', 'lua_event_callback', 'lua_print'],
+            targetBlockIds: ['lua_ap_push', 'lua_event_callback', 'lua_ap_push', 'lua_event_callback', 'lua_goto_local_point', 'lua_event_callback', 'lua_print', 'lua_callback_open', 'lua_callback_end'],
             blocks: [
                 createStatementBlock('lua9-preflight', 'PREFLIGHT', 'ap.push(Ev.MCE_PREFLIGHT)', 'Старт миссии.', 'setup', 'ap.push(Ev.MCE_PREFLIGHT)'),
                 createEventBlock('lua9-engines', 'ждать ENGINES_STARTED', 'if event == Ev.ENGINES_STARTED', 'Стартовая ветка FSM.', 'Ev.ENGINES_STARTED'),
@@ -281,7 +329,9 @@ end`,
                 createEventBlock('lua9-complete', 'ждать TAKEOFF_COMPLETE', 'if event == Ev.TAKEOFF_COMPLETE', 'Открывает маршрут.', 'Ev.TAKEOFF_COMPLETE'),
                 createStatementBlock('lua9-goto', 'лететь к точке', 'ap.goToLocalPoint(1, 0, 1)', 'Навигационный шаг.', 'action', 'ap.goToLocalPoint(1, 0, 1)'),
                 createEventBlock('lua9-point', 'ждать POINT_REACHED', 'if event == Ev.POINT_REACHED', 'Подтверждает достижение маршрута.', 'Ev.POINT_REACHED'),
-                createStatementBlock('lua9-print', 'сообщить о точке', 'print("Точка достигнута")', 'Целевое подтверждение урока.', 'check', 'print("Точка достигнута")')
+                createStatementBlock('lua9-print', 'сообщить о точке', 'print("Точка достигнута")', 'Целевое подтверждение урока.', 'check', 'print("Точка достигнута")'),
+                createStatementBlock('lua_callback_open', 'открыть callback', 'function callback(event)', 'Открывает обязательную событийную функцию Lua-сценария.', 'setup', 'function callback(event)'),
+                createStatementBlock('lua_callback_end', 'закрыть callback', 'end', 'Закрывает область function callback(event).', 'setup', 'end')
             ],
             links: [
                 { label: 'Ev.POINT_REACHED', query: 'Ev.POINT_REACHED' },
@@ -325,6 +375,18 @@ end`,
                     title: 'Нет сообщения о достижении точки',
                     reason: 'Событие маршрута не подтверждено видимым действием.',
                     fix: 'Добавьте `print("Точка достигнута")` в ветку `POINT_REACHED`.'
+                },
+                'lua_callback_open': {
+                    kind: 'error',
+                    title: 'Не открыт callback',
+                    reason: 'В интерактивном учебнике `function callback(event)` должен быть отдельным открывающим блоком.',
+                    fix: 'Добавьте блок `открыть callback` перед событийной логикой.'
+                },
+                'lua_callback_end': {
+                    kind: 'error',
+                    title: 'Не закрыт callback',
+                    reason: 'Конструкция `function callback(event)` должна завершаться отдельным независимым блоком `end`.',
+                    fix: 'Добавьте блок `закрыть callback` после содержимого callback.'
                 }
             },
             extraBlockDiagnostics: {},
@@ -345,7 +407,7 @@ end`,
                 apiFocus('Ev.MCE_LANDING', 'Завершает миссию и должен отправляться только после подтверждения конца маршрута.', 'ap.push(Ev.MCE_LANDING)'),
                 apiFocus('Ev.POINT_REACHED', 'Сигнал, который разрешает завершить маршрут посадкой.', 'if event == Ev.POINT_REACHED then ... end')
             ],
-            targetBlockIds: ['lua_ap_push', 'lua_event_callback', 'lua_ap_push', 'lua_event_callback', 'lua_goto_local_point', 'lua_event_callback', 'lua_ap_push'],
+            targetBlockIds: ['lua_ap_push', 'lua_event_callback', 'lua_ap_push', 'lua_event_callback', 'lua_goto_local_point', 'lua_event_callback', 'lua_ap_push', 'lua_callback_open', 'lua_callback_end'],
             blocks: [
                 createStatementBlock('lua10-preflight', 'PREFLIGHT', 'ap.push(Ev.MCE_PREFLIGHT)', 'Старт подготовки.', 'setup', 'ap.push(Ev.MCE_PREFLIGHT)'),
                 createEventBlock('lua10-engines', 'ждать ENGINES_STARTED', 'if event == Ev.ENGINES_STARTED', 'Ветка запуска двигателей.', 'Ev.ENGINES_STARTED'),
@@ -353,7 +415,9 @@ end`,
                 createEventBlock('lua10-complete', 'ждать TAKEOFF_COMPLETE', 'if event == Ev.TAKEOFF_COMPLETE', 'Открывает маршрут.', 'Ev.TAKEOFF_COMPLETE'),
                 createStatementBlock('lua10-goto', 'лететь к точке', 'ap.goToLocalPoint(1, 0, 1)', 'Перемещение к цели.', 'action', 'ap.goToLocalPoint(1, 0, 1)'),
                 createEventBlock('lua10-point', 'ждать POINT_REACHED', 'if event == Ev.POINT_REACHED', 'Подтверждает завершение маршрута.', 'Ev.POINT_REACHED'),
-                createStatementBlock('lua10-land', 'LANDING', 'ap.push(Ev.MCE_LANDING)', 'Безопасное завершение миссии.', 'action', 'ap.push(Ev.MCE_LANDING)')
+                createStatementBlock('lua10-land', 'LANDING', 'ap.push(Ev.MCE_LANDING)', 'Безопасное завершение миссии.', 'action', 'ap.push(Ev.MCE_LANDING)'),
+                createStatementBlock('lua_callback_open', 'открыть callback', 'function callback(event)', 'Открывает обязательную событийную функцию Lua-сценария.', 'setup', 'function callback(event)'),
+                createStatementBlock('lua_callback_end', 'закрыть callback', 'end', 'Закрывает область function callback(event).', 'setup', 'end')
             ],
             links: [
                 { label: 'Ev.MCE_LANDING', query: 'Ev.MCE_LANDING' },
@@ -397,6 +461,18 @@ end`,
                     title: 'Не хватает обязательных команд',
                     reason: 'Для урока нужна не только подготовка, но и финальная команда посадки.',
                     fix: 'Соберите полный набор команд автопилота.'
+                },
+                'lua_callback_open': {
+                    kind: 'error',
+                    title: 'Не открыт callback',
+                    reason: 'В интерактивном учебнике `function callback(event)` должен быть отдельным открывающим блоком.',
+                    fix: 'Добавьте блок `открыть callback` перед событийной логикой.'
+                },
+                'lua_callback_end': {
+                    kind: 'error',
+                    title: 'Не закрыт callback',
+                    reason: 'Конструкция `function callback(event)` должна завершаться отдельным независимым блоком `end`.',
+                    fix: 'Добавьте блок `закрыть callback` после содержимого callback.'
                 }
             },
             extraBlockDiagnostics: {},

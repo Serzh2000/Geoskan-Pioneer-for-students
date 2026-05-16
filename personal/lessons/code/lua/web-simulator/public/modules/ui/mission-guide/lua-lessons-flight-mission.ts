@@ -33,7 +33,7 @@ export function getLuaMissionLessons(): GuideLesson[] {
                 apiFocus('Ev.TAKEOFF_COMPLETE', 'Событие окончания взлета. После него маршрут становится логически допустимым.', 'if event == Ev.TAKEOFF_COMPLETE then ... end'),
                 apiFocus('Ev.POINT_REACHED и Ev.MCE_LANDING', 'Событие достижения точки подтверждает окончание маршрута, а команда посадки завершает миссию.', 'if event == Ev.POINT_REACHED then ap.push(Ev.MCE_LANDING) end')
             ],
-            targetBlockIds: ['lua_ap_push', 'lua_event_callback', 'lua_ap_push', 'lua_event_callback', 'lua_goto_local_point', 'lua_event_callback', 'lua_ap_push'],
+            targetBlockIds: ['lua_ap_push', 'lua_event_callback', 'lua_ap_push', 'lua_event_callback', 'lua_goto_local_point', 'lua_event_callback', 'lua_ap_push', 'lua_callback_open', 'lua_callback_end'],
             blocks: [
                 createStatementBlock('lua5-preflight', 'PREFLIGHT', 'ap.push(Ev.MCE_PREFLIGHT)', 'Старт миссии.', 'setup', 'ap.push(Ev.MCE_PREFLIGHT)'),
                 createEventBlock('lua5-engines', 'ждать ENGINES_STARTED', 'if event == Ev.ENGINES_STARTED', 'Открывает ветку для взлета.', 'Ev.ENGINES_STARTED'),
@@ -42,7 +42,9 @@ export function getLuaMissionLessons(): GuideLesson[] {
                 createStatementBlock('lua5-goto', 'лететь к точке', 'ap.goToLocalPoint(1, 0, 1)', 'Переводит дрон в полет к локальной координате.', 'action', 'ap.goToLocalPoint(1, 0, 1)'),
                 createEventBlock('lua5-point', 'ждать POINT_REACHED', 'if event == Ev.POINT_REACHED', 'Сигнал, что маршрут выполнен.', 'Ev.POINT_REACHED'),
                 createStatementBlock('lua5-land', 'LANDING', 'ap.push(Ev.MCE_LANDING)', 'Завершает миссию посадкой.', 'action', 'ap.push(Ev.MCE_LANDING)'),
-                createStatementBlock('lua5-print', 'сообщить о точке', 'print("Точка достигнута")', 'Отладочный вывод допустим, но не заменяет посадку.', 'check', 'print("Точка достигнута")')
+                createStatementBlock('lua5-print', 'сообщить о точке', 'print("Точка достигнута")', 'Отладочный вывод допустим, но не заменяет посадку.', 'check', 'print("Точка достигнута")'),
+                createStatementBlock('lua_callback_open', 'открыть callback', 'function callback(event)', 'Открывает обязательную событийную функцию Lua-сценария.', 'setup', 'function callback(event)'),
+                createStatementBlock('lua_callback_end', 'закрыть callback', 'end', 'Закрывает область function callback(event).', 'setup', 'end')
             ],
             links: [
                 { label: 'ap.goToLocalPoint', query: 'ap.goToLocalPoint', previewKey: 'ap.goToLocalPoint' },
@@ -116,6 +118,18 @@ export function getLuaMissionLessons(): GuideLesson[] {
                     title: 'Не добавлена посадка',
                     reason: 'Сценарий выполняет взлет и маршрут, но не завершает миссию безопасной посадкой.',
                     fix: 'Добавьте блок `LANDING` после `POINT_REACHED`.'
+                },
+                'lua_callback_open': {
+                    kind: 'error',
+                    title: 'Не открыт callback',
+                    reason: 'В интерактивном учебнике `function callback(event)` должен быть отдельным открывающим блоком.',
+                    fix: 'Добавьте блок `открыть callback` перед событийной логикой.'
+                },
+                'lua_callback_end': {
+                    kind: 'error',
+                    title: 'Не закрыт callback',
+                    reason: 'Конструкция `function callback(event)` должна завершаться отдельным независимым блоком `end`.',
+                    fix: 'Добавьте блок `закрыть callback` после содержимого callback.'
                 }
             },
             extraBlockDiagnostics: {

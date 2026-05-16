@@ -1,20 +1,20 @@
-﻿/*
+/*
  * Контейнеры боковых панелей.
  * Файл выделен из `public/style.css` при декомпозиции общего CSS.
  */
 /* SIDEBAR PANELS */
 .sidebar-panels {
     height: 100%;
-    background: rgba(15, 23, 42, 0.7);
-    border-right: 1px solid rgba(255, 255, 255, 0.05);
+    width: 450px;
+    background: linear-gradient(180deg, #fcfcfd 0%, #f6f7f8 100%);
+    border-right: 1px solid rgba(9, 9, 11, 0.04);
     display: flex;
     flex-direction: column;
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     overflow: hidden;
     position: relative;
     z-index: 90;
-    backdrop-filter: blur(12px);
-    box-shadow: 10px 0 20px rgba(0,0,0,0.2);
+    min-width: 0;
 }
 
 .sidebar-panels.is-collapsed {
@@ -33,6 +33,7 @@
     height: 100%;
     width: 100%;
     overflow: hidden;
+    background: transparent;
 }
 
 .sidebar-panel.active {

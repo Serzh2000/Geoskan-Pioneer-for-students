@@ -121,9 +121,20 @@ function renderLibrary(lesson: GuideLesson, sequenceIds: string[]): string {
 }
 
 export function renderDiagnosticCard(diagnostic: GuideDiagnostic): string {
+    const diagnosticKindLabel = diagnostic.kind === 'error'
+        ? 'Ошибка'
+        : diagnostic.kind === 'warning'
+            ? 'Замечание'
+            : diagnostic.kind === 'success'
+                ? 'Успех'
+                : 'Подсказка';
+
     return `
         <article class="guide-diagnostic guide-diagnostic--${diagnostic.kind}">
-            <div class="guide-diagnostic__title">${escapeHtml(diagnostic.title)}</div>
+            <div class="guide-diagnostic__head">
+                <div class="guide-diagnostic__badge">${diagnosticKindLabel}</div>
+                <div class="guide-diagnostic__title">${escapeHtml(diagnostic.title)}</div>
+            </div>
             <div class="guide-diagnostic__reason">${escapeHtml(diagnostic.reason)}</div>
             <div class="guide-diagnostic__fix"><strong>Как исправить:</strong> ${escapeHtml(diagnostic.fix)}</div>
         </article>
@@ -190,7 +201,7 @@ export function renderGuideSelectors(state: GuideLessonState, language: ScriptLa
                 </select>
             </label>
             <label class="guide-selector-field">
-                <span class="guide-selector-field__label">Тема учебника</span>
+                <span class="guide-selector-field__label">Тема</span>
                 <select class="guide-selector" data-guide-chapter-select aria-label="Выбор темы">
                     ${state.chapters.map((chapter, index) => `
                         <option value="${escapeHtml(chapter.id)}" ${chapter.id === activeChapter.id ? 'selected' : ''}>
@@ -200,7 +211,7 @@ export function renderGuideSelectors(state: GuideLessonState, language: ScriptLa
                 </select>
             </label>
             <label class="guide-selector-field">
-                <span class="guide-selector-field__label">Задание практикума</span>
+                <span class="guide-selector-field__label">Задание</span>
                 <select class="guide-selector" data-guide-lesson-select aria-label="Выбор задания">
                     ${chapterLessons.map((lesson, index) => `
                         <option value="${escapeHtml(lesson.id)}" ${lesson.id === activeLesson.id ? 'selected' : ''}>
@@ -209,11 +220,6 @@ export function renderGuideSelectors(state: GuideLessonState, language: ScriptLa
                     `).join('')}
                 </select>
             </label>
-            <div class="guide-selector-meta">
-                <span class="guide-selector-meta__item">Тем: ${state.chapters.length}</span>
-                <span class="guide-selector-meta__item">Уроков: ${state.lessons.length}</span>
-                <span class="guide-selector-meta__item">${activeTab === 'tutorial' ? 'Открыт учебник' : 'Открыт задачник'}</span>
-            </div>
         </section>
     `;
 }
@@ -233,8 +239,7 @@ export function renderTheoryView(state: GuideLessonState, language: ScriptLangua
         <section class="guide-theory-page">
             <div class="guide-theory-page__hero">
                 <div class="guide-lesson-page__badge">${escapeHtml(activeChapter.badge)}</div>
-                <div class="guide-lesson-page__title">${escapeHtml(activeChapter.title)}</div>
-                <div class="guide-lesson-page__summary">${escapeHtml(activeChapter.summary)}</div>
+                <div class="guide-theory-page__title">${escapeHtml(activeChapter.title)}</div>
             </div>
 
             <div class="guide-theory-page__meta">
@@ -253,7 +258,7 @@ export function renderTheoryView(state: GuideLessonState, language: ScriptLangua
                     <article class="guide-theory-card">
                         <div class="guide-panel-card__title">${escapeHtml(section.title)}</div>
                         <div class="guide-theory-card__content">
-                            ${section.paragraphs.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join('')}
+                            ${section.paragraphs.slice(0, 1).map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join('')}
                             ${section.bullets?.length
             ? `
                                 <ul class="guide-theory-card__list">
@@ -301,40 +306,7 @@ export function renderTheoryView(state: GuideLessonState, language: ScriptLangua
 }
 
 export function renderTrainerIntro(state: GuideLessonState, language: ScriptLanguage): string {
-    const activeChapter = getActiveChapter(state, language);
-    const activeLesson = getActiveLesson(state, language);
-    const chapterLessons = getLessonsForChapter(state, activeChapter.id);
-    const solvedCount = chapterLessons.filter((lesson) => evaluateLesson(
-        lesson,
-        getLessonSequence(language, lesson.id),
-        getLessonWorkspaceState(language, lesson.id)
-    ).solved).length;
-
-    return `
-        <section class="guide-panel-card guide-panel-card--trainer-intro">
-            <div class="guide-panel-card__top">
-                <div>
-                    <div class="guide-panel-card__title">Задачник: ${escapeHtml(activeLesson.title)}</div>
-                    <div class="guide-panel-card__text">${escapeHtml(activeLesson.summary)}</div>
-                </div>
-                <div class="guide-panel-card__badge">${escapeHtml(activeChapter.badge)}</div>
-            </div>
-            <div class="guide-selector-summary">
-                <div class="guide-selector-summary__item">
-                    <div class="guide-lesson-page__meta-label">Тема</div>
-                    <div class="guide-lesson-page__goal">${escapeHtml(activeChapter.title)}</div>
-                </div>
-                <div class="guide-selector-summary__item">
-                    <div class="guide-lesson-page__meta-label">Прогресс по теме</div>
-                    <div class="guide-lesson-page__goal">Решено ${solvedCount} из ${chapterLessons.length} заданий</div>
-                </div>
-                <div class="guide-selector-summary__item guide-selector-summary__item--wide">
-                    <div class="guide-lesson-page__meta-label">Как переключать</div>
-                    <div class="guide-lesson-page__goal">Используйте выпадающие списки сверху, чтобы быстро менять язык, тему учебника и конкретное задание.</div>
-                </div>
-            </div>
-        </section>
-    `;
+    return '';
 }
 
 export function renderPageTabs(state: GuideLessonState, language: ScriptLanguage): string {
@@ -380,7 +352,7 @@ export function renderCheckSummary(hasChecked: boolean, solved: boolean, diagnos
     if (!hasChecked) {
         return `
             <div class="guide-check-status guide-check-status--info">
-                Нажмите «Проверить и запустить», когда закончите сборку. Если код исполнимый, сценарий стартует сразу. Если в логике останутся замечания, они появятся здесь.
+                Соберите цепочку и нажмите «Проверить и запустить».
             </div>
         `;
     }
@@ -403,7 +375,7 @@ export function renderCheckSummary(hasChecked: boolean, solved: boolean, diagnos
 
     return `
         <div class="guide-check-status guide-check-status--warning">
-            Найдено замечаний: ${diagnosticsCount}. Исправьте критичные ошибки и нажмите «Проверить и запустить» еще раз.
+            Запуск не выполнен: рабочая область пуста или из нее не собрана исполнимая цепочка. Добавьте хотя бы одну команду и попробуйте снова.
         </div>
     `;
 }
@@ -443,7 +415,7 @@ export function renderResultHero(hasChecked: boolean, solved: boolean, diagnosti
         <div class="guide-result-hero guide-result-hero--warning">
             <div class="guide-result-hero__label">Статус</div>
             <div class="guide-result-hero__title">Нужно исправить</div>
-            <div class="guide-result-hero__text">Найдено замечаний: ${diagnosticsCount}. В коде есть критичные ошибки, поэтому запуск пока заблокирован.</div>
+            <div class="guide-result-hero__text">Живая сцена не запущена только потому, что в рабочей области пока нет исполнимой цепочки. Учебные замечания сами по себе запуск больше не блокируют.</div>
         </div>
     `;
 }

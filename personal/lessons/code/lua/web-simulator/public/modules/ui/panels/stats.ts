@@ -33,7 +33,7 @@ export function updateStats() {
         } else if (simState.status === 'ОШИБКА' || simState.status === 'CRASHED') {
             stateStatus.style.color = '#f87171'; // Red
         } else {
-            stateStatus.style.color = '#fff';
+            stateStatus.style.color = '#151515';
         }
     }
     if (stateTime) stateTime.textContent = simState.current_time.toFixed(1);
@@ -98,7 +98,7 @@ export function updateStats() {
                 if (baseLedEl) {
                     baseLedEl.style.backgroundColor = colorStr;
                     baseLedEl.style.boxShadow = (r+g+b > 0) ? `0 0 8px ${colorStr}` : 'none';
-                    baseLedEl.title = `Base LED ${i}\nRGB: ${r}, ${g}, ${b}`;
+                    baseLedEl.title = `Базовый светодиод ${i}\nRGB: ${r}, ${g}, ${b}`;
                 }
             } else if (i < 29) {
                 // Matrix LEDs
@@ -106,7 +106,7 @@ export function updateStats() {
                 if (pixelEl) {
                     pixelEl.style.backgroundColor = colorStr;
                     pixelEl.style.boxShadow = (r+g+b > 0) ? `0 0 8px ${colorStr}` : 'none';
-                    pixelEl.title = `Matrix LED ${i}\nRGB: ${r}, ${g}, ${b}`;
+                    pixelEl.title = `Светодиод матрицы ${i}\nRGB: ${r}, ${g}, ${b}`;
                 }
             }
         }

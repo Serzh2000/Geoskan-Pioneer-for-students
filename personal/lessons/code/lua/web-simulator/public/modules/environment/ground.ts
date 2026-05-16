@@ -13,15 +13,15 @@ export function createGround(scene: THREE.Scene, envGroup: THREE.Group) {
         const W = canvas.width;
         const H = canvas.height;
         
-        // Base background - professional dark slate
-        ctx.fillStyle = '#0f172a';
+        // Base background - ultra-light test floor
+        ctx.fillStyle = '#eceff3';
         ctx.fillRect(0, 0, W, H);
 
         // Draw coordinate grid
         const pxPerMeter = 102.4;
 
-        // Minor grid lines (every 0.5m) - subtle blue
-        ctx.strokeStyle = 'rgba(56, 189, 248, 0.1)';
+        // Minor grid lines (every 0.5m)
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
         ctx.lineWidth = 1;
         for (let i = 0; i <= 10; i += 0.5) {
             const pos = i * pxPerMeter;
@@ -29,8 +29,8 @@ export function createGround(scene: THREE.Scene, envGroup: THREE.Group) {
             ctx.beginPath(); ctx.moveTo(0, pos); ctx.lineTo(W, pos); ctx.stroke();
         }
 
-        // Major grid lines (every 1m) - brighter blue
-        ctx.strokeStyle = 'rgba(56, 189, 248, 0.3)';
+        // Major grid lines (every 1m)
+        ctx.strokeStyle = 'rgba(255, 255, 255, 1)';
         ctx.lineWidth = 2;
         for (let i = 0; i <= 10; i += 1) {
             const pos = i * pxPerMeter;
@@ -39,14 +39,14 @@ export function createGround(scene: THREE.Scene, envGroup: THREE.Group) {
         }
 
         // 10m boundary lines (thickest)
-        ctx.strokeStyle = '#38bdf8';
+        ctx.strokeStyle = '#ffffff';
         ctx.lineWidth = 4;
         ctx.strokeRect(0, 0, W, H);
 
-        // Add some digital noise/texture
-        ctx.globalAlpha = 0.05;
-        for (let i = 0; i < 5000; i++) {
-            ctx.fillStyle = '#ffffff';
+        // Subtle texture to keep the floor from reading flat
+        ctx.globalAlpha = 0.03;
+        for (let i = 0; i < 3000; i++) {
+            ctx.fillStyle = '#111111';
             ctx.fillRect(Math.random() * W, Math.random() * H, 1, 1);
         }
         ctx.globalAlpha = 1;
@@ -74,22 +74,22 @@ export function createGround(scene: THREE.Scene, envGroup: THREE.Group) {
     scene.add(ground); // Explicitly add to scene for easier raycasting
 
     const arenaAccentMat = new THREE.MeshStandardMaterial({
-        color: 0x38bdf8,
+        color: 0xffffff,
         transparent: true,
-        opacity: 0.15,
-        roughness: 0.5,
-        metalness: 0.1
+        opacity: 0.3,
+        roughness: 0.65,
+        metalness: 0.02
     });
     const arenaAccent = new THREE.Mesh(new THREE.PlaneGeometry(20, 20), arenaAccentMat);
     arenaAccent.position.z = 0.01;
     ground.add(arenaAccent);
 
     const ringMat = new THREE.MeshStandardMaterial({
-        color: 0x38bdf8,
+        color: 0xff6b00,
         transparent: true,
-        opacity: 0.4,
-        roughness: 0.2,
-        metalness: 0.5,
+        opacity: 0.8,
+        roughness: 0.35,
+        metalness: 0.08,
         side: THREE.DoubleSide
     });
     const centerRing = new THREE.Mesh(new THREE.RingGeometry(1.35, 1.9, 64), ringMat);
@@ -102,12 +102,12 @@ export function createGround(scene: THREE.Scene, envGroup: THREE.Group) {
     padCanvas.width = 256; padCanvas.height = 256;
     const pctx = padCanvas.getContext('2d');
     if (pctx) {
-        pctx.fillStyle = 'rgba(15, 23, 42, 0.8)';
+        pctx.fillStyle = 'rgba(255, 255, 255, 0.98)';
         pctx.fillRect(0, 0, 256, 256);
-        pctx.strokeStyle = '#38bdf8';
+        pctx.strokeStyle = '#111111';
         pctx.lineWidth = 15;
         pctx.strokeRect(10, 10, 236, 236);
-        pctx.fillStyle = '#38bdf8';
+        pctx.fillStyle = '#ff6b00';
         pctx.font = 'bold 160px sans-serif';
         pctx.textAlign = 'center';
         pctx.textBaseline = 'middle';
@@ -119,8 +119,8 @@ export function createGround(scene: THREE.Scene, envGroup: THREE.Group) {
     landingPad.position.set(0, 0, 0.015);
     ground.add(landingPad);
 
-    const borderMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.4, metalness: 0.1 });
-    const cornerMat = new THREE.MeshStandardMaterial({ color: 0x38bdf8, roughness: 0.2, metalness: 0.5 });
+    const borderMat = new THREE.MeshStandardMaterial({ color: 0xd1d5db, roughness: 0.82, metalness: 0.02 });
+    const cornerMat = new THREE.MeshStandardMaterial({ color: 0xff6b00, roughness: 0.45, metalness: 0.04 });
     const borderSegments = [
         { x: 0, y: 8.4, w: 17.6, h: 0.34 },
         { x: 0, y: -8.4, w: 17.6, h: 0.34 },

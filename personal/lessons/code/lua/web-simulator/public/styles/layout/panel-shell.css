@@ -9,7 +9,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: rgba(255, 255, 255, 0.02);
+    background: rgba(255, 255, 255, 0.72);
 }
 
 .panel-title {
@@ -22,7 +22,7 @@
 
 .panel-close-btn {
     background: transparent;
-    border: none;
+    border: 1px solid transparent;
     color: var(--text-muted);
     cursor: pointer;
     padding: 4px;
@@ -34,7 +34,8 @@
 
 .panel-close-btn:hover {
     color: var(--danger);
-    background: rgba(239, 68, 68, 0.1);
+    background: rgba(209, 59, 46, 0.08);
+    border-color: rgba(209, 59, 46, 0.1);
 }
 
 .panel-content {
@@ -49,9 +50,7 @@
     width: 100% !important;
     z-index: 250;
     border-right: none;
-    background:
-        linear-gradient(180deg, rgba(2, 6, 23, 0.98), rgba(15, 23, 42, 0.96)),
-        rgba(2, 6, 23, 0.98);
+    background: linear-gradient(180deg, #ffffff, #f5f5f6);
     box-shadow: none;
 }
 

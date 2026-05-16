@@ -1,16 +1,25 @@
-export const LUA_LED_SINGLE_EXAMPLE = `local leds = Ledbar.new(4)
-leds:set(0, 1, 0, 0)`;
+export const LUA_LED_SINGLE_EXAMPLE = `local leds = Ledbar.new(29)
+leds:set(0, 1, 0, 0)
 
-export const LUA_LED_SEQUENCE_EXAMPLE = `local leds = Ledbar.new(4)
-leds:set(0, 0, 0, 1)
+function callback(event)
+end`;
 
-Timer.callLater(0.5, function()
-    leds:set(1, 0, 1, 0)
-end)
+export const LUA_LED_SEQUENCE_EXAMPLE = `local leds = Ledbar.new(29)
 
 Timer.callLater(1.0, function()
-    leds:set(2, 1, 0, 0)
-end)`;
+    leds:set(0, 0, 0, 1)
+end)
+
+Timer.callLater(2.0, function()
+    leds:set(0, 0, 1, 0)
+end)
+
+Timer.callLater(3.0, function()
+    leds:set(0, 1, 0, 0)
+end)
+
+function callback(event)
+end`;
 
 export const LUA_PREFLIGHT_EXAMPLE = `ap.push(Ev.MCE_PREFLIGHT)
 

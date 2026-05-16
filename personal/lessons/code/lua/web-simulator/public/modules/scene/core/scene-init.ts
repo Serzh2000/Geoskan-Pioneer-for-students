@@ -118,8 +118,8 @@ export function initScene(container: HTMLElement) {
     canvasResizeObserver?.disconnect();
     
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0f172a);
-    scene.fog = new THREE.FogExp2(0x0f172a, 0.015);
+    scene.background = new THREE.Color(0xf5f6f8);
+    scene.fog = new THREE.FogExp2(0xf5f6f8, 0.01);
 
     const width = canvasContainer.clientWidth || window.innerWidth;
     const height = canvasContainer.clientHeight || window.innerHeight;
@@ -136,7 +136,7 @@ export function initScene(container: HTMLElement) {
     renderer.shadowMap.enabled = true;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.08;
+    renderer.toneMappingExposure = 1.18;
     
     canvasContainer.innerHTML = '';
     canvasContainer.appendChild(renderer.domElement);
@@ -169,7 +169,7 @@ export function initScene(container: HTMLElement) {
     const dummy = new THREE.Object3D();
     dummy.name = 'selection_dummy';
     scene.add(dummy);
-    selectionHelper = new THREE.BoxHelper(dummy, 0x38bdf8);
+    selectionHelper = new THREE.BoxHelper(dummy, 0xff6b00);
     if (selectionHelper.material && !Array.isArray(selectionHelper.material)) {
         selectionHelper.material.depthTest = false;
     }

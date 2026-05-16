@@ -1,17 +1,17 @@
-﻿/*
+/*
  * Глобальные поля ввода и служебные скрытия.
  * Файл выделен из `public/style.css` при декомпозиции общего CSS.
  */
 /* FORM ELEMENTS GLOBALLY */
 input[type="text"], input[type="number"], textarea, select {
     width: 100%;
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: #ffffff;
+    border: 1px solid rgba(9, 9, 11, 0.1);
     color: var(--text-color);
-    padding: 8px 12px;
-    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    border-radius: 12px;
     font-family: var(--font-sans);
-    font-size: 11px;
+    font-size: 12px;
     transition: all 0.2s;
     outline: none;
     box-sizing: border-box;
@@ -19,8 +19,8 @@ input[type="text"], input[type="number"], textarea, select {
 
 input:focus, textarea:focus, select:focus {
     border-color: var(--accent-color);
-    background: rgba(0, 0, 0, 0.5);
-    box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.3);
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.12);
 }
 
 textarea {
@@ -30,8 +30,8 @@ textarea {
 
 /* SCROLLBARS FOR SIDEBAR */
 .panel-content::-webkit-scrollbar { width: 4px; }
-.panel-content::-webkit-scrollbar-thumb { background: rgba(56, 189, 248, 0.2); }
-.panel-content::-webkit-scrollbar-thumb:hover { background: rgba(56, 189, 248, 0.4); }
+.panel-content::-webkit-scrollbar-thumb { background: rgba(107, 114, 128, 0.22); }
+.panel-content::-webkit-scrollbar-thumb:hover { background: rgba(255, 107, 0, 0.34); }
 
 /* HIDE OLD ELEMENTS */
 .left-panel, .right-panel, .right-sidebar { display: none !important; }

@@ -23,7 +23,7 @@ export function initBlocklyDefinitions() {
         init: function() {
             this.appendDummyInput()
                 .appendField("создать Ledbar(")
-                .appendField(new Blockly.FieldNumber(4, 1, 100), "COUNT")
+                .appendField(new Blockly.FieldNumber(29, 1, 100), "COUNT")
                 .appendField(")");
             this.setPreviousStatement(true, null);
             this.setNextStatement(true, null);
@@ -161,6 +161,49 @@ export function initBlocklyDefinitions() {
         const y = block.getFieldValue('Y');
         const z = block.getFieldValue('Z');
         return `ap.goToLocalPoint(${x}, ${y}, ${z})\n`;
+    };
+
+    Blockly.Blocks['lua_callback_open'] = {
+        init: function() {
+            this.appendDummyInput()
+                .appendField("function callback(event)");
+            this.setPreviousStatement(true, null);
+            this.setNextStatement(true, null);
+            this.setColour(210);
+            this.setTooltip("Открывает обязательный обработчик системных событий Lua");
+        }
+    };
+    luaGenerator.forBlock['lua_callback_open'] = function(block: any) {
+        return '';
+    };
+
+    Blockly.Blocks['lua_callback_end'] = {
+        init: function() {
+            this.appendDummyInput()
+                .appendField("end");
+            this.setPreviousStatement(true, null);
+            this.setNextStatement(true, null);
+            this.setColour(210);
+            this.setTooltip("Закрывает блок function callback(event)");
+        }
+    };
+    luaGenerator.forBlock['lua_callback_end'] = function(block: any) {
+        return '';
+    };
+
+    // Legacy single-block callback stub kept for backward compatibility with saved workspaces.
+    Blockly.Blocks['lua-callback-stub'] = {
+        init: function() {
+            this.appendDummyInput()
+                .appendField("function callback(event) ... end");
+            this.setPreviousStatement(true, null);
+            this.setNextStatement(true, null);
+            this.setColour(210);
+            this.setTooltip("Устаревший блок callback");
+        }
+    };
+    luaGenerator.forBlock['lua-callback-stub'] = function(block: any) {
+        return '';
     };
 
 

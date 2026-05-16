@@ -10,6 +10,10 @@ function splitCodeLines(code: string): string[] {
         .map((line) => line.replace(/\s+$/g, ''));
 }
 
+function finalizeLuaCode(code: string): string {
+    return code.trim();
+}
+
 export function compileLuaLinear(sequenceIds: string[], blocks: GuideBlock[]): string {
     const blockMap = new Map(blocks.map((block) => [block.id, block] as const));
     const lines = sequenceIds
@@ -18,7 +22,7 @@ export function compileLuaLinear(sequenceIds: string[], blocks: GuideBlock[]): s
         .filter((block) => block.kind === 'statement')
         .flatMap((block) => splitCodeLines(block.code));
 
-    return lines.join('\n').trim();
+    return finalizeLuaCode(lines.join('\n'));
 }
 
 export function compileLuaTimed(sequenceIds: string[], blocks: GuideBlock[]): string {
@@ -53,19 +57,35 @@ export function compileLuaTimed(sequenceIds: string[], blocks: GuideBlock[]): st
         output.push('end)');
     }
 
-    return output.join('\n').trim();
+    return finalizeLuaCode(output.join('\n'));
 }
 
 export function compileLuaEvents(sequenceIds: string[], blocks: GuideBlock[]): string {
     const blockMap = new Map(blocks.map((block) => [block.id, block] as const));
     const rootLines: string[] = [];
+    const callbackRootLines: string[] = [];
     const eventOrder: string[] = [];
     const eventLines = new Map<string, string[]>();
     let currentEvent: string | null = null;
+    let hasExplicitCallback = false;
+    let insideExplicitCallback = false;
 
     for (const blockId of sequenceIds) {
         const block = blockMap.get(blockId);
         if (!block) continue;
+
+        if (block.id === 'lua_callback_open') {
+            hasExplicitCallback = true;
+            insideExplicitCallback = true;
+            currentEvent = null;
+            continue;
+        }
+
+        if (block.id === 'lua_callback_end') {
+            insideExplicitCallback = false;
+            currentEvent = null;
+            continue;
+        }
 
         if (block.kind === 'event' && block.eventName) {
             currentEvent = block.eventName;
@@ -77,14 +97,22 @@ export function compileLuaEvents(sequenceIds: string[], blocks: GuideBlock[]): s
         }
 
         if (block.kind !== 'statement') continue;
-        const target = currentEvent ? eventLines.get(currentEvent) : rootLines;
+        const target = currentEvent
+            ? eventLines.get(currentEvent)
+            : insideExplicitCallback
+                ? callbackRootLines
+                : rootLines;
         target?.push(...splitCodeLines(block.code));
     }
 
     const output: string[] = [...rootLines];
-    if (eventOrder.length) {
+    if (hasExplicitCallback) {
         if (output.length) output.push('');
         output.push('function callback(event)');
+        output.push(...indentLines(callbackRootLines));
+        if (callbackRootLines.length && eventOrder.length) {
+            output.push('');
+        }
         for (const eventName of eventOrder) {
             const lines = eventLines.get(eventName) || [];
             output.push(`    if event == ${eventName} then`);
@@ -94,9 +122,17 @@ export function compileLuaEvents(sequenceIds: string[], blocks: GuideBlock[]): s
         }
         if (output[output.length - 1] === '') output.pop();
         output.push('end');
+    } else {
+        for (const eventName of eventOrder) {
+            if (output.length) output.push('');
+            const lines = eventLines.get(eventName) || [];
+            output.push(`if event == ${eventName} then`);
+            output.push(...indentLines(lines.length ? lines : ['print("Событие ожидается, но действие после него не задано")']));
+            output.push('end');
+        }
     }
 
-    return output.join('\n').trim();
+    return finalizeLuaCode(output.join('\n'));
 }
 
 export function compilePython(sequenceIds: string[], blocks: GuideBlock[]): string {

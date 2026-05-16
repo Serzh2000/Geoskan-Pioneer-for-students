@@ -52,16 +52,16 @@ const blocklyTheme = Blockly.Theme.defineTheme('pioneer-main-blockly', {
         size: 12
     },
     componentStyles: {
-        workspaceBackgroundColour: '#0f172a',
-        toolboxBackgroundColour: '#1e293b',
-        toolboxForegroundColour: '#e2e8f0',
-        flyoutBackgroundColour: '#111827',
-        flyoutForegroundColour: '#e2e8f0',
-        scrollbarColour: 'rgba(56, 189, 248, 0.34)',
-        insertionMarkerColour: '#38bdf8',
+        workspaceBackgroundColour: '#f8f9fb',
+        toolboxBackgroundColour: '#ffffff',
+        toolboxForegroundColour: '#151515',
+        flyoutBackgroundColour: '#f4f5f7',
+        flyoutForegroundColour: '#151515',
+        scrollbarColour: '#cbd5e1',
+        insertionMarkerColour: '#ff6b00',
         insertionMarkerOpacity: 0.32,
-        markerColour: '#7dd3fc',
-        cursorColour: '#38bdf8'
+        markerColour: '#ff6b00',
+        cursorColour: '#ff6b00'
     }
 });
 
@@ -134,7 +134,7 @@ function syncBlocklyCodeOverlayToggle() {
 
 function fallbackEditor() {
     if (monacoRoot) {
-        monacoRoot.innerHTML = '<div style="color:red; padding:20px;">Failed to load Monaco Editor. Please check your internet connection. Falling back to simple textarea.</div><textarea id="fallback-editor" style="width:100%; height:90%; background:#1e1e1e; color:#d4d4d4; font-family:monospace; padding:10px; border:none; resize:none;">-- Pioneer Lua Script\n\nap.push(Ev.MCE_TAKEOFF)</textarea>';
+        monacoRoot.innerHTML = '<div style="color:#d13b2e; padding:20px;">Не удалось загрузить Monaco Editor. Проверьте подключение к интернету. Используется резервный текстовый редактор.</div><textarea id="fallback-editor" style="width:100%; height:90%; background:#f4f5f7; color:#151515; font-family:monospace; padding:10px; border:1px solid rgba(9,9,11,0.1); border-radius:12px; resize:none;">-- Скрипт Pioneer Lua\n\nap.push(Ev.MCE_TAKEOFF)</textarea>';
         (window as any).getEditorValueFallback = () => (document.getElementById('fallback-editor') as HTMLTextAreaElement).value;
         (window as any).setEditorValueFallback = (val: string) => {
             const el = document.getElementById('fallback-editor') as HTMLTextAreaElement;
@@ -153,7 +153,7 @@ function createEditor() {
     const initialMonacoLang = initialLanguage === 'lua' ? 'lua' : 'python';
     const initialValue =
         pendingValue ||
-        '-- Pioneer Lua Script\n\nap.push(Ev.MCE_TAKEOFF)\n\nTimer.callLater(3, function()\n    ap.push(Ev.MCE_LANDING)\nend)';
+        '-- Скрипт Pioneer Lua\n\nap.push(Ev.MCE_TAKEOFF)\n\nTimer.callLater(3, function()\n    ap.push(Ev.MCE_LANDING)\nend)';
 
     if (!monacoRoot) {
         fallbackEditor();
@@ -163,7 +163,7 @@ function createEditor() {
     editorInstance = monaco.editor.create(monacoRoot, {
         value: initialValue,
         language: initialMonacoLang,
-        theme: 'pioneer-dark',
+        theme: 'pioneer-light',
         automaticLayout: true,
         wordBasedSuggestions: 'off',
         fontSize: 14,

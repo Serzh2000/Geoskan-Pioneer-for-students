@@ -1,4 +1,5 @@
 import type { ScriptLanguage } from '../api-docs/sections.js';
+import { logGuideEvent } from './guide-logging.js';
 import { getGuideLessonState } from './lessons.js';
 import { renderGuide } from './render.js';
 import { mountMissionGuideScenePreview } from './scene-preview.js';
@@ -13,6 +14,15 @@ export function renderMissionGuidePanel(language: ScriptLanguage = 'lua'): void 
     const state = getGuideLessonState(language);
     ensureActiveLessonId(language, state.activeLessonId);
     ensureActiveChapterId(language, getActiveLesson(state, language).chapterId);
+    const activeLesson = getActiveLesson(state, language);
+
+    logGuideEvent('panel_render', {
+        language,
+        visible: isVisible,
+        lessonId: activeLesson.id,
+        chapterId: activeLesson.chapterId,
+        totalLessons: state.lessons.length
+    });
 
     container.innerHTML = renderGuide(state, language);
     if (!isVisible) return;

@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 
 export function setupLights(scene: THREE.Scene) {
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.72);
     scene.add(ambientLight);
     
     // Main top-down light for clean shadows
-    const mainLight = new THREE.DirectionalLight(0xffffff, 1.2);
+    const mainLight = new THREE.DirectionalLight(0xffffff, 1.45);
     mainLight.position.set(10, 20, 15);
     mainLight.castShadow = true;
     mainLight.shadow.mapSize.width = 4096;
@@ -19,15 +19,15 @@ export function setupLights(scene: THREE.Scene) {
     mainLight.shadow.bias = -0.0005;
     scene.add(mainLight);
 
-    // Soft fill lights with slight blue tint for dark environment
-    const fill1 = new THREE.DirectionalLight(0x38bdf8, 0.4);
+    // Soft fills for a bright engineering lab look
+    const fill1 = new THREE.DirectionalLight(0xffffff, 0.42);
     fill1.position.set(-15, 10, 5);
     scene.add(fill1);
 
-    const fill2 = new THREE.DirectionalLight(0xffffff, 0.3);
+    const fill2 = new THREE.DirectionalLight(0xfff3eb, 0.28);
     fill2.position.set(15, -10, 5);
     scene.add(fill2);
     
-    const hemiLight = new THREE.HemisphereLight(0x38bdf8, 0x0f172a, 0.5);
+    const hemiLight = new THREE.HemisphereLight(0xffffff, 0xe5e7eb, 0.8);
     scene.add(hemiLight);
 }

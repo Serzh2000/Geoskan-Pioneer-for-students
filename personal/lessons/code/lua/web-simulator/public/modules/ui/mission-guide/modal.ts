@@ -1,4 +1,5 @@
 import { currentScriptLanguage } from '../../core/state.js';
+import { logGuideEvent } from './guide-logging.js';
 import { renderMissionGuidePanel } from './panel.js';
 import { restoreMissionGuideScenePreview } from './scene-preview.js';
 
@@ -32,6 +33,7 @@ export function initMissionGuideModal() {
 
     const hide = () => {
         if (!overlay) return;
+        logGuideEvent('modal_close', { language: currentScriptLanguage });
         restoreMissionGuideScenePreview();
         overlay.style.display = 'none';
         syncGuideButtonState(false);
@@ -39,6 +41,7 @@ export function initMissionGuideModal() {
 
     const show = () => {
         if (!overlay) return;
+        logGuideEvent('modal_open', { language: currentScriptLanguage });
         overlay.style.display = 'flex';
         // Need to give the browser a moment to apply display: flex before rendering Blockly
         setTimeout(() => {

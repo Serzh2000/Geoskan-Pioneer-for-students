@@ -19,3 +19,12 @@ export function restartAndRunSimulation(): void {
     registeredHandlers.reset();
     registeredHandlers.start();
 }
+
+export function resetSimulationState(): void {
+    if (!registeredHandlers) {
+        console.warn('[SimulationControls] Handlers are not configured yet.');
+        return;
+    }
+
+    registeredHandlers.reset();
+}

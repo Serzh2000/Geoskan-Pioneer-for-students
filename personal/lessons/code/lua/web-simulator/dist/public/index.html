@@ -7,12 +7,13 @@
     <!-- Three.js and modules loaded via Vite -->
     <!-- Fengari for Lua in browser -->
     <script src="https://cdn.jsdelivr.net/npm/fengari-web@0.1.4/dist/fengari-web.js"></script>
-  <script type="module" crossorigin src="/assets/index-B-sNSLcU.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-C05_4KCC.css">
+  <script type="module" crossorigin src="/assets/index-CdU1R_6j.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-BAFfQ0xx.css">
 </head>
 <body>
     <div class="container">
-                <!-- Sidebar Tabs -->
+        <aside class="workspace-sidebar">
+                    <!-- Sidebar Tabs -->
         <div class="sidebar-tabs">
             <button class="sidebar-tab-btn active" onclick="openPanel('editor-panel')" title="Редактор">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
@@ -38,11 +39,11 @@
             </button>
         </div>
 
-        <div class="sidebar-panels" style="width: 450px;">
-                                    <div id="editor-panel" class="sidebar-panel active">
+            <div class="sidebar-panels">
+                                        <div id="editor-panel" class="sidebar-panel active">
                 <div class="panel-header panel-header--editor">
                     <div class="panel-header__lead">
-                        <span class="panel-title">Редактор кода</span>
+                        <span class="panel-title">РЕДАКТОР LUA</span>
                         <label class="editor-header-toggle" for="blockly-code-overlay-toggle">
                             <span class="editor-header-toggle__label">Показать код</span>
                             <span class="editor-header-toggle__switch">
@@ -591,21 +592,21 @@
             <!-- Resizer -->
             <div id="sidebar-resizer" class="resizer"></div>
 
-        </div>
-                <!-- Main Scene Area -->
-        <div class="main-scene">
-            <!-- Top Header -->
+            </div>
+        </aside>
+                <div class="main-scene">
             <header class="header">
                 <div class="header-brand">
-                    <div class="header-brand-mark">P</div>
+                    <div class="header-brand-mark">G</div>
                     <div class="header-brand-copy">
-                        <div class="header-logo">Pioneer <span>Simulator</span></div>
+                        <div class="header-logo">Geoscan <span>Симулятор</span></div>
+                        <div class="header-meta">Инженерная полетная среда</div>
                     </div>
                 </div>
                 <div class="header-actions">
                     <div class="header-controls-group">
                         <select id="file-selector" class="btn-secondary header-select">
-                            <option value="">Выберите файл...</option>
+                            <option value="">Выберите пример...</option>
                         </select>
                         <button onclick="document.getElementById('file-input').click()" class="btn-secondary" title="Открыть файл">ОТКРЫТЬ ФАЙЛ</button>
                         <input type="file" id="file-input" style="display:none" accept=".lua,.py">
@@ -615,10 +616,10 @@
                         </select>
                         <label class="header-check">
                             <input type="checkbox" id="blockly-editor-toggle">
-                            <span>Использовать блоки Blockly</span>
+                            <span>Режим Blockly</span>
                         </label>
                     </div>
-                    <div class="header-controls-group">
+                    <div class="header-controls-group header-controls-group--actions">
                         <button id="run-btn" class="btn-primary">ЗАПУСТИТЬ</button>
                         <button id="stop-btn" class="btn-secondary header-danger-btn">СТОП</button>
                         <button id="restart-btn" class="btn-secondary">СБРОС</button>
@@ -626,87 +627,100 @@
                 </div>
             </header>
 
-            <div class="scene-container">
-                <div id="canvas-container"></div>
-                <div id="fpv-overlay">
-                    <div class="fpv-header">
-                        <div class="fpv-cam-info">
-                            <div>OV2640 [1600x1200]</div>
-                            <div>FPS: 24</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="hud-visibility-controls">
-                    <button id="toggle-telemetry-btn" type="button" class="hud-visibility-btn active" aria-pressed="true">Телеметрия</button>
-                    <button id="toggle-matrix-btn" type="button" class="hud-visibility-btn active" aria-pressed="true">Матрица</button>
-                </div>
-                
-                <div class="camera-controls">
-                    <button onclick="setCameraMode('ground')">ЗЕМЛЯ</button>
-                    <button onclick="setCameraMode('drone')">ДРОН</button>
-                    <button onclick="setCameraMode('fpv')">FPV</button>
-                    <button onclick="setCameraMode('free')">СВОБОДНАЯ</button>
-                </div>
-
-                <!-- Overlays -->
-                <div class="hud-side-column">
-                    <div id="telemetry-overlay" class="telemetry-overlay">
-                        <div class="card">
-                            <div class="hud-title">
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-                                ТЕЛЕМЕТРИЯ
+            <div class="workspace-shell">
+                <section class="scene-stage">
+                    <div class="scene-viewport-card">
+                        <div class="scene-viewport-header">
+                            <div>
+                                <div class="scene-viewport-eyebrow">ПОЛЕТНАЯ ЗОНА</div>
+                                <div class="scene-viewport-title">Полетная зона</div>
                             </div>
-                            <div class="stats-grid">
-                                <div class="stat-item">
-                                    <div class="stat-label">Высота</div>
-                                    <div class="stat-value"><span id="state-alt">0.00</span><span>м</span></div>
+                            <div class="scene-viewport-subtitle">Светлая испытательная сцена с точной координатной сеткой, посадочной площадкой и живым управлением камерой.</div>
+                        </div>
+                        <div class="scene-container">
+                            <div id="canvas-container"></div>
+                            <div id="fpv-overlay">
+                                <div class="fpv-header">
+                                    <div class="fpv-cam-info">
+                                        <div>OV2640 [1600x1200]</div>
+                                        <div>FPS: 24</div>
+                                    </div>
                                 </div>
-                                <div class="stat-item">
-                                    <div class="stat-label">Скорость</div>
-                                    <div class="stat-value"><span id="state-spd">0.0</span><span>м/с</span></div>
-                                </div>
-                                <div class="stat-item">
-                                    <div class="stat-label">Батарея</div>
-                                    <div class="stat-value"><span id="state-bat">100</span><span>%</span></div>
-                                </div>
-                                <div class="stat-item" id="hud-stat-mode" style="display: none;">
-                                    <div class="stat-label">Режим</div>
-                                    <div class="stat-value" style="font-size: 14px; color: var(--accent-color);"><span id="state-mode">AUTO</span></div>
-                                </div>
-                                <div class="stat-item">
-                                    <div class="stat-label">Время</div>
-                                    <div class="stat-value"><span id="state-time">0.0</span><span>с</span></div>
-                                </div>
-                                <div class="stat-item" style="grid-column: span 2; background: rgba(56, 189, 248, 0.05); border-color: rgba(56, 189, 248, 0.2);">
-                                    <div class="stat-label" style="color: var(--accent-color);">Статус</div>
-                                    <div class="stat-value" style="font-size: 14px; color: #fff;"><span id="state-status">ОЖИДАНИЕ</span></div>
-                                </div>
+                            </div>
+
+                            <div class="camera-controls">
+                                <button onclick="setCameraMode('ground')">Земля</button>
+                                <button onclick="setCameraMode('drone')">Дрон</button>
+                                <button onclick="setCameraMode('fpv')">FPV</button>
+                                <button onclick="setCameraMode('free')">Свободно</button>
                             </div>
                         </div>
                     </div>
+                </section>
 
-                    <div id="matrix-overlay" class="matrix-overlay">
-                        <div class="card led-matrix-card">
-                            <div class="hud-title">
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><circle cx="15.5" cy="8.5" r="1.5"></circle><circle cx="8.5" cy="15.5" r="1.5"></circle><circle cx="15.5" cy="15.5" r="1.5"></circle></svg>
-                                LED МАТРИЦА
-                            </div>
-                            <div class="led-section-label">Бортовые индикаторы</div>
-                            <div class="led-base-grid">
-                                <div id="led-base-0" class="led-pixel-base" title="Base LED 0"></div>
-                                <div id="led-base-1" class="led-pixel-base" title="Base LED 1"></div>
-                                <div id="led-base-2" class="led-pixel-base" title="Base LED 2"></div>
-                                <div id="led-base-3" class="led-pixel-base" title="Base LED 3"></div>
-                            </div>
-                            <div class="led-section-label">Матрица 5x5</div>
-                            <div class="led-matrix-grid" id="led-matrix-grid"></div>
+                <aside class="hud-side-column">
+                    <div class="dashboard-toolbar">
+                        <div>
+                            <div class="dashboard-toolbar__eyebrow">ПАНЕЛЬ ПОЛЕТА</div>
+                            <div class="dashboard-title">Панель полета</div>
+                        </div>
+                        <div class="hud-visibility-controls">
+                            <button id="toggle-telemetry-btn" type="button" class="hud-visibility-btn active" aria-pressed="true">Метрики</button>
+                            <button id="toggle-matrix-btn" type="button" class="hud-visibility-btn active" aria-pressed="true">Матрица</button>
                         </div>
                     </div>
-                </div>
+
+                    <div id="telemetry-overlay" class="telemetry-overlay dashboard-panel">
+                        <div class="dashboard-panel__header">
+                            <span>Полетные метрики</span>
+                            <span class="dashboard-panel__badge">Онлайн</span>
+                        </div>
+                        <div class="stats-grid">
+                            <div class="stat-item stat-item--primary">
+                                <div class="stat-label">ВЫСОТА</div>
+                                <div class="stat-value"><span id="state-alt">0.00</span><span>м</span></div>
+                            </div>
+                            <div class="stat-item stat-item--primary">
+                                <div class="stat-label">СКОРОСТЬ</div>
+                                <div class="stat-value"><span id="state-spd">0.0</span><span>м/с</span></div>
+                            </div>
+                            <div class="stat-item stat-item--primary">
+                                <div class="stat-label">БАТАРЕЯ</div>
+                                <div class="stat-value"><span id="state-bat">100</span><span>%</span></div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">ВРЕМЯ ПОЛЕТА</div>
+                                <div class="stat-value"><span id="state-time">0.0</span><span>с</span></div>
+                            </div>
+                            <div class="stat-item" id="hud-stat-mode" style="display: none;">
+                                <div class="stat-label">РЕЖИМ</div>
+                                <div class="stat-value"><span id="state-mode">АВТО</span></div>
+                            </div>
+                            <div class="stat-item stat-item--status">
+                                <div class="stat-label">СТАТУС</div>
+                                <div class="stat-value"><span id="state-status">ОЖИДАНИЕ</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="matrix-overlay" class="matrix-overlay dashboard-panel">
+                        <div class="dashboard-panel__header">
+                            <span>LED-матрица</span>
+                            <span class="dashboard-panel__badge">5 x 5</span>
+                        </div>
+                        <div class="led-section-label">БОРТОВЫЕ ИНДИКАТОРЫ</div>
+                        <div class="led-base-grid">
+                            <div id="led-base-0" class="led-pixel-base" title="Базовый светодиод 0"></div>
+                            <div id="led-base-1" class="led-pixel-base" title="Базовый светодиод 1"></div>
+                            <div id="led-base-2" class="led-pixel-base" title="Базовый светодиод 2"></div>
+                            <div id="led-base-3" class="led-pixel-base" title="Базовый светодиод 3"></div>
+                        </div>
+                        <div class="led-section-label">МАТРИЦА 5x5</div>
+                        <div class="led-matrix-grid" id="led-matrix-grid"></div>
+                    </div>
+                </aside>
             </div>
         </div>
-    </div>
 
     </div>
 

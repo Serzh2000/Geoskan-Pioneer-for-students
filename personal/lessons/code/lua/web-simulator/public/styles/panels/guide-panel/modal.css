@@ -77,3 +77,35 @@
         padding: 16px;
     }
 }
+
+/*
+ * High-contrast light redesign overrides.
+ */
+
+.guide-modal-overlay {
+    background: rgba(248, 249, 250, 0.92);
+    backdrop-filter: blur(8px);
+}
+
+.guide-modal {
+    background: #f8f9fa;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 30px 80px rgba(17, 24, 39, 0.12);
+}
+
+.guide-modal__header {
+    border-bottom: 1px solid #e5e7eb;
+    background: #ffffff;
+}
+
+.guide-modal__title {
+    color: #1a1a1a;
+}
+
+.guide-modal__subtitle {
+    color: #5c6370;
+}
+
+.guide-modal__body {
+    background: #f8f9fa;
+}

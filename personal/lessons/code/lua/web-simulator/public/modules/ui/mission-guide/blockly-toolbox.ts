@@ -7,16 +7,16 @@ type ToolboxCategory = {
 };
 
 const lessonBlockMap: Record<string, string[]> = {
-    'lua-led-single': ['lua_ledbar_new', 'lua_led_set', 'lua_print', 'lua_timer_calllater'],
-    'lua-led-sequence': ['lua_ledbar_new', 'lua_led_set', 'lua_timer_calllater', 'lua_print'],
-    'lua-led-confirm': ['lua_ledbar_new', 'lua_led_set', 'lua_print', 'lua_timer_calllater'],
-    'lua-led-delayed': ['lua_ledbar_new', 'lua_led_set', 'lua_timer_calllater', 'lua_print'],
-    'lua-preflight': ['lua_ap_push', 'lua_event_callback', 'lua_print'],
-    'lua-takeoff': ['lua_ap_push', 'lua_event_callback', 'lua_goto_local_point', 'lua_print'],
-    'lua-route': ['lua_ap_push', 'lua_event_callback', 'lua_goto_local_point', 'lua_print'],
-    'lua-point-confirm': ['lua_ap_push', 'lua_event_callback', 'lua_goto_local_point', 'lua_print'],
-    'lua-mission': ['lua_ap_push', 'lua_event_callback', 'lua_goto_local_point', 'lua_print'],
-    'lua-landing': ['lua_ap_push', 'lua_event_callback', 'lua_goto_local_point', 'lua_print'],
+    'lua-led-single': ['lua_ledbar_new', 'lua_led_set', 'lua_print', 'lua_timer_calllater', 'lua_callback_open', 'lua_callback_end'],
+    'lua-led-sequence': ['lua_ledbar_new', 'lua_led_set', 'lua_timer_calllater', 'lua_print', 'lua_callback_open', 'lua_callback_end'],
+    'lua-led-confirm': ['lua_ledbar_new', 'lua_led_set', 'lua_print', 'lua_timer_calllater', 'lua_callback_open', 'lua_callback_end'],
+    'lua-led-delayed': ['lua_ledbar_new', 'lua_led_set', 'lua_timer_calllater', 'lua_print', 'lua_callback_open', 'lua_callback_end'],
+    'lua-preflight': ['lua_ap_push', 'lua_event_callback', 'lua_print', 'lua_callback_open', 'lua_callback_end'],
+    'lua-takeoff': ['lua_ap_push', 'lua_event_callback', 'lua_goto_local_point', 'lua_print', 'lua_callback_open', 'lua_callback_end'],
+    'lua-route': ['lua_ap_push', 'lua_event_callback', 'lua_goto_local_point', 'lua_print', 'lua_callback_open', 'lua_callback_end'],
+    'lua-point-confirm': ['lua_ap_push', 'lua_event_callback', 'lua_goto_local_point', 'lua_print', 'lua_callback_open', 'lua_callback_end'],
+    'lua-mission': ['lua_ap_push', 'lua_event_callback', 'lua_goto_local_point', 'lua_print', 'lua_callback_open', 'lua_callback_end'],
+    'lua-landing': ['lua_ap_push', 'lua_event_callback', 'lua_goto_local_point', 'lua_print', 'lua_callback_open', 'lua_callback_end'],
     'py-led-single': ['py_led_control', 'py_time_sleep', 'py_print', 'py_takeoff'],
     'py-led-sequence': ['py_led_control', 'py_time_sleep', 'py_print', 'py_takeoff'],
     'py-led-confirm': ['py_led_control', 'py_time_sleep', 'py_print'],
@@ -34,7 +34,7 @@ function getLuaCategories(): ToolboxCategory[] {
         {
             name: 'Подготовка',
             colour: '#0ea5e9',
-            blockTypes: ['lua_ledbar_new', 'lua_ap_push']
+            blockTypes: ['lua_ledbar_new', 'lua_ap_push', 'lua_callback_open', 'lua_callback_end']
         },
         {
             name: 'Индикация и лог',

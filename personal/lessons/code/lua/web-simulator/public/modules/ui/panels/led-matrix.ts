@@ -12,7 +12,7 @@ export function initLEDMatrixUI() {
         const pixel = document.createElement('div');
         pixel.className = 'led-pixel';
         pixel.id = `led-pixel-${i + 4}`; // offset by 4 for base LEDs
-        pixel.title = `LED ${i + 4}`;
+        pixel.title = `Светодиод ${i + 4}`;
         grid.appendChild(pixel);
     }
 }

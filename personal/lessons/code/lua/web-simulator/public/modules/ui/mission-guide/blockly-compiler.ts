@@ -27,6 +27,21 @@ function appendSeparated(target: string[], lines: string[]): void {
     target.push(...normalized);
 }
 
+function collectLuaCallbackBody(startBlock: Blockly.Block): { bodyLines: string[]; nextBlock: Blockly.Block | null } {
+    const bodyLines: string[] = [];
+    let current = startBlock.getNextBlock();
+
+    while (current && current.type !== 'lua_callback_end') {
+        appendSeparated(bodyLines, compileLuaBlock(current));
+        current = current.getNextBlock();
+    }
+
+    return {
+        bodyLines: trimBlankLines(bodyLines),
+        nextBlock: current?.getNextBlock() || null
+    };
+}
+
 function compileLuaBlock(block: Blockly.Block): string[] {
     switch (block.type) {
         case 'lua_ledbar_new':
@@ -59,6 +74,10 @@ function compileLuaBlock(block: Blockly.Block): string[] {
                 'end'
             ];
         }
+        case 'lua_callback_open':
+        case 'lua_callback_end':
+        case 'lua-callback-stub':
+            return [];
         default:
             return [`-- Unsupported block: ${block.type}`];
     }
@@ -78,13 +97,32 @@ function compileLuaChain(startBlock: Blockly.Block | null): string[] {
 
 function compileLuaWorkspace(workspace: Blockly.WorkspaceSvg): string {
     const rootLines: string[] = [];
-    const eventBranches: string[][] = [];
+    const callbackBodyLines: string[] = [];
+    const hasExplicitCallback = workspace.getAllBlocks(false).some((block) => block.type === 'lua_callback_open');
+    const hasLegacyCallbackStub = workspace.getAllBlocks(false).some((block) => block.type === 'lua-callback-stub');
 
     workspace.getTopBlocks(true).forEach((topBlock) => {
         let current: Blockly.Block | null = topBlock;
         while (current) {
-            if (current.type === 'lua_event_callback') {
-                eventBranches.push(compileLuaBlock(current));
+            if (current.type === 'lua_callback_open') {
+                const callbackBody = collectLuaCallbackBody(current);
+                appendSeparated(callbackBodyLines, callbackBody.bodyLines);
+                current = callbackBody.nextBlock;
+                continue;
+            }
+
+            if (current.type === 'lua_callback_end') {
+                current = current.getNextBlock();
+                continue;
+            }
+
+            if (current.type === 'lua-callback-stub') {
+                current = current.getNextBlock();
+                continue;
+            }
+
+            if (current.type === 'lua_event_callback' && !hasExplicitCallback && hasLegacyCallbackStub) {
+                appendSeparated(callbackBodyLines, compileLuaBlock(current));
             } else {
                 appendSeparated(rootLines, compileLuaBlock(current));
             }
@@ -93,15 +131,10 @@ function compileLuaWorkspace(workspace: Blockly.WorkspaceSvg): string {
     });
 
     const output = [...rootLines];
-    if (eventBranches.length) {
+    if (hasExplicitCallback || (hasLegacyCallbackStub && callbackBodyLines.length)) {
         if (output.length) output.push('');
         output.push('function callback(event)');
-        eventBranches.forEach((branchLines, index) => {
-            output.push(...indentLines(branchLines));
-            if (index < eventBranches.length - 1) {
-                output.push('');
-            }
-        });
+        output.push(...indentLines(callbackBodyLines));
         output.push('end');
     }
 
