@@ -31,7 +31,7 @@
     font-weight: 700;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: #8c93a1;
+    color: #718096;
 }
 
 .gamepad-hero-title {
@@ -39,7 +39,7 @@
     line-height: 1;
     font-weight: 700;
     letter-spacing: -0.02em;
-    color: #171a21;
+    color: #1A202C;
 }
 
 .gamepad-hero-subtitle {
@@ -55,31 +55,31 @@
     max-width: 420px;
     padding: 5px 12px;
     border-radius: 999px;
-    border: none;
+    border: 1px solid #E2E8F0;
     background: #ffffff;
-    color: #4e5563;
+    color: #718096;
     font-size: 10px;
     font-weight: 600;
     line-height: 1.2;
     text-align: center;
     white-space: nowrap;
-    box-shadow: 0 6px 20px rgba(17, 24, 39, 0.05);
+    box-shadow: none;
     justify-self: end;
     grid-column: 3 / 4;
 }
 
 .gamepad-status-pill.is-connected {
     background: #ffffff;
-    color: #4e5563;
+    color: #718096;
 }
 
 .gamepad-status-pill__label,
 .gamepad-status-pill__meta {
-    color: #4e5563;
+    color: #718096;
 }
 
 .gamepad-status-pill__name {
-    color: #c75a12;
+    color: #FF6B00;
     font-weight: 700;
 }
 
@@ -105,9 +105,9 @@
     min-height: 26px;
     padding: 4px 10px;
     border-radius: 999px;
-    border: 1px solid #dce2eb;
-    background: rgba(255, 255, 255, 0.76);
-    color: #7d8694;
+    border: 1px solid #E2E8F0;
+    background: rgba(255, 255, 255, 0.92);
+    color: #718096;
     font-size: 10px;
     line-height: 1.2;
     white-space: nowrap;
@@ -115,13 +115,13 @@
 
 .gamepad-channel-status.is-ready,
 .gamepad-auto-status.is-success {
-    color: #47505d;
+    color: #1A202C;
 }
 
 .gamepad-channel-status.is-waiting,
 .gamepad-auto-status.is-listening {
     border-color: rgba(255, 107, 0, 0.24);
-    color: #c75a12;
+    color: #FF6B00;
     background: rgba(255, 107, 0, 0.08);
 }
 
@@ -138,11 +138,11 @@
     align-content: start;
     gap: 10px;
     min-height: 0;
-    padding: 14px 16px;
-    border: 1px solid #e2e8f0;
-    border-radius: 14px;
+    padding: 16px;
+    border: 1px solid #E2E8F0;
+    border-radius: 16px;
     background: #ffffff;
-    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.035);
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.03);
 }
 
 .gamepad-section-heading {
@@ -154,14 +154,14 @@
 
 .gamepad-section-title {
     font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.1em;
+    font-weight: 800;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: #171a21;
+    color: #1A202C;
 }
 
 .gamepad-section-caption {
-    color: #8b93a1;
+    color: #718096;
     font-size: 10px;
     line-height: 1.2;
 }
@@ -202,11 +202,11 @@
     min-height: 0;
     height: 100%;
     min-height: 176px;
-    padding: 10px 12px;
+    padding: 12px;
     border-radius: 12px;
-    border: none;
-    background: #fafbfc;
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.55);
+    border: 1px solid #E2E8F0;
+    background: #FFFFFF;
+    box-shadow: none;
 }
 
 .gp-aux-card-head {
@@ -223,8 +223,9 @@
     height: 20px;
     padding: 0 8px;
     border-radius: 999px;
-    background: #eef1f5;
-    color: #5b6470;
+    border: 1px solid #E2E8F0;
+    background: #F8FAFC;
+    color: #718096;
     font-size: 8px;
     font-weight: 700;
     letter-spacing: 0.08em;
@@ -240,13 +241,13 @@
     font-size: 13px;
     font-weight: 700;
     letter-spacing: -0.01em;
-    color: #161922;
+    color: #1A202C;
 }
 
 .gp-aux-card-subtitle {
     font-size: 10px;
     line-height: 1.15;
-    color: #8c93a1;
+    color: #718096;
 }
 
 .gp-aux-card-footer {
@@ -274,26 +275,27 @@
     font-weight: 600;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: #8a92a0;
+    color: #718096;
     white-space: nowrap;
 }
 
 .sidebar-panel#gamepad-panel select {
     min-height: 34px;
     padding: 7px 32px 7px 11px;
-    border-radius: 10px;
+    border-radius: 8px;
     background: #ffffff;
-    border: 1px solid #d7dde7;
-    color: #1d2430;
+    border: 1px solid #E2E8F0;
+    color: #1A202C;
+    box-shadow: none;
 }
 
 .sidebar-panel#gamepad-panel select:focus {
     background: #ffffff;
-    border-color: rgba(255, 107, 0, 0.45);
+    border-color: #FF6B00;
     box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.12);
 }
 
 .sidebar-panel#gamepad-panel select option {
     background: #ffffff;
-    color: #1d2430;
+    color: #1A202C;
 }

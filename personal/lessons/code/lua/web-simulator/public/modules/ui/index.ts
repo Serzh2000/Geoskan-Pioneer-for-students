@@ -10,6 +10,7 @@ import { initSceneManager } from './scene-manager/index.js';
 import { initDroneManager } from './managers/drone-manager.js';
 import { renderApiDocs } from './api-docs/index.js';
 import { renderMissionGuidePanel } from './mission-guide/panel.js';
+import { initChannelMonitor } from './panels/channel-monitor.js';
 import { initLEDMatrixUI } from './panels/led-matrix.js';
 import { initSettingsUI } from './settings/index.js';
 import { initSimulationNotice } from './panels/simulation-notice.js';
@@ -74,6 +75,7 @@ export function initUI(callbacks: UICallbacks) {
     renderApiDocs();
     initMissionGuideModal();
     renderMissionGuidePanel();
+    initChannelMonitor();
     initLEDMatrixUI();
     initSettingsUI();
     initSimulationNotice();

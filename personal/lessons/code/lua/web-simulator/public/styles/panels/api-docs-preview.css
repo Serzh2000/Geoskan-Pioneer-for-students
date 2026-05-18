@@ -10,8 +10,8 @@
     gap: 12px;
     padding: 12px;
     border-radius: 12px;
-    border: 1px solid rgba(56, 189, 248, 0.22);
-    background: radial-gradient(circle at top, rgba(14, 165, 233, 0.08), rgba(2, 6, 23, 0.92));
+    border: 1px solid #E2E8F0;
+    background: #F8FAFC;
 }
 
 .api-preview__stage {
@@ -19,14 +19,14 @@
     min-height: 230px;
     border-radius: 10px;
     overflow: hidden;
-    background: radial-gradient(circle at top, rgba(30, 41, 59, 0.88), rgba(2, 6, 23, 0.96));
-    border: 1px solid rgba(148, 163, 184, 0.16);
+    background: radial-gradient(circle at top, rgba(255, 255, 255, 0.96), rgba(245, 247, 249, 0.98));
+    border: 1px solid #E2E8F0;
 }
 
 .api-preview[data-api-preview-view='topdown'] .api-preview__stage {
     background:
-        radial-gradient(circle at center, rgba(14, 165, 233, 0.08), rgba(2, 6, 23, 0.96)),
-        linear-gradient(180deg, rgba(8, 47, 73, 0.3), rgba(2, 6, 23, 0.98));
+        radial-gradient(circle at center, rgba(255, 107, 0, 0.04), rgba(245, 247, 249, 0.98)),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(245, 247, 249, 0.98));
 }
 
 .api-preview__canvas {
@@ -60,9 +60,9 @@
     gap: 6px;
     padding: 4px 8px;
     border-radius: 999px;
-    background: rgba(2, 6, 23, 0.78);
-    border: 1px solid rgba(148, 163, 184, 0.2);
-    color: #dbeafe;
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid #E2E8F0;
+    color: #4A5568;
     font-size: 11px;
     font-weight: 600;
 }
@@ -75,16 +75,16 @@
 }
 
 .api-preview__swatch--start {
-    background: #f59e0b;
+    background: #FF6B00;
 }
 
 .api-preview__swatch--route {
-    background: #38bdf8;
+    background: #ED8936;
 }
 
 .api-preview__swatch--target {
-    background: #f8fafc;
-    box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.45) inset;
+    background: #FFFFFF;
+    box-shadow: 0 0 0 2px rgba(255, 107, 0, 0.28) inset;
 }
 
 .api-preview__phase {
@@ -92,17 +92,17 @@
     bottom: 10px;
     padding: 6px 10px;
     border-radius: 999px;
-    background: rgba(2, 6, 23, 0.82);
-    border: 1px solid rgba(56, 189, 248, 0.24);
-    color: #bae6fd;
+    background: rgba(255, 255, 255, 0.94);
+    border: 1px solid #E2E8F0;
+    color: #FF6B00;
     font-size: 11px;
     font-weight: 700;
     letter-spacing: 0.02em;
 }
 
 .api-preview[data-api-preview-view='topdown'] .api-preview__phase {
-    color: #dbeafe;
-    border-color: rgba(125, 211, 252, 0.28);
+    color: #FF6B00;
+    border-color: rgba(255, 107, 0, 0.2);
 }
 
 .api-preview__meta {
@@ -113,7 +113,7 @@
 }
 
 .api-preview__title {
-    color: #bae6fd;
+    color: #1A202C;
     font-size: 12px;
     font-weight: 700;
     letter-spacing: 0.04em;
@@ -121,14 +121,14 @@
 }
 
 .api-preview__status {
-    color: #f8fafc;
+    color: #1A202C;
     font-size: 14px;
     font-weight: 600;
     line-height: 1.4;
 }
 
 .api-preview__hint {
-    color: #cbd5e1;
+    color: #718096;
     font-size: 12px;
     line-height: 1.6;
 }

@@ -40,6 +40,27 @@ function escapeHtml(value: string): string {
         .replace(/'/g, '&#39;');
 }
 
+function highlightApiCode(value: string): string {
+    const escapedValue = escapeHtml(value);
+    const accentTokens = [
+        'nil',
+        'vector2',
+        'vector3',
+        'string',
+        'number',
+        'boolean',
+        'bool',
+        'table',
+        'function',
+        'true',
+        'false',
+        'None'
+    ];
+    const accentPattern = new RegExp(`\\b(${accentTokens.join('|')})\\b`, 'g');
+
+    return escapedValue.replace(accentPattern, '<span class="api-code-token api-code-token--accent">$1</span>');
+}
+
 function destroyPreviews(): void {
     for (const preview of uiState.previews.values()) {
         preview.destroy();
@@ -101,11 +122,11 @@ function renderEntry(entry: ApiEntryView): string {
             </${headerTag}>
             <div class="api-desc">${entry.doc.desc || 'Описание пока не добавлено.'}</div>
             <div class="api-details">
-                ${entry.doc.syntax ? `<div class="api-details-row"><span class="api-details-label">Синтаксис:</span><span class="api-details-value">${entry.doc.syntax}</span></div>` : ''}
-                ${entry.doc.params ? `<div class="api-details-row"><span class="api-details-label">Аргументы:</span><span class="api-details-value">${entry.doc.params}</span></div>` : ''}
-                ${entry.doc.returns ? `<div class="api-details-row"><span class="api-details-label">Возвращает:</span><span class="api-details-value">${entry.doc.returns}</span></div>` : ''}
+                ${entry.doc.syntax ? `<div class="api-details-row"><span class="api-details-label">Синтаксис:</span><span class="api-details-value">${highlightApiCode(entry.doc.syntax)}</span></div>` : ''}
+                ${entry.doc.params ? `<div class="api-details-row"><span class="api-details-label">Аргументы:</span><span class="api-details-value">${highlightApiCode(entry.doc.params)}</span></div>` : ''}
+                ${entry.doc.returns ? `<div class="api-details-row"><span class="api-details-label">Возвращает:</span><span class="api-details-value">${highlightApiCode(entry.doc.returns)}</span></div>` : ''}
             </div>
-            ${entry.doc.example ? `<div class="api-example">${entry.doc.example}</div>` : ''}
+            ${entry.doc.example ? `<div class="api-example">${highlightApiCode(entry.doc.example)}</div>` : ''}
             ${isOpen ? renderPreviewShell(entry) : ''}
         </div>
     `;
