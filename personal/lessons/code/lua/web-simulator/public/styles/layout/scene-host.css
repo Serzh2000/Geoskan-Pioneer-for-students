@@ -3,38 +3,25 @@
  * Файл выделен из `public/style.css` при декомпозиции общего CSS.
  */
 /* MAIN SCENE AREA */
-.main-scene {
-    flex: 1;
-    min-width: 0;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    gap: 22px;
-}
-
-.workspace-shell {
-    flex: 1;
-    min-height: 0;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) clamp(420px, 25vw, 500px);
-    gap: 22px;
-}
-
 .scene-stage {
+    flex: 1 1 auto;
+    width: 0;
     min-width: 0;
     min-height: 0;
     display: flex;
+    height: 100%;
 }
 
 .scene-viewport-card {
     flex: 1;
+    height: 100%;
     min-width: 0;
     min-height: 0;
     display: flex;
     flex-direction: column;
-    gap: 16px;
-    padding: 22px;
-    border-radius: 30px;
+    gap: 12px;
+    padding: 14px;
+    border-radius: 18px;
     background: rgba(255, 255, 255, 0.94);
     border: 1px solid rgba(9, 9, 11, 0.08);
     box-shadow: var(--shadow-card);
@@ -42,44 +29,38 @@
 
 .scene-viewport-header {
     display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 24px;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 24px;
 }
 
-.scene-viewport-eyebrow {
-    font-size: 11px;
-    font-weight: 800;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
+.scene-viewport-label {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+    padding: 0 10px;
+    border-radius: 999px;
+    background: rgba(255, 107, 0, 0.08);
+    border: 1px solid rgba(255, 107, 0, 0.14);
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
     color: var(--accent-color);
-}
-
-.scene-viewport-title {
-    margin-top: 6px;
-    font-size: 30px;
-    font-weight: 800;
-    color: var(--text-strong);
-}
-
-.scene-viewport-subtitle {
-    max-width: 380px;
-    font-size: 14px;
-    line-height: 1.45;
-    color: var(--text-muted);
 }
 
 .scene-container {
     flex: 1;
+    height: 100%;
     position: relative;
     overflow: hidden;
-    min-height: 0;
-    border-radius: 26px;
+    min-height: 260px;
+    border-radius: 16px;
     border: 1px solid rgba(9, 9, 11, 0.06);
     background: linear-gradient(180deg, #ffffff, #f3f4f6);
 }
 
 #canvas-container { position: absolute; inset: 0; }
+#canvas-container canvas { display: block; width: 100%; height: 100%; }
 #canvas { width: 100%; height: 100%; outline: none; }
 
 .drone-print-bubbles {
@@ -125,5 +106,3 @@
     border-bottom: 1px solid rgba(9, 9, 11, 0.14);
     transform: translateX(-50%) rotate(45deg);
 }
-
-

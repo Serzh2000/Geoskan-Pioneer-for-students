@@ -6,36 +6,38 @@
 .hud-side-column {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    flex: 0 0 240px;
+    width: 240px;
+    gap: 12px;
     min-width: 0;
     min-height: 0;
 }
 
-.dashboard-toolbar {
+.dashboard-toolbar,
+.dashboard-panel {
     display: flex;
-    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px;
+    border-radius: 18px;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.96));
+    box-shadow:
+        0 16px 30px rgba(15, 23, 42, 0.06),
+        0 4px 12px rgba(15, 23, 42, 0.04);
+}
+
+.dashboard-toolbar {
     justify-content: space-between;
-    gap: 14px;
-    padding: 18px;
-    border-radius: 24px;
-    border: 1px solid rgba(9, 9, 11, 0.08);
-    background: rgba(255, 255, 255, 0.94);
-    box-shadow: var(--shadow-card);
 }
 
-.dashboard-toolbar__eyebrow {
-    font-size: 11px;
-    font-weight: 800;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--accent-color);
-}
-
-.dashboard-title {
-    margin-top: 6px;
-    font-size: 24px;
+.dashboard-card-title,
+.dashboard-panel__title {
+    font-size: 13px;
     font-weight: 800;
     color: var(--text-strong);
+    letter-spacing: 0.01em;
 }
 
 .telemetry-overlay,
@@ -45,32 +47,23 @@
     transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
-.dashboard-panel {
-    padding: 18px;
-    border-radius: 24px;
-    border: 1px solid rgba(9, 9, 11, 0.08);
-    background: rgba(255, 255, 255, 0.94);
-    box-shadow: var(--shadow-card);
-    overflow: hidden;
-}
-
 .dashboard-panel__header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 12px;
-    margin-bottom: 16px;
-    font-size: 13px;
+    gap: 8px;
+    margin-bottom: 0;
+    font-size: 12px;
     font-weight: 700;
     color: var(--text-strong);
 }
 
 .dashboard-panel__badge {
-    padding: 6px 10px;
+    padding: 5px 8px;
     border-radius: 999px;
     background: rgba(255, 107, 0, 0.1);
     color: var(--accent-color);
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 800;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -98,10 +91,10 @@
 
 .hud-visibility-btn {
     border: 1px solid rgba(9, 9, 11, 0.1);
-    background: #f7f7f8;
+    background: #f8fafc;
     color: var(--text-muted);
     border-radius: 999px;
-    padding: 8px 12px;
+    padding: 7px 11px;
     font-size: 10px;
     font-weight: 700;
     letter-spacing: 0.08em;
@@ -283,5 +276,3 @@
 .checkmark {
     display: none;
 }
-
-

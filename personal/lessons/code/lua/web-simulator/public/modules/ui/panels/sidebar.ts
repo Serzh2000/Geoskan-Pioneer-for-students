@@ -6,9 +6,18 @@ export function initSidebar(callbacks: UICallbacks) {
     const resizer = document.getElementById('sidebar-resizer') as HTMLElement | null;
     if (!panels || !resizer) return;
 
+    const DEFAULT_SIDEBAR_WIDTH = 320;
+    const MIN_SIDEBAR_WIDTH = 320;
+    const MAX_SIDEBAR_WIDTH = 1000;
     const fullscreenPanels = new Set(['gamepad-panel', 'settings-panel']);
     let isResizing = false;
     let viewportRefreshFrame = 0;
+
+    const normalizeSidebarWidth = (value: string | null): string => {
+        const parsed = Number.parseInt(value || '', 10);
+        if (!Number.isFinite(parsed)) return `${DEFAULT_SIDEBAR_WIDTH}px`;
+        return `${Math.min(MAX_SIDEBAR_WIDTH, Math.max(MIN_SIDEBAR_WIDTH, parsed))}px`;
+    };
 
     const refreshViewportLayout = () => {
         window.cancelAnimationFrame(viewportRefreshFrame);
@@ -284,7 +293,10 @@ export function initSidebar(callbacks: UICallbacks) {
             return;
         }
 
-        panels.style.width = fullscreenPanels.has(panelId) ? '100%' : (localStorage.getItem('sidebar-width') || '450px');
+        panels.style.width = fullscreenPanels.has(panelId) ? '100%' : normalizeSidebarWidth(localStorage.getItem('sidebar-width'));
+        if (!fullscreenPanels.has(panelId)) {
+            localStorage.setItem('sidebar-width', panels.style.width);
+        }
         syncSidebarCollapsedState();
         syncSidebarMode(panelId);
         panel.classList.add('active');
@@ -330,15 +342,13 @@ export function initSidebar(callbacks: UICallbacks) {
 
     window.addEventListener('mousemove', (e) => {
         if (!isResizing) return;
-        const newWidth = e.clientX - 50;
-        if (newWidth > 200 && newWidth < window.innerWidth * 0.8) {
-            panels.style.width = `${newWidth}px`;
-            localStorage.setItem('sidebar-width', `${newWidth}px`);
-            syncSidebarCollapsedState();
-            syncSidebarMode(document.querySelector('.sidebar-panel.active')?.id ?? null);
-            if (callbacks.onEditorResize) callbacks.onEditorResize();
-            refreshViewportLayout();
-        }
+        const newWidth = Math.min(MAX_SIDEBAR_WIDTH, Math.max(MIN_SIDEBAR_WIDTH, e.clientX - 50));
+        panels.style.width = `${newWidth}px`;
+        localStorage.setItem('sidebar-width', `${newWidth}px`);
+        syncSidebarCollapsedState();
+        syncSidebarMode(document.querySelector('.sidebar-panel.active')?.id ?? null);
+        if (callbacks.onEditorResize) callbacks.onEditorResize();
+        refreshViewportLayout();
     });
 
     window.addEventListener('mouseup', () => {
@@ -349,6 +359,9 @@ export function initSidebar(callbacks: UICallbacks) {
     });
 
     (window as any).switchTab = (window as any).openPanel;
+    panels.style.width = normalizeSidebarWidth(localStorage.getItem('sidebar-width'));
+    localStorage.setItem('sidebar-width', panels.style.width);
     syncSidebarCollapsedState();
     syncSidebarMode(document.querySelector('.sidebar-panel.active')?.id ?? null);
+    refreshViewportLayout();
 }

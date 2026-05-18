@@ -3,15 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <title>Pioneer Lua Web Simulator</title>
-    <link rel="icon" href="data:,">
+    <link rel="icon" href="data:,">
     <!-- Three.js and modules loaded via Vite -->
     <!-- Fengari for Lua in browser -->
     <script src="https://cdn.jsdelivr.net/npm/fengari-web@0.1.4/dist/fengari-web.js"></script>
-  <script type="module" crossorigin src="/assets/index-omckW4Vd.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-e74ug_z_.css">
+  <script type="module" crossorigin src="/assets/index-BwqWd61l.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-_7JpTM_y.css">
 </head>
 <body>
-    <div class="container">
+            <header class="header">
+            <div class="header-brand">
+                <div class="header-brand-mark">G</div>
+                <div class="header-brand-copy">
+                    <div class="header-logo">Geoscan <span>Симулятор</span></div>
+                    <div class="header-meta">Инженерная полетная среда</div>
+                </div>
+            </div>
+            <div class="header-actions">
+                <div class="header-controls-group">
+                    <select id="file-selector" class="btn-secondary header-select">
+                        <option value="">Выберите пример...</option>
+                    </select>
+                    <button onclick="document.getElementById('file-input').click()" class="btn-secondary" title="Открыть файл">ОТКРЫТЬ ФАЙЛ</button>
+                    <input type="file" id="file-input" style="display:none" accept=".lua,.py">
+                    <select id="script-language-select" class="btn-secondary header-select header-lang-select">
+                        <option value="lua">Lua</option>
+                        <option value="python">Python</option>
+                    </select>
+                    <label class="header-check">
+                        <input type="checkbox" id="blockly-editor-toggle">
+                        <span>Режим Blockly</span>
+                    </label>
+                </div>
+                <div class="header-controls-group header-controls-group--actions">
+                    <button id="run-btn" class="btn-primary">ЗАПУСТИТЬ</button>
+                    <button id="stop-btn" class="btn-secondary header-danger-btn">СТОП</button>
+                    <button id="restart-btn" class="btn-secondary">СБРОС</button>
+                </div>
+            </div>
+        </header>
+
+    <main class="container">
         <aside class="workspace-sidebar">
                     <!-- Sidebar Tabs -->
         <div class="sidebar-tabs">
@@ -385,19 +417,31 @@
                                 <div class="gamepad-hero-copy">
                                     <div class="gamepad-hero-eyebrow">GEOSCAN RC SETUP</div>
                                     <div class="gamepad-hero-title">Настройка каналов пульта</div>
-                                    <div class="gamepad-hero-subtitle">Премиальная консоль для привязки каналов, живого мониторинга сигналов и калибровки дополнительных тумблеров в фирменной визуальной системе Геоскан.</div>
+                                    <div class="gamepad-hero-subtitle">Компактная панель привязки каналов и калибровки без прокрутки.</div>
                                 </div>
                                 <div id="gamepad-status" class="gamepad-status-pill is-disconnected">Пульт не подключен</div>
                             </div>
 
-                            <div id="gamepad-info" class="gamepad-stage" style="display: none;">
+                            <div class="gamepad-panel-tabs" role="tablist" aria-label="Разделы панели пульта">
+                                <button id="gp-tab-mapping" class="gamepad-panel-tab is-active" type="button" data-gamepad-pane="mapping" aria-selected="true">Настройка каналов</button>
+                                <button id="gp-tab-monitor" class="gamepad-panel-tab" type="button" data-gamepad-pane="monitor" aria-selected="false">Монитор каналов</button>
+                            </div>
+
+                            <div class="gamepad-panel-panes">
+                                <div id="gamepad-pane-mapping" class="gamepad-panel-pane is-active" data-gamepad-pane-panel="mapping">
+                                    <div id="gamepad-info" class="gamepad-stage" style="display: none;">
                                 <div class="gamepad-stage-top">
-                                    <div class="gamepad-surface gamepad-surface--toolbar">
-                                        <div class="gamepad-toolbar-copy">
-                                            <div class="gamepad-toolbar-title">Быстрая настройка</div>
-                                            <div class="gamepad-toolbar-caption">Сначала выберите режим стиков, затем при необходимости запустите мастер настройки. Калибровка и сброс вынесены в нейтральные контурные действия, чтобы не спорить с главным сценарием.</div>
+                                    <div id="gp-auto-status" class="gamepad-auto-status">Нажмите AUTO и подвигайте нужный стик или тумблер.</div>
+                                    <div id="gp-channel-data-status" class="gamepad-channel-status">Ожидание данных каналов текущего пульта.</div>
+                                </div>
+
+                                <div class="gamepad-dashboard-grid">
+                                    <div class="gamepad-section gamepad-section--quick">
+                                        <div class="gamepad-section-heading">
+                                            <div class="gamepad-section-title">Быстрая настройка</div>
+                                            <div class="gamepad-section-caption">Профиль пульта и сервисные действия.</div>
                                         </div>
-                                        <div class="gamepad-toolbar">
+                                        <div class="gamepad-quick-stack">
                                             <label class="scene-field gamepad-config-field">
                                                 <span>Режим стиков</span>
                                                 <select id="gp-stick-mode" class="gp-axis-select">
@@ -415,139 +459,133 @@
                                         </div>
                                     </div>
 
-                                    <div class="gamepad-top-notes">
-                                        <div id="gp-auto-status" class="gamepad-auto-status">Нажмите AUTO и подвигайте нужный стик или тумблер.</div>
-                                        <div id="gp-channel-data-status" class="gamepad-channel-status">Ожидание данных каналов текущего пульта.</div>
-                                    </div>
-                                </div>
-
-                                <div class="gamepad-section">
-                                    <div class="gamepad-section-heading">
-                                        <div class="gamepad-section-title">Основные каналы</div>
-                                        <div class="gamepad-section-caption">Крупные оси управления с живой шкалой сигнала, компактным автоопределением и быстрым инвертированием направления.</div>
-                                    </div>
-                                    <div class="gamepad-mapping-grid">
-                                        <div class="gp-channel-row">
-                                            <div class="gp-channel-main">
-                                                <div class="gp-channel-badge">CH1</div>
-                                                <div class="gp-channel-copy">
-                                                    <div class="gp-channel-title">Roll</div>
-                                                    <div class="gp-channel-subtitle">Крен</div>
-                                                </div>
-                                                <label class="scene-field gp-channel-select">
-                                                    <span>Источник сигнала</span>
-                                                    <select id="gp-map-roll" class="gp-axis-select"></select>
-                                                </label>
-                                            </div>
-                                            <div class="gp-channel-meter">
-                                                <div class="gp-bar-bg">
-                                                    <div id="gp-bar-roll" class="gp-bar gp-bar-centered"></div>
-                                                </div>
-                                            </div>
-                                            <div class="gp-channel-actions">
-                                                <button id="gp-auto-roll" class="btn-secondary gp-auto-btn" type="button">AUTO</button>
-                                                <label class="checkbox-container gp-invert-checkbox">
-                                                    <input type="checkbox" id="gp-inv-roll">
-                                                    <span class="checkmark gp-checkmark"></span>
-                                                    INV
-                                                </label>
-                                                <div id="gp-val-roll" class="gp-channel-value">1500</div>
-                                            </div>
+                                    <div class="gamepad-section gamepad-section--primary">
+                                        <div class="gamepad-section-heading">
+                                            <div class="gamepad-section-title">Основные каналы</div>
+                                            <div class="gamepad-section-caption">Оси управления и живой сигнал.</div>
                                         </div>
+                                        <div class="gamepad-mapping-grid">
+                                            <div class="gp-channel-row">
+                                                <div class="gp-channel-main">
+                                                    <div class="gp-channel-badge">CH1</div>
+                                                    <div class="gp-channel-copy">
+                                                        <div class="gp-channel-title">Roll</div>
+                                                        <div class="gp-channel-subtitle">Крен</div>
+                                                    </div>
+                                                    <label class="scene-field gp-channel-select">
+                                                        <span>Источник сигнала</span>
+                                                        <select id="gp-map-roll" class="gp-axis-select"></select>
+                                                    </label>
+                                                </div>
+                                                <div class="gp-channel-meter">
+                                                    <div class="gp-bar-bg">
+                                                        <div id="gp-bar-roll" class="gp-bar gp-bar-centered"></div>
+                                                    </div>
+                                                </div>
+                                                <div class="gp-channel-actions">
+                                                    <button id="gp-auto-roll" class="btn-secondary gp-auto-btn" type="button">AUTO</button>
+                                                    <label class="checkbox-container gp-invert-checkbox">
+                                                        <input type="checkbox" id="gp-inv-roll">
+                                                        <span class="checkmark gp-checkmark"></span>
+                                                        INV
+                                                    </label>
+                                                    <div id="gp-val-roll" class="gp-channel-value">1500</div>
+                                                </div>
+                                            </div>
 
-                                        <div class="gp-channel-row">
-                                            <div class="gp-channel-main">
-                                                <div class="gp-channel-badge">CH2</div>
-                                                <div class="gp-channel-copy">
-                                                    <div class="gp-channel-title">Pitch</div>
-                                                    <div class="gp-channel-subtitle">Тангаж</div>
+                                            <div class="gp-channel-row">
+                                                <div class="gp-channel-main">
+                                                    <div class="gp-channel-badge">CH2</div>
+                                                    <div class="gp-channel-copy">
+                                                        <div class="gp-channel-title">Pitch</div>
+                                                        <div class="gp-channel-subtitle">Тангаж</div>
+                                                    </div>
+                                                    <label class="scene-field gp-channel-select">
+                                                        <span>Источник сигнала</span>
+                                                        <select id="gp-map-pitch" class="gp-axis-select"></select>
+                                                    </label>
                                                 </div>
-                                                <label class="scene-field gp-channel-select">
-                                                    <span>Источник сигнала</span>
-                                                    <select id="gp-map-pitch" class="gp-axis-select"></select>
-                                                </label>
-                                            </div>
-                                            <div class="gp-channel-meter">
-                                                <div class="gp-bar-bg">
-                                                    <div id="gp-bar-pitch" class="gp-bar gp-bar-centered"></div>
+                                                <div class="gp-channel-meter">
+                                                    <div class="gp-bar-bg">
+                                                        <div id="gp-bar-pitch" class="gp-bar gp-bar-centered"></div>
+                                                    </div>
+                                                </div>
+                                                <div class="gp-channel-actions">
+                                                    <button id="gp-auto-pitch" class="btn-secondary gp-auto-btn" type="button">AUTO</button>
+                                                    <label class="checkbox-container gp-invert-checkbox">
+                                                        <input type="checkbox" id="gp-inv-pitch">
+                                                        <span class="checkmark gp-checkmark"></span>
+                                                        INV
+                                                    </label>
+                                                    <div id="gp-val-pitch" class="gp-channel-value">1500</div>
                                                 </div>
                                             </div>
-                                            <div class="gp-channel-actions">
-                                                <button id="gp-auto-pitch" class="btn-secondary gp-auto-btn" type="button">AUTO</button>
-                                                <label class="checkbox-container gp-invert-checkbox">
-                                                    <input type="checkbox" id="gp-inv-pitch">
-                                                    <span class="checkmark gp-checkmark"></span>
-                                                    INV
-                                                </label>
-                                                <div id="gp-val-pitch" class="gp-channel-value">1500</div>
-                                            </div>
-                                        </div>
 
-                                        <div class="gp-channel-row">
-                                            <div class="gp-channel-main">
-                                                <div class="gp-channel-badge">CH3</div>
-                                                <div class="gp-channel-copy">
-                                                    <div class="gp-channel-title">Throttle</div>
-                                                    <div class="gp-channel-subtitle">Газ</div>
+                                            <div class="gp-channel-row">
+                                                <div class="gp-channel-main">
+                                                    <div class="gp-channel-badge">CH3</div>
+                                                    <div class="gp-channel-copy">
+                                                        <div class="gp-channel-title">Throttle</div>
+                                                        <div class="gp-channel-subtitle">Газ</div>
+                                                    </div>
+                                                    <label class="scene-field gp-channel-select">
+                                                        <span>Источник сигнала</span>
+                                                        <select id="gp-map-throttle" class="gp-axis-select"></select>
+                                                    </label>
                                                 </div>
-                                                <label class="scene-field gp-channel-select">
-                                                    <span>Источник сигнала</span>
-                                                    <select id="gp-map-throttle" class="gp-axis-select"></select>
-                                                </label>
-                                            </div>
-                                            <div class="gp-channel-meter">
-                                                <div class="gp-bar-bg">
-                                                    <div id="gp-bar-throttle" class="gp-bar gp-bar-throttle"></div>
+                                                <div class="gp-channel-meter">
+                                                    <div class="gp-bar-bg">
+                                                        <div id="gp-bar-throttle" class="gp-bar gp-bar-throttle"></div>
+                                                    </div>
+                                                </div>
+                                                <div class="gp-channel-actions">
+                                                    <button id="gp-auto-throttle" class="btn-secondary gp-auto-btn" type="button">AUTO</button>
+                                                    <label class="checkbox-container gp-invert-checkbox">
+                                                        <input type="checkbox" id="gp-inv-throttle">
+                                                        <span class="checkmark gp-checkmark"></span>
+                                                        INV
+                                                    </label>
+                                                    <div id="gp-val-throttle" class="gp-channel-value">1000</div>
                                                 </div>
                                             </div>
-                                            <div class="gp-channel-actions">
-                                                <button id="gp-auto-throttle" class="btn-secondary gp-auto-btn" type="button">AUTO</button>
-                                                <label class="checkbox-container gp-invert-checkbox">
-                                                    <input type="checkbox" id="gp-inv-throttle">
-                                                    <span class="checkmark gp-checkmark"></span>
-                                                    INV
-                                                </label>
-                                                <div id="gp-val-throttle" class="gp-channel-value">1000</div>
-                                            </div>
-                                        </div>
 
-                                        <div class="gp-channel-row">
-                                            <div class="gp-channel-main">
-                                                <div class="gp-channel-badge">CH4</div>
-                                                <div class="gp-channel-copy">
-                                                    <div class="gp-channel-title">Yaw</div>
-                                                    <div class="gp-channel-subtitle">Рыскание</div>
+                                            <div class="gp-channel-row">
+                                                <div class="gp-channel-main">
+                                                    <div class="gp-channel-badge">CH4</div>
+                                                    <div class="gp-channel-copy">
+                                                        <div class="gp-channel-title">Yaw</div>
+                                                        <div class="gp-channel-subtitle">Рыскание</div>
+                                                    </div>
+                                                    <label class="scene-field gp-channel-select">
+                                                        <span>Источник сигнала</span>
+                                                        <select id="gp-map-yaw" class="gp-axis-select"></select>
+                                                    </label>
                                                 </div>
-                                                <label class="scene-field gp-channel-select">
-                                                    <span>Источник сигнала</span>
-                                                    <select id="gp-map-yaw" class="gp-axis-select"></select>
-                                                </label>
-                                            </div>
-                                            <div class="gp-channel-meter">
-                                                <div class="gp-bar-bg">
-                                                    <div id="gp-bar-yaw" class="gp-bar gp-bar-centered"></div>
+                                                <div class="gp-channel-meter">
+                                                    <div class="gp-bar-bg">
+                                                        <div id="gp-bar-yaw" class="gp-bar gp-bar-centered"></div>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <div class="gp-channel-actions">
-                                                <button id="gp-auto-yaw" class="btn-secondary gp-auto-btn" type="button">AUTO</button>
-                                                <label class="checkbox-container gp-invert-checkbox">
-                                                    <input type="checkbox" id="gp-inv-yaw">
-                                                    <span class="checkmark gp-checkmark"></span>
-                                                    INV
-                                                </label>
-                                                <div id="gp-val-yaw" class="gp-channel-value">1500</div>
+                                                <div class="gp-channel-actions">
+                                                    <button id="gp-auto-yaw" class="btn-secondary gp-auto-btn" type="button">AUTO</button>
+                                                    <label class="checkbox-container gp-invert-checkbox">
+                                                        <input type="checkbox" id="gp-inv-yaw">
+                                                        <span class="checkmark gp-checkmark"></span>
+                                                        INV
+                                                    </label>
+                                                    <div id="gp-val-yaw" class="gp-channel-value">1500</div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
 
-                                <div class="gamepad-section">
-                                    <div class="gamepad-section-heading">
-                                        <div class="gamepad-section-title">Дополнительные каналы</div>
-                                        <div class="gamepad-section-caption">Единая модульная сетка для режимов, arm и magnet. Карточки выровнены по высоте и позволяют спокойно настроить диапазоны тумблеров без визуального шума.</div>
-                                    </div>
-                                    <div class="gp-aux-grid">
-                                        <div class="gp-aux-card">
+                                    <div class="gamepad-section gamepad-section--aux">
+                                        <div class="gamepad-section-heading">
+                                            <div class="gamepad-section-title">Дополнительные каналы</div>
+                                            <div class="gamepad-section-caption">Mode, Arm, Magnet.</div>
+                                        </div>
+                                        <div class="gp-aux-grid">
+                                            <div class="gp-aux-card">
                                             <div class="gp-aux-card-head">
                                                 <div class="gp-aux-card-badge">AUX</div>
                                                 <div class="gp-aux-card-copy">
@@ -644,9 +682,48 @@
                                     </div>
                                 </div>
                             </div>
+                            </div>
+                            </div>
+
+                            <div id="channel-monitor-panel" class="gamepad-panel-pane gamepad-panel-pane--channel-monitor" data-gamepad-pane-panel="monitor">
+                                <div class="settings-group settings-group--channel-monitor">
+                                    <div class="channel-monitor-hero">
+                                        <div class="channel-monitor-hero-copy">
+                                            <div class="channel-monitor-hero-eyebrow">GEOSCAN CHANNEL MONITOR</div>
+                                            <div class="channel-monitor-hero-title">Монитор каналов</div>
+                                            <div class="channel-monitor-hero-subtitle">Плотная realtime-матрица CH1-CH16 для мгновенной оценки входов пульта.</div>
+                                        </div>
+                                        <div id="channel-monitor-status" class="gamepad-status-pill is-disconnected">Пульт не подключен</div>
+                                    </div>
+
+                                    <div class="channel-monitor-stage">
+                                        <div class="channel-monitor-toolbar-card">
+                                            <div class="channel-monitor-toolbar">
+                                                <button id="cm-btn-freeze" class="btn-secondary channel-monitor-toolbar-btn" type="button">Заморозить график</button>
+                                                <button id="cm-btn-reset-peaks" class="btn-secondary channel-monitor-toolbar-btn" type="button">Сбросить пиковые значения</button>
+                                                <label class="checkbox-container channel-monitor-checkbox">
+                                                    <input type="checkbox" id="cm-toggle-peaks" checked>
+                                                    <span class="checkmark"></span>
+                                                    Показывать min/max границы
+                                                </label>
+                                            </div>
+                                            <div class="channel-monitor-toolbar-note">Первые 16 входов активного пульта отображаются в реальном времени.</div>
+                                        </div>
+
+                                        <div class="channel-monitor-board-card">
+                                            <div class="channel-monitor-board-heading">
+                                                <div class="gamepad-section-title">Каналы CH1-CH16</div>
+                                                <div id="channel-monitor-board-status" class="gamepad-section-caption">Нет данных от активного пульта.</div>
+                                            </div>
+                                            <div id="channel-monitor-grid" class="channel-monitor-grid"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
+            </div>
             </div>
 
                         <div id="settings-panel" class="sidebar-panel">
@@ -709,135 +786,92 @@
 
             </div>
         </aside>
-                <div class="main-scene">
-            <header class="header">
-                <div class="header-brand">
-                    <div class="header-brand-mark">G</div>
-                    <div class="header-brand-copy">
-                        <div class="header-logo">Geoscan <span>Симулятор</span></div>
-                        <div class="header-meta">Инженерная полетная среда</div>
-                    </div>
-                </div>
-                <div class="header-actions">
-                    <div class="header-controls-group">
-                        <select id="file-selector" class="btn-secondary header-select">
-                            <option value="">Выберите пример...</option>
-                        </select>
-                        <button onclick="document.getElementById('file-input').click()" class="btn-secondary" title="Открыть файл">ОТКРЫТЬ ФАЙЛ</button>
-                        <input type="file" id="file-input" style="display:none" accept=".lua,.py">
-                        <select id="script-language-select" class="btn-secondary header-select header-lang-select">
-                            <option value="lua">Lua</option>
-                            <option value="python">Python</option>
-                        </select>
-                        <label class="header-check">
-                            <input type="checkbox" id="blockly-editor-toggle">
-                            <span>Режим Blockly</span>
-                        </label>
-                    </div>
-                    <div class="header-controls-group header-controls-group--actions">
-                        <button id="run-btn" class="btn-primary">ЗАПУСТИТЬ</button>
-                        <button id="stop-btn" class="btn-secondary header-danger-btn">СТОП</button>
-                        <button id="restart-btn" class="btn-secondary">СБРОС</button>
-                    </div>
-                </div>
-            </header>
-
-            <div class="workspace-shell">
                 <section class="scene-stage">
-                    <div class="scene-viewport-card">
-                        <div class="scene-viewport-header">
-                            <div>
-                                <div class="scene-viewport-eyebrow">ПОЛЕТНАЯ ЗОНА</div>
-                                <div class="scene-viewport-title">Полетная зона</div>
-                            </div>
-                            <div class="scene-viewport-subtitle">Светлая испытательная сцена с точной координатной сеткой, посадочной площадкой и живым управлением камерой.</div>
-                        </div>
-                        <div class="scene-container">
-                            <div id="canvas-container"></div>
-                            <div id="fpv-overlay">
-                                <div class="fpv-header">
-                                    <div class="fpv-cam-info">
-                                        <div>OV2640 [1600x1200]</div>
-                                        <div>FPS: 24</div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="camera-controls">
-                                <button onclick="setCameraMode('ground')">Земля</button>
-                                <button onclick="setCameraMode('drone')">Дрон</button>
-                                <button onclick="setCameraMode('fpv')">FPV</button>
-                                <button onclick="setCameraMode('free')">Свободно</button>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <aside class="hud-side-column">
-                    <div class="dashboard-toolbar">
-                        <div>
-                            <div class="dashboard-toolbar__eyebrow">ПАНЕЛЬ ПОЛЕТА</div>
-                            <div class="dashboard-title">Панель полета</div>
-                        </div>
-                        <div class="hud-visibility-controls">
-                            <button id="toggle-telemetry-btn" type="button" class="hud-visibility-btn active" aria-pressed="true">Метрики</button>
-                            <button id="toggle-matrix-btn" type="button" class="hud-visibility-btn active" aria-pressed="true">Матрица</button>
-                        </div>
-                    </div>
-
-                    <div id="telemetry-overlay" class="telemetry-overlay dashboard-panel">
-                        <div class="dashboard-panel__header">
-                            <span>Полетные метрики</span>
-                            <span class="dashboard-panel__badge">Онлайн</span>
-                        </div>
-                        <div class="stats-grid">
-                            <div class="stat-item stat-item--primary">
-                                <div class="stat-label">ВЫСОТА</div>
-                                <div class="stat-value"><span id="state-alt">0.00</span><span>м</span></div>
-                            </div>
-                            <div class="stat-item stat-item--primary">
-                                <div class="stat-label">СКОРОСТЬ</div>
-                                <div class="stat-value"><span id="state-spd">0.0</span><span>м/с</span></div>
-                            </div>
-                            <div class="stat-item stat-item--primary">
-                                <div class="stat-label">БАТАРЕЯ</div>
-                                <div class="stat-value"><span id="state-bat">100</span><span>%</span></div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-label">ВРЕМЯ ПОЛЕТА</div>
-                                <div class="stat-value"><span id="state-time">0.0</span><span>с</span></div>
-                            </div>
-                            <div class="stat-item" id="hud-stat-mode" style="display: none;">
-                                <div class="stat-label">РЕЖИМ</div>
-                                <div class="stat-value"><span id="state-mode">АВТО</span></div>
-                            </div>
-                            <div class="stat-item stat-item--status">
-                                <div class="stat-label">СТАТУС</div>
-                                <div class="stat-value"><span id="state-status">ОЖИДАНИЕ</span></div>
+            <div class="scene-viewport-card">
+                <div class="scene-viewport-header">
+                    <div class="scene-viewport-label">Полетная зона</div>
+                </div>
+                <div class="scene-container">
+                    <div id="canvas-container"></div>
+                    <div id="fpv-overlay">
+                        <div class="fpv-header">
+                            <div class="fpv-cam-info">
+                                <div>OV2640 [1600x1200]</div>
+                                <div>FPS: 24</div>
                             </div>
                         </div>
                     </div>
 
-                    <div id="matrix-overlay" class="matrix-overlay dashboard-panel">
-                        <div class="dashboard-panel__header">
-                            <span>LED-матрица</span>
-                            <span class="dashboard-panel__badge">5 x 5</span>
-                        </div>
-                        <div class="led-section-label">БОРТОВЫЕ ИНДИКАТОРЫ</div>
-                        <div class="led-base-grid">
-                            <div id="led-base-0" class="led-pixel-base" title="Базовый светодиод 0"></div>
-                            <div id="led-base-1" class="led-pixel-base" title="Базовый светодиод 1"></div>
-                            <div id="led-base-2" class="led-pixel-base" title="Базовый светодиод 2"></div>
-                            <div id="led-base-3" class="led-pixel-base" title="Базовый светодиод 3"></div>
-                        </div>
-                        <div class="led-section-label">МАТРИЦА 5x5</div>
-                        <div class="led-matrix-grid" id="led-matrix-grid"></div>
+                    <div class="camera-controls">
+                        <button onclick="setCameraMode('ground')">Земля</button>
+                        <button onclick="setCameraMode('drone')">Дрон</button>
+                        <button onclick="setCameraMode('fpv')">FPV</button>
+                        <button onclick="setCameraMode('free')">Свободно</button>
                     </div>
-                </aside>
+                </div>
             </div>
-        </div>
+        </section>
 
-    </div>
+        <aside class="hud-side-column">
+            <div class="dashboard-toolbar">
+                <div class="dashboard-card-title">Управление</div>
+                <div class="hud-visibility-controls">
+                    <button id="toggle-telemetry-btn" type="button" class="hud-visibility-btn active" aria-pressed="true">Метрики</button>
+                    <button id="toggle-matrix-btn" type="button" class="hud-visibility-btn active" aria-pressed="true">Матрица</button>
+                </div>
+            </div>
+
+            <div id="telemetry-overlay" class="telemetry-overlay dashboard-panel">
+                <div class="dashboard-panel__header">
+                    <span class="dashboard-panel__title">Метрики</span>
+                    <span class="dashboard-panel__badge">Онлайн</span>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-item stat-item--primary">
+                        <div class="stat-label">ВЫСОТА</div>
+                        <div class="stat-value"><span id="state-alt">0.00</span><span>м</span></div>
+                    </div>
+                    <div class="stat-item stat-item--primary">
+                        <div class="stat-label">СКОРОСТЬ</div>
+                        <div class="stat-value"><span id="state-spd">0.0</span><span>м/с</span></div>
+                    </div>
+                    <div class="stat-item stat-item--primary">
+                        <div class="stat-label">БАТАРЕЯ</div>
+                        <div class="stat-value"><span id="state-bat">100</span><span>%</span></div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">ВРЕМЯ ПОЛЕТА</div>
+                        <div class="stat-value"><span id="state-time">0.0</span><span>с</span></div>
+                    </div>
+                    <div class="stat-item" id="hud-stat-mode" style="display: none;">
+                        <div class="stat-label">РЕЖИМ</div>
+                        <div class="stat-value"><span id="state-mode">АВТО</span></div>
+                    </div>
+                    <div class="stat-item stat-item--status">
+                        <div class="stat-label">СТАТУС</div>
+                        <div class="stat-value"><span id="state-status">ОЖИДАНИЕ</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="matrix-overlay" class="matrix-overlay dashboard-panel">
+                <div class="dashboard-panel__header">
+                    <span class="dashboard-panel__title">LED-матрица</span>
+                    <span class="dashboard-panel__badge">5 x 5</span>
+                </div>
+                <div class="led-section-label">БОРТОВЫЕ ИНДИКАТОРЫ</div>
+                <div class="led-base-grid">
+                    <div id="led-base-0" class="led-pixel-base" title="Базовый светодиод 0"></div>
+                    <div id="led-base-1" class="led-pixel-base" title="Базовый светодиод 1"></div>
+                    <div id="led-base-2" class="led-pixel-base" title="Базовый светодиод 2"></div>
+                    <div id="led-base-3" class="led-pixel-base" title="Базовый светодиод 3"></div>
+                </div>
+                <div class="led-section-label">МАТРИЦА 5x5</div>
+                <div class="led-matrix-grid" id="led-matrix-grid"></div>
+            </div>
+        </aside>
+
+    </main>
 
         <!-- Gamepad Wizard Modal -->
     <div id="gp-wizard-overlay" class="modal-overlay" style="display: none;">
@@ -902,6 +936,6 @@
             </div>
         </div>
     </div>
-
+
 </body>
 </html>

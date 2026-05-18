@@ -5,16 +5,21 @@
 /* SIDEBAR PANELS */
 .sidebar-panels {
     height: 100%;
-    width: 450px;
+    width: 320px;
     background: linear-gradient(180deg, #fcfcfd 0%, #f6f7f8 100%);
     border-right: 1px solid rgba(9, 9, 11, 0.04);
     display: flex;
+    flex: 1 1 auto;
     flex-direction: column;
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     overflow: hidden;
     position: relative;
     z-index: 90;
-    min-width: 0;
+    min-width: 320px;
+}
+
+.sidebar-panels .resizer {
+    display: block;
 }
 
 .sidebar-panels.is-collapsed {
@@ -39,5 +44,3 @@
 .sidebar-panel.active {
     display: flex;
 }
-
-

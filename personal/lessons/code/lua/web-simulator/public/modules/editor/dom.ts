@@ -110,7 +110,7 @@ function computeExpandedSidebarWidth(viewportWidth: number, currentWidth: number
         ? Math.max(MIN_EXPANDED_SIDEBAR_WIDTH, safeViewportWidth - MIN_MAIN_SCENE_WIDTH_WIDE)
         : Math.max(MIN_EXPANDED_SIDEBAR_WIDTH, Math.floor(safeViewportWidth * MAX_SIDEBAR_RATIO_COMPACT));
     const minimumWidth = Math.min(Math.max(MIN_EXPANDED_SIDEBAR_WIDTH, preferredWidth), maximumWidth);
-    return Math.max(minimumWidth, Math.min(maximumWidth, Math.max(currentWidth, preferredWidth)));
+    return Math.min(1000, Math.max(320, Math.max(minimumWidth, Math.min(maximumWidth, Math.max(currentWidth, preferredWidth)))));
 }
 
 export function expandEditorPanelForBlockly(previousSidebarWidthBeforeBlockly: string | null): string | null {

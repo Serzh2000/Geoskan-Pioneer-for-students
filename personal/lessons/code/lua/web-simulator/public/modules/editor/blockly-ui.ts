@@ -20,7 +20,7 @@ export function computeExpandedSidebarWidth(viewportWidth: number, currentWidth:
     const preferredWidth = Math.round(safeViewportWidth * 0.58);
     const minimumWidth = Math.min(560, Math.max(0, safeViewportWidth - 80));
     const maximumWidth = Math.max(minimumWidth, Math.floor(safeViewportWidth * 0.78));
-    return Math.max(minimumWidth, Math.min(maximumWidth, Math.max(currentWidth, preferredWidth)));
+    return Math.min(1000, Math.max(minimumWidth, Math.min(maximumWidth, Math.max(currentWidth, preferredWidth))));
 }
 
 export function computeBlocklyViewportDimensions(width: number, height: number): BlocklyViewportDimensions {
