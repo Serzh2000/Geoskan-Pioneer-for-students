@@ -37,6 +37,8 @@ export function createGamepadSettingsController(dom: SettingsDomRefs, state: Set
     const hasChannelData = (): boolean => simSettings.gamepadConnected && state.activeGamepadHasChannelData;
     const getObservedStatsForRef = (ref: GamepadInputRef) => getObservedStats(state.observedInputStats, ref);
     const getModePositions = () => getModeObservedPositions(state.observedInputStats, getMappingRef('mode'));
+    const escapeHtml = (value: string): string =>
+        value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
     const findCurrentActiveGamepad = (): Gamepad | null =>
         findActiveMappedGamepad(state.activeGamepadIndex, state.activeGamepadId);
     const setAutoStatusState = (mode: 'idle' | 'listening' | 'success', text: string): void => {
@@ -157,12 +159,15 @@ export function createGamepadSettingsController(dom: SettingsDomRefs, state: Set
             if (gamepad) {
                 const axisChannels = gamepad.axes.length > 0 ? `CH1-CH${gamepad.axes.length}` : 'нет axis';
                 const buttons = gamepad.buttons.length > 0 ? `BTN1-BTN${gamepad.buttons.length}` : 'без кнопок';
-                dom.gamepadStatusEl.textContent =
-                    `Пульт: ${getGamepadName(gamepad)} | ${axisChannels} | ${buttons} | Stick Mode ${simSettings.gamepadStickMode}`;
-                dom.gamepadStatusEl.style.color = '#4ade80';
+                const gamepadName = escapeHtml(getGamepadName(gamepad));
+                dom.gamepadStatusEl.innerHTML =
+                    `<span class="gamepad-status-pill__name">${gamepadName}</span><span class="gamepad-status-pill__meta">· ${axisChannels} · ${buttons} · Mode ${simSettings.gamepadStickMode}</span>`;
+                dom.gamepadStatusEl.classList.add('is-connected');
+                dom.gamepadStatusEl.classList.remove('is-disconnected');
             } else {
                 dom.gamepadStatusEl.textContent = 'Пульт не подключен';
-                dom.gamepadStatusEl.style.color = 'var(--text-muted)';
+                dom.gamepadStatusEl.classList.add('is-disconnected');
+                dom.gamepadStatusEl.classList.remove('is-connected');
             }
         }
 

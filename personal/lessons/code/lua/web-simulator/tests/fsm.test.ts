@@ -7,9 +7,11 @@ describe('drone FSM validation', () => {
     let handlePreflightTimeout: typeof import('../public/modules/autopilot/fsm.js').handlePreflightTimeout;
     let queueMceCommand: typeof import('../public/modules/autopilot/fsm.js').queueMceCommand;
     let setDroneFsmState: typeof import('../public/modules/autopilot/fsm.js').setDroneFsmState;
+    let updateActiveFlight: typeof import('../public/modules/physics/flight-update.js').updateActiveFlight;
     let withCommandSource: typeof import('../public/modules/autopilot/fsm.js').withCommandSource;
     let createDroneState: typeof import('../public/modules/core/state.js').createDroneState;
     let resetState: typeof import('../public/modules/core/state.js').resetState;
+    let simSettings: typeof import('../public/modules/core/state.js').simSettings;
     let processCommandQueue: typeof import('../public/modules/physics/commands.js').processCommandQueue;
     let drone: ReturnType<typeof import('../public/modules/core/state.js').createDroneState>;
     const logLines: string[] = [];
@@ -41,7 +43,8 @@ describe('drone FSM validation', () => {
             setDroneFsmState,
             withCommandSource
         } = await import('../public/modules/autopilot/fsm.js'));
-        ({ createDroneState, resetState } = await import('../public/modules/core/state.js'));
+        ({ updateActiveFlight } = await import('../public/modules/physics/flight-update.js'));
+        ({ createDroneState, resetState, simSettings } = await import('../public/modules/core/state.js'));
         ({ processCommandQueue } = await import('../public/modules/physics/commands.js'));
         drone = createDroneState('fsm_test_drone', 'FSM Test Drone');
     });
@@ -49,6 +52,7 @@ describe('drone FSM validation', () => {
     beforeEach(() => {
         resetState(drone.id);
         drone.running = true;
+        simSettings.gamepadConnected = false;
         logLines.length = 0;
     });
 
@@ -90,6 +94,20 @@ describe('drone FSM validation', () => {
         expect(handlePreflightTimeout(drone)).toBe(true);
         expect(drone.fsmState).toBe('IDLE');
         expect(logLines.some((line) => line.includes('WARNING: Превышено время ожидания взлета.'))).toBe(true);
+    });
+
+    test('keeps manual RC arming latched without PREFLIGHT timeout while arm switch stays active', () => {
+        simSettings.gamepadConnected = true;
+        drone.rcChannels[4] = 1000;
+        drone.rcChannels[5] = 2000;
+
+        updateActiveFlight(drone, drone.id, 0.016, false, () => []);
+        expect(drone.fsmState).toBe('PREFLIGHT');
+        expect(drone.preflightDeadlineMs).toBeNull();
+
+        drone.current_time = 10;
+        expect(handlePreflightTimeout(drone)).toBe(false);
+        expect(drone.fsmState).toBe('PREFLIGHT');
     });
 
     test('landing overwrites active movement without delay', () => {

@@ -5,6 +5,7 @@ export function initSidebar(callbacks: UICallbacks) {
     const resizer = document.getElementById('sidebar-resizer') as HTMLElement | null;
     if (!panels || !resizer) return;
 
+    const fullscreenPanels = new Set(['settings-panel', 'gamepad-panel']);
     let isResizing = false;
     let viewportRefreshFrame = 0;
 
@@ -22,7 +23,7 @@ export function initSidebar(callbacks: UICallbacks) {
     };
 
     const syncSidebarMode = (panelId: string | null) => {
-        panels.classList.toggle('is-fullscreen', panelId === 'settings-panel' && panels.style.width !== '0px');
+        panels.classList.toggle('is-fullscreen', !!panelId && fullscreenPanels.has(panelId) && panels.style.width !== '0px');
     };
 
     (window as any).openPanel = function(panelId: string) {
@@ -42,7 +43,7 @@ export function initSidebar(callbacks: UICallbacks) {
             return;
         }
 
-        panels.style.width = panelId === 'settings-panel' ? '100%' : (localStorage.getItem('sidebar-width') || '450px');
+        panels.style.width = fullscreenPanels.has(panelId) ? '100%' : (localStorage.getItem('sidebar-width') || '450px');
         syncSidebarCollapsedState();
         syncSidebarMode(panelId);
         panel.classList.add('active');

@@ -78,20 +78,20 @@ export function renderChannelDataState(dom: SettingsDomRefs, state: SettingsRunt
     if (!dom.channelDataStatusEl) return;
 
     if (!simSettings.gamepadConnected) {
-        dom.channelDataStatusEl.textContent = 'Подключите пульт, чтобы получить значения его каналов и открыть назначение.';
+        dom.channelDataStatusEl.textContent = 'Подключите пульт, чтобы открыть назначение каналов и живой мониторинг сигнала.';
         dom.channelDataStatusEl.classList.remove('is-ready');
         dom.channelDataStatusEl.classList.add('is-waiting');
         return;
     }
 
     if (!state.activeGamepadHasChannelData) {
-        dom.channelDataStatusEl.textContent = 'Жду первые значения от текущего пульта. Назначение каналов и AUTO станут доступны сразу после получения данных.';
+        dom.channelDataStatusEl.textContent = 'Ожидаю первые значения от текущего пульта. Как только сигнал появится, назначение каналов и AUTO станут доступны.';
         dom.channelDataStatusEl.classList.remove('is-ready');
         dom.channelDataStatusEl.classList.add('is-waiting');
         return;
     }
 
-    dom.channelDataStatusEl.textContent = 'Значения каналов получены. Можно назначать входы и подбирать диапазоны по живому сигналу.';
+    dom.channelDataStatusEl.textContent = 'Живой сигнал получен. Теперь можно назначать входы и точно подбирать диапазоны в реальном времени.';
     dom.channelDataStatusEl.classList.remove('is-waiting');
     dom.channelDataStatusEl.classList.add('is-ready');
 }
