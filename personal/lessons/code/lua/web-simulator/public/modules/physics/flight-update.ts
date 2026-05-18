@@ -35,6 +35,8 @@ function updateFlightModeFromRc(simState: DroneState, id: string, isFlying: bool
     const isAirborne = simState.pos.z > AIRBORNE_ALTITUDE_EPSILON;
     if (armActive && simState.fsmState === 'IDLE' && simState.status !== 'DISARMED_FALL') {
         if (enterPreflight(simState)) {
+            // Manual arming should stay latched while the arm switch remains active.
+            simState.preflightDeadlineMs = null;
             triggerLuaCallback(id, 11);
         }
     } else if (!armActive && (simState.fsmState === 'PREFLIGHT' || isFlying)) {

@@ -1,6 +1,5 @@
 import { simSettings } from '../core/state.js';
 import { updatePhysics } from '../physics/index.js';
-import { updateRcInputRuntime } from '../ui/settings/runtime.js';
 import { updateStats } from '../ui/panels/stats.js';
 
 type LoopCallbacks = {
@@ -22,7 +21,6 @@ export function startAnimationLoop(callbacks: LoopCallbacks): void {
 
         dt *= simSettings.simSpeed;
 
-        updateRcInputRuntime();
         updatePhysics(dt);
         if (callbacks.is3DActive()) {
             callbacks.updateDrone3D(dt);

@@ -10,12 +10,22 @@ import { currentDroneId, currentScriptLanguage, drones, createDroneState, setCur
 import { getEditorValue, setEditorValue } from '../../editor/index.js';
 
 export function initDroneManager(onSceneUpdate?: () => void) {
-    const list = document.getElementById('drone-list') as HTMLUListElement;
+    const list = document.getElementById('drone-list') as HTMLSelectElement;
     const addBtn = document.getElementById('add-drone-btn') as HTMLButtonElement;
     const delBtn = document.getElementById('del-drone-btn') as HTMLButtonElement;
 
-    function selectDrone(id: string) {
-        if (!drones[id] || id === currentDroneId) return;
+    function updateList() {
+        list.innerHTML = '';
+        for (const id in drones) {
+            const opt = document.createElement('option');
+            opt.value = id;
+            opt.textContent = drones[id].name;
+            if (id === currentDroneId) opt.selected = true;
+            list.appendChild(opt);
+        }
+    }
+
+    list.addEventListener('change', () => {
         // Save current script before switching
         if (drones[currentDroneId]) {
             const currentCode = getEditorValue();
@@ -25,35 +35,14 @@ export function initDroneManager(onSceneUpdate?: () => void) {
                 drones[currentDroneId].pythonScript = currentCode;
             }
         }
-        setCurrentDrone(id);
+        setCurrentDrone(list.value);
         const nextCode = currentScriptLanguage === 'lua'
             ? drones[currentDroneId].script
             : drones[currentDroneId].pythonScript;
         setEditorValue(nextCode);
+        // Refresh scene
         if (onSceneUpdate) onSceneUpdate();
-        updateList();
-    }
-
-    function updateList() {
-        list.innerHTML = '';
-        for (const id in drones) {
-            const item = document.createElement('li');
-            item.className = 'drone-list-item';
-            item.setAttribute('role', 'option');
-            item.setAttribute('aria-selected', String(id === currentDroneId));
-
-            const button = document.createElement('button');
-            button.type = 'button';
-            button.className = 'drone-list-button';
-            if (id === currentDroneId) button.classList.add('is-selected');
-            button.dataset.droneId = id;
-            button.textContent = drones[id].name;
-            button.addEventListener('click', () => selectDrone(id));
-
-            item.appendChild(button);
-            list.appendChild(item);
-        }
-    }
+    });
 
     addBtn.addEventListener('click', () => {
         const num = Object.keys(drones).length + 1;
@@ -73,7 +62,7 @@ export function initDroneManager(onSceneUpdate?: () => void) {
             log('Cannot delete the last drone.', 'error');
             return;
         }
-        const id = currentDroneId;
+        const id = list.value;
         if (id) {
             delete drones[id];
             setCurrentDrone(Object.keys(drones)[0]);

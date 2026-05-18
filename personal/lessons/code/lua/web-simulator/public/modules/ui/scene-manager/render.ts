@@ -23,20 +23,6 @@ function formatSceneLabel(value: string, objectName = ''): string {
     return normalized || name || 'Объект';
 }
 
-const ICONS = {
-    folder: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>',
-    drone: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22v-5m0-7V2M2 12h5m7 0h8"></path><circle cx="12" cy="12" r="3"></circle><circle cx="12" cy="2" r="1"></circle><circle cx="12" cy="22" r="1"></circle><circle cx="2" cy="12" r="1"></circle><circle cx="22" cy="12" r="1"></circle></svg>',
-    grid: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="3" y1="15" x2="21" y2="15"></line><line x1="9" y1="3" x2="9" y2="21"></line><line x1="15" y1="3" x2="15" y2="21"></line></svg>',
-    cube: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>'
-};
-
-function getObjectIcon(type: string, isDrone: boolean): string {
-    if (isDrone) return ICONS.drone;
-    if (type === 'Группа' || type === 'Group') return ICONS.folder;
-    if (type === 'Земля' || type === 'Ground') return ICONS.grid;
-    return ICONS.cube;
-}
-
 function renderObjectList(
     callbacks: UICallbacks,
     elements: SceneManagerDomRefs,
@@ -51,14 +37,7 @@ function renderObjectList(
         const row = document.createElement('button');
         row.type = 'button';
         row.className = 'scene-manager-item' + (obj.id === selectedId ? ' active' : '');
-        row.setAttribute('role', 'option');
-        row.setAttribute('aria-selected', obj.id === selectedId ? 'true' : 'false');
-        
-        const label = formatSceneLabel(obj.sceneType, obj.name);
-        const icon = getObjectIcon(obj.sceneType, obj.isDrone);
-        
-        row.innerHTML = `${icon} <span>${label}${obj.isDrone ? ' (дрон)' : ''}</span>`;
-        
+        row.textContent = `${formatSceneLabel(obj.sceneType, obj.name)}${obj.isDrone ? ' (дрон)' : ''}`;
         row.onclick = () => {
             callbacks.sceneManager && callbacks.sceneManager.select(obj.id);
             rerender();
@@ -69,7 +48,6 @@ function renderObjectList(
 
 function renderEmptyState(elements: SceneManagerDomRefs) {
     if (elements.detailsEl) elements.detailsEl.textContent = 'Объекты сцены не найдены';
-    if (elements.selectedObjectChipEl) elements.selectedObjectChipEl.textContent = 'Ничего не выбрано';
     if (elements.selectedDictionaryEl) elements.selectedDictionaryEl.value = '';
     if (elements.selectedValueEl) elements.selectedValueEl.value = '';
     if (elements.selectedFloorsEl) elements.selectedFloorsEl.value = '9';
@@ -84,27 +62,16 @@ function renderEmptyState(elements: SceneManagerDomRefs) {
 function renderSelectedDetails(elements: SceneManagerDomRefs, selected: SceneManagerEntry) {
     if (!elements.detailsEl) return;
 
-    const selectedLabel = formatSceneLabel(selected.sceneType, selected.name);
-    if (elements.selectedObjectChipEl) {
-        elements.selectedObjectChipEl.textContent = selected.isDrone ? `${selectedLabel} (дрон)` : selectedLabel;
-        elements.selectedObjectChipEl.title = elements.selectedObjectChipEl.textContent;
-    }
-
-    const labels = {
-        position: 'Позиция',
-        rotation: 'Поворот',
-        scale: 'Масштаб'
-    };
-
-    const details = [
-        { label: labels.position, value: `${formatSceneNumber(selected.position.x)}, ${formatSceneNumber(selected.position.y)}, ${formatSceneNumber(selected.position.z)}` },
-        { label: labels.rotation, value: `${formatSceneNumber(selected.rotation.x)}, ${formatSceneNumber(selected.rotation.y)}, ${formatSceneNumber(selected.rotation.z)}` },
-        { label: labels.scale, value: `${formatSceneNumber(selected.scale.x)}, ${formatSceneNumber(selected.scale.y)}, ${formatSceneNumber(selected.scale.z)}` }
+    const detailLines = [
+        `Тип: ${formatSceneLabel(selected.sceneType, selected.name)}`,
+        `Имя: ${formatSceneLabel(selected.name, selected.sceneType)}`,
+        `Перемещаемый: ${selected.draggable ? 'да' : 'нет'}`,
+        `Позиция: ${formatSceneNumber(selected.position.x)}, ${formatSceneNumber(selected.position.y)}, ${formatSceneNumber(selected.position.z)}`,
+        `Поворот: ${formatSceneNumber(selected.rotation.x)}, ${formatSceneNumber(selected.rotation.y)}, ${formatSceneNumber(selected.rotation.z)}`,
+        `Масштаб: ${formatSceneNumber(selected.scale.x)}, ${formatSceneNumber(selected.scale.y)}, ${formatSceneNumber(selected.scale.z)}`
     ];
-
-    elements.detailsEl.innerHTML = details
-        .map(d => `<div class="detail-row"><span class="detail-label">${d.label}:</span> <span class="detail-value">${d.value}</span></div>`)
-        .join('');
+    if (selected.metaLines?.length) detailLines.push(...selected.metaLines);
+    elements.detailsEl.textContent = detailLines.join('\n');
 }
 
 function syncSelectedInputs(
@@ -175,14 +142,6 @@ function updateSelectedControls(callbacks: UICallbacks, elements: SceneManagerDo
         elements.visualEditBtn.title = isVisualEditing
             ? 'Завершить визуальную прокладку'
             : 'Добавлять точки маршрута кликами по сцене';
-    }
-
-    // Update transform mode buttons
-    if (callbacks.sceneManager) {
-        const mode = callbacks.sceneManager.getMode?.() ?? null;
-        elements.modeTranslateBtn?.classList.toggle('active', mode === 'translate');
-        elements.modeRotateBtn?.classList.toggle('active', mode === 'rotate');
-        elements.modeScaleBtn?.classList.toggle('active', mode === 'scale');
     }
 }
 

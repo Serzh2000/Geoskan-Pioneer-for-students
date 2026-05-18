@@ -1,4 +1,287 @@
-/* Entry point for HUD overlays and settings styles. */
-@import url('./hud-and-settings/hud.css');
-@import url('./hud-and-settings/simulation-notice.css');
-@import url('./hud-and-settings/settings.css');
+/*
+ * HUD-оверлеи и блоки настроек.
+ * Файл выделен из `public/style.css` при декомпозиции общего CSS.
+ */
+/* OVERLAYS */
+.hud-side-column {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 0;
+    min-height: 0;
+}
+
+.dashboard-toolbar {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 18px;
+    border-radius: 24px;
+    border: 1px solid rgba(9, 9, 11, 0.08);
+    background: rgba(255, 255, 255, 0.94);
+    box-shadow: var(--shadow-card);
+}
+
+.dashboard-toolbar__eyebrow {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent-color);
+}
+
+.dashboard-title {
+    margin-top: 6px;
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--text-strong);
+}
+
+.telemetry-overlay,
+.matrix-overlay {
+    position: relative;
+    width: 100%;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.dashboard-panel {
+    padding: 18px;
+    border-radius: 24px;
+    border: 1px solid rgba(9, 9, 11, 0.08);
+    background: rgba(255, 255, 255, 0.94);
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
+}
+
+.dashboard-panel__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-strong);
+}
+
+.dashboard-panel__badge {
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: rgba(255, 107, 0, 0.1);
+    color: var(--accent-color);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.telemetry-overlay.is-hidden,
+.matrix-overlay.is-hidden {
+    opacity: 0;
+    transform: translateY(10px);
+    pointer-events: none;
+    max-height: 0;
+    margin: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    overflow: hidden;
+    border-width: 0;
+    box-shadow: none;
+}
+
+.hud-visibility-controls {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.hud-visibility-btn {
+    border: 1px solid rgba(9, 9, 11, 0.1);
+    background: #f7f7f8;
+    color: var(--text-muted);
+    border-radius: 999px;
+    padding: 8px 12px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.hud-visibility-btn:hover,
+.hud-visibility-btn.active {
+    color: var(--text-strong);
+    border-color: rgba(255, 107, 0, 0.24);
+    background: rgba(255, 107, 0, 0.12);
+}
+
+.simulation-notice {
+    position: absolute;
+    left: 50%;
+    top: 24px;
+    transform: translateX(-50%) translateY(-12px);
+    width: min(560px, calc(100% - 32px));
+    opacity: 0;
+    pointer-events: none;
+    z-index: 12;
+    transition: opacity 0.24s ease, transform 0.24s ease;
+}
+
+.simulation-notice.visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(-50%) translateY(0);
+}
+
+.simulation-notice::before {
+    content: '';
+    display: block;
+    border-radius: 18px;
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.22), rgba(239, 68, 68, 0.16));
+    border: 1px solid rgba(245, 158, 11, 0.32);
+    box-shadow: 0 16px 40px rgba(2, 6, 23, 0.42);
+    backdrop-filter: blur(16px);
+    position: absolute;
+    inset: 0;
+}
+
+.simulation-notice__title,
+.simulation-notice__message,
+.simulation-notice__close {
+    position: relative;
+    z-index: 1;
+}
+
+.simulation-notice {
+    padding: 16px 18px 14px;
+}
+
+.simulation-notice__title {
+    margin-bottom: 8px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #fde68a;
+}
+
+.simulation-notice__message {
+    padding-right: 110px;
+    color: #f8fafc;
+    font-size: 13px;
+    line-height: 1.45;
+}
+
+.simulation-notice__details {
+    position: relative;
+    z-index: 1;
+    margin-top: 10px;
+    padding-right: 8px;
+    color: #e2e8f0;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.simulation-notice__list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.simulation-notice__details code {
+    font-family: var(--font-mono);
+    color: #fef3c7;
+}
+
+.simulation-notice__action {
+    margin: 2px 0 10px;
+    border: 1px solid rgba(253, 224, 71, 0.28);
+    background: rgba(255, 255, 255, 0.06);
+    color: #fde68a;
+    border-radius: 999px;
+    padding: 8px 12px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.simulation-notice__action:hover {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.simulation-notice__code {
+    background: rgba(2, 6, 23, 0.52);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    padding: 10px 12px;
+    white-space: pre;
+    overflow-x: auto;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: #f8fafc;
+}
+
+.simulation-notice__close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    border: 1px solid rgba(253, 224, 71, 0.28);
+    background: rgba(255, 255, 255, 0.06);
+    color: #fde68a;
+    border-radius: 999px;
+    padding: 7px 12px;
+    font-size: 10px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.simulation-notice__close:hover {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.settings-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.settings-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(15, 23, 42, 0.35);
+}
+
+.settings-label {
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--accent-color);
+}
+
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-color);
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.checkbox-container input {
+    width: auto;
+    margin: 0;
+}
+
+.checkmark {
+    display: none;
+}
+
+

@@ -3,7 +3,6 @@ import { DroneOrbitControls } from './DroneOrbitControls.js';
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls.js';
 import { log } from '../../shared/logging/logger.js';
 import { setupEnvironment, envGroup } from '../../environment/index.js';
-import { applyTransformControlsUxTheme } from './transform-controls-style.js';
 
 export let scene: THREE.Scene;
 export let camera: THREE.PerspectiveCamera;
@@ -32,7 +31,6 @@ export let multiSelectedObjects: THREE.Object3D[] = [];
 export let pointerDownPos = new THREE.Vector2();
 export let isHittingGizmo = false;
 let canvasResizeObserver: ResizeObserver | null = null;
-let resizeAnimationFrame = 0;
 
 const orbitTargetBounds = new THREE.Box3();
 const orbitTargetCenter = new THREE.Vector3();
@@ -118,7 +116,6 @@ export function syncViewportDependentSceneVisuals() {
 export function initScene(container: HTMLElement) {
     canvasContainer = container;
     canvasResizeObserver?.disconnect();
-    window.cancelAnimationFrame(resizeAnimationFrame);
     
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0xf5f6f8);
@@ -142,9 +139,6 @@ export function initScene(container: HTMLElement) {
     renderer.toneMappingExposure = 1.18;
     
     canvasContainer.innerHTML = '';
-    renderer.domElement.style.width = '100%';
-    renderer.domElement.style.height = '100%';
-    renderer.domElement.style.display = 'block';
     canvasContainer.appendChild(renderer.domElement);
 
     controls = new DroneOrbitControls(camera, renderer.domElement);
@@ -161,13 +155,13 @@ export function initScene(container: HTMLElement) {
     });
 
     transformControl = new TransformControls(camera, renderer.domElement);
+    transformControl.size = 1.15;
     transformControl.visible = false;
     transformControl.enabled = true;
     transformControl.setSpace('world');
     
     transformHelper = (transformControl as any).getHelper ? (transformControl as any).getHelper() : (transformControl as unknown as THREE.Object3D);
     configureTransformHelperVisuals(transformHelper);
-    applyTransformControlsUxTheme(transformControl, transformHelper);
     scene.add(transformHelper);
     transformHelper.visible = false;
     (window as any).transformControl = transformControl;
@@ -194,31 +188,20 @@ export function initScene(container: HTMLElement) {
 
     is3DActive = true;
 
-    const scheduleResize = () => {
-        window.cancelAnimationFrame(resizeAnimationFrame);
-        resizeAnimationFrame = window.requestAnimationFrame(() => {
-            onWindowResize();
-        });
-    };
-
     if (typeof ResizeObserver !== 'undefined') {
         canvasResizeObserver = new ResizeObserver(() => {
-            scheduleResize();
+            onWindowResize();
         });
         canvasResizeObserver.observe(canvasContainer);
-        if (canvasContainer.parentElement) {
-            canvasResizeObserver.observe(canvasContainer.parentElement);
-        }
     }
 }
 
 export function onWindowResize() {
     if (!canvasContainer || !camera || !renderer) return;
-    const parentElement = canvasContainer.parentElement;
-    const width = Math.max(1, canvasContainer.clientWidth || parentElement?.clientWidth || 0);
-    const height = Math.max(1, canvasContainer.clientHeight || parentElement?.clientHeight || 0);
+    const width = Math.max(1, canvasContainer.clientWidth);
+    const height = Math.max(1, canvasContainer.clientHeight);
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
-    renderer.setSize(width, height, false);
+    renderer.setSize(width, height);
     syncViewportDependentSceneVisuals();
 }

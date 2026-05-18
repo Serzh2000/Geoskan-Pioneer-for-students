@@ -91,13 +91,7 @@ export function initContextMenu() {
     menu.addEventListener('contextmenu', (e) => e.preventDefault());
 
     document.body.appendChild(menu);
-    const sceneContainer = document.querySelector('.scene-container');
-    if (sceneContainer) {
-        sceneContainer.appendChild(toolbar);
-        toolbar.style.position = 'absolute';
-    } else {
-        document.body.appendChild(toolbar);
-    }
+    document.body.appendChild(toolbar);
 
     window.showContextMenu = (
         x: number,

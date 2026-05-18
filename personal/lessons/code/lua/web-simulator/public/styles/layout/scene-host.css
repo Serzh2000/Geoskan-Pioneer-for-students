@@ -4,66 +4,47 @@
  */
 /* MAIN SCENE AREA */
 .main-scene {
-    flex: 1 1 auto;
-    width: 100%;
-    height: 100%;
+    flex: 1;
     min-width: 0;
-    min-height: 0;
     position: relative;
-    display: grid;
-    grid-template-rows: auto minmax(0, 1fr);
-    gap: 12px;
-    container-type: inline-size;
-    container-name: main-scene;
-    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
 }
 
 .workspace-shell {
-    width: 100%;
-    height: 100%;
+    flex: 1;
     min-height: 0;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 240px;
-    gap: 16px;
-    align-items: stretch;
-    overflow: hidden;
-}
-
-.workspace-center-column {
-    min-width: 0;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-    overflow: hidden;
+    grid-template-columns: minmax(0, 1fr) clamp(420px, 25vw, 500px);
+    gap: 22px;
 }
 
 .scene-stage {
-    flex: 1 1 auto;
     min-width: 0;
     min-height: 0;
     display: flex;
-    width: 100%;
-    overflow: hidden;
 }
 
 .scene-viewport-card {
-    flex: 1 1 auto;
+    flex: 1;
     min-width: 0;
     min-height: 0;
     display: flex;
     flex-direction: column;
-    gap: 0;
-    padding: 0;
-    border-radius: 0;
-    background: transparent;
-    border: 0;
-    box-shadow: none;
-    overflow: hidden;
+    gap: 16px;
+    padding: 22px;
+    border-radius: 30px;
+    background: rgba(255, 255, 255, 0.94);
+    border: 1px solid rgba(9, 9, 11, 0.08);
+    box-shadow: var(--shadow-card);
 }
 
 .scene-viewport-header {
-    display: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 24px;
 }
 
 .scene-viewport-eyebrow {
@@ -76,44 +57,29 @@
 
 .scene-viewport-title {
     margin-top: 6px;
-    font-size: 32px;
+    font-size: 30px;
     font-weight: 800;
     color: var(--text-strong);
 }
 
 .scene-viewport-subtitle {
-    max-width: 320px;
-    font-size: 13px;
-    line-height: 1.5;
+    max-width: 380px;
+    font-size: 14px;
+    line-height: 1.45;
     color: var(--text-muted);
 }
 
-.scene-viewport-subtitle--overlay {
-    display: none;
-}
-
 .scene-container {
-    flex: 1 1 auto;
+    flex: 1;
     position: relative;
     overflow: hidden;
     min-height: 0;
-    width: 100%;
-    border-radius: 24px;
-    border: 0;
-    background: transparent;
-    contain: layout size;
+    border-radius: 26px;
+    border: 1px solid rgba(9, 9, 11, 0.06);
+    background: linear-gradient(180deg, #ffffff, #f3f4f6);
 }
 
 #canvas-container { position: absolute; inset: 0; }
-#canvas-container,
-#canvas-container canvas {
-    width: 100%;
-    height: 100%;
-}
-
-#canvas-container canvas {
-    display: block;
-}
 #canvas { width: 100%; height: 100%; outline: none; }
 
 .drone-print-bubbles {

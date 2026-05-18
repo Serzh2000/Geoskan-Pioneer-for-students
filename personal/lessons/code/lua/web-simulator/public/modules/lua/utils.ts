@@ -5,13 +5,9 @@ export function log(msg: string, type: 'info' | 'error' | 'warn' | 'success' = '
     if (!logs) return;
     const div = document.createElement('div');
     div.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
-    div.className = 'log-line log-info';
-    if (type === 'error') div.className = 'log-line log-error';
-    if (type === 'warn') div.className = 'log-line log-warn';
-    if (type === 'success') div.className = 'log-line log-success';
-    if (/preflight|takeoff|land|ошибка|crashed|сначала выполните/i.test(msg)) {
-        div.className += ' log-critical';
-    }
+    if (type === 'error') div.className = 'log-error';
+    if (type === 'warn') div.className = 'log-warn';
+    if (type === 'success') div.className = 'log-success';
     logs.appendChild(div);
     logs.scrollTop = logs.scrollHeight;
 }

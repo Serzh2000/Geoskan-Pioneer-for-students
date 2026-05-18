@@ -1,0 +1,150 @@
+/* BUTTONS */
+.btn-primary {
+    background: linear-gradient(135deg, #ff7d1f, var(--accent-color));
+    color: #ffffff;
+    border: 1px solid transparent;
+    padding: 11px 18px;
+    border-radius: 14px;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 14px 28px rgba(255, 107, 0, 0.24);
+}
+
+.btn-primary:hover {
+    filter: brightness(1.04);
+    transform: translateY(-1px);
+    box-shadow: 0 18px 30px rgba(255, 107, 0, 0.3);
+}
+
+.btn-primary:active {
+    transform: translateY(1px);
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.9);
+    color: #111827;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    padding: 11px 14px;
+    border-radius: 14px;
+    font-weight: 600;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    outline: none;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.btn-secondary:hover {
+    background: #ffffff;
+    border-color: rgba(255, 107, 0, 0.2);
+    transform: translateY(-1px);
+}
+
+select.btn-secondary {
+    appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg fill='%236b7280' height='20' viewBox='0 0 24 24' width='20' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 4px center;
+    padding-right: 28px;
+    text-transform: none;
+    letter-spacing: normal;
+}
+
+select.btn-secondary option {
+    background: #ffffff;
+    color: var(--text-color);
+}
+
+.gamepad-action-btn {
+    display: inline-flex;
+    align-items: center;
+    min-height: 34px;
+    min-width: 0;
+    width: 100%;
+    justify-content: center;
+}
+
+.gp-auto-btn {
+    min-width: 0;
+    min-height: 24px;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.gp-auto-btn.is-listening {
+    background: rgba(255, 107, 0, 0.12);
+    border-color: rgba(255, 107, 0, 0.28);
+    color: var(--accent-color);
+}
+
+.gp-auto-btn-wide {
+    width: 100%;
+}
+
+.btn-primary:focus-visible,
+.btn-secondary:focus-visible {
+    box-shadow:
+        0 0 0 3px rgba(255, 107, 0, 0.18),
+        0 14px 28px rgba(255, 107, 0, 0.16);
+}
+
+.gamepad-stage .btn-primary {
+    background: linear-gradient(135deg, #ff842d, var(--accent-color));
+    color: #ffffff;
+    border-color: transparent;
+    box-shadow: 0 10px 20px rgba(255, 107, 0, 0.18);
+}
+
+.gamepad-stage .btn-secondary {
+    background: #ffffff;
+    color: #2a313c;
+    border-color: #d6dce6;
+    box-shadow: none;
+}
+
+.gamepad-stage .gamepad-action-btn {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 10px;
+}
+
+.gamepad-stage .gp-auto-btn {
+    min-height: 24px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 9px;
+    letter-spacing: 0.06em;
+    background: #ffffff;
+    color: #5e6773;
+    border-color: #d7dde7;
+}
+
+.gamepad-stage .btn-secondary:hover {
+    background: #f8fafc;
+    color: #1f2630;
+    border-color: #c9d1dd;
+}
+
+.gamepad-stage .gp-auto-btn:hover {
+    background: #f8fafc;
+    border-color: rgba(255, 107, 0, 0.24);
+}
+
+.gamepad-stage .gp-auto-btn.is-listening {
+    background: rgba(255, 107, 0, 0.12);
+    border-color: rgba(255, 107, 0, 0.34);
+    color: var(--accent-color);
+}
+
+.gamepad-stage .gp-auto-btn-wide {
+    width: auto;
+    min-width: 78px;
+}
